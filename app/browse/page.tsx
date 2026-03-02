@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { BrowseNavbar } from "@/components/layout/browse-navbar"
+import { SearchBox } from "@/components/search/search-box"
 
 export default async function BrowsePage({
   searchParams,
 }: {
-  searchParams: { category?: string }
+  searchParams: { category?: string; q?: string }
 }) {
   const session = await getServerSession(authOptions)
 
@@ -20,6 +21,13 @@ export default async function BrowsePage({
   const where: any = { isPublic: true }
   if (searchParams.category) {
     where.categoryId = searchParams.category
+  }
+  if (searchParams.q) {
+    where.OR = [
+      { title: { contains: searchParams.q } },
+      { content: { contains: searchParams.q } },
+      { description: { contains: searchParams.q } },
+    ]
   }
 
   const prompts = await prisma.prompt.findMany({
@@ -46,29 +54,45 @@ export default async function BrowsePage({
           </p>
         </div>
 
+        {/* Search */}
+        <div className="mb-6">
+          <SearchBox />
+        </div>
+
         {/* Category Filter */}
-        <div className="mb-8">
-          <Link href="/browse">
+        <div className="mb-8 flex flex-wrap gap-2">
+          <Link href={searchParams.q ? `/browse?q=${searchParams.q}` : "/browse"}>
             <Button
               variant={!searchParams.category ? "default" : "outline"}
               size="sm"
-              className="mr-2"
             >
               全部
             </Button>
           </Link>
-          {categories.map((cat) => (
-            <Link key={cat.id} href={`/browse?category=${cat.id}`}>
-              <Button
-                variant={searchParams.category === cat.id ? "default" : "outline"}
-                size="sm"
-                className="mr-2"
-              >
-                {cat.name}
-              </Button>
-            </Link>
-          ))}
+          {categories.map((cat) => {
+            const href = searchParams.q
+              ? `/browse?category=${cat.id}&q=${encodeURIComponent(searchParams.q)}`
+              : `/browse?category=${cat.id}`
+            return (
+              <Link key={cat.id} href={href}>
+                <Button
+                  variant={searchParams.category === cat.id ? "default" : "outline"}
+                  size="sm"
+                >
+                  {cat.name}
+                </Button>
+              </Link>
+            )
+          })}
         </div>
+
+        {searchParams.q && (
+          <div className="mb-6">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              搜索结果: <strong>"{searchParams.q}"</strong> ({prompts.length} 个结果)
+            </p>
+          </div>
+        )}
 
         {prompts.length === 0 ? (
           <Card>
@@ -77,8 +101,10 @@ export default async function BrowsePage({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               <h3 className="text-lg font-medium mb-2">没有找到提示词</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                该分类下还没有公开的提示词
+              <p className="text-gray-600 dark:text-gray-400">
+                {searchParams.q
+                  ? `没有找到包含 "${searchParams.q}" 的提示词`
+                  : "该分类下还没有公开的提示词"}
               </p>
             </CardContent>
           </Card>

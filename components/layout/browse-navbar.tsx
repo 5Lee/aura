@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Session } from "next-auth"
+import { ThemeToggle } from "@/components/theme/theme-toggle"
 
 interface BrowseNavbarProps {
   session: Session | null
@@ -23,6 +24,8 @@ export function BrowseNavbar({ session }: BrowseNavbarProps) {
               浏览
             </span>
           </Link>
+
+          <ThemeToggle />
 
           {session ? (
             <>
