@@ -1,0 +1,276 @@
+# Aura - AI Prompt Manager Feature List
+
+This file contains all features that need to be implemented for the Aura AI Prompt Management Platform. Each feature should only be marked as "passes": true after thorough end-to-end testing.
+
+## IMPORTANT RULES
+- You MUST NOT remove or edit existing features - only change the "passes" field
+- Before marking a feature as passing, you MUST test it end-to-end
+- It is unacceptable to remove or edit features because this could lead to missing or buggy functionality
+
+```json
+{
+  "features": [
+    {
+      "id": "auth-001",
+      "category": "authentication",
+      "priority": 1,
+      "description": "User can register a new account with email and password",
+      "steps": [
+        "Navigate to /register",
+        "Enter name, email, and password (min 6 characters)",
+        "Submit the form",
+        "Verify user is redirected to /login",
+        "Verify user can log in with new credentials"
+      ],
+      "passes": false
+    },
+    {
+      "id": "auth-002",
+      "category": "authentication",
+      "priority": 1,
+      "description": "User can login with email and password",
+      "steps": [
+        "Navigate to /login",
+        "Enter registered email and password",
+        "Submit the form",
+        "Verify user is redirected to /dashboard",
+        "Verify user's name appears in navbar"
+      ],
+      "passes": false
+    },
+    {
+      "id": "auth-003",
+      "category": "authentication",
+      "priority": 1,
+      "description": "User can logout from the application",
+      "steps": [
+        "Login to the application",
+        "Click the logout button in navbar",
+        "Verify user is redirected to home page",
+        "Verify accessing /dashboard redirects to /login"
+      ],
+      "passes": false
+    },
+    {
+      "id": "dashboard-001",
+      "category": "dashboard",
+      "priority": 2,
+      "description": "Dashboard displays user statistics",
+      "steps": [
+        "Login to the application",
+        "Navigate to /dashboard",
+        "Verify prompt count is displayed",
+        "Verify favorite count is displayed",
+        "Verify recent prompts are shown"
+      ],
+      "passes": false
+    },
+    {
+      "id": "prompt-001",
+      "category": "prompts",
+      "priority": 1,
+      "description": "User can create a new prompt",
+      "steps": [
+        "Navigate to /prompts/new",
+        "Fill in title, content, select category",
+        "Submit the form",
+        "Verify success message appears",
+        "Verify prompt appears in /prompts list"
+      ],
+      "passes": false
+    },
+    {
+      "id": "prompt-002",
+      "category": "prompts",
+      "priority": 1,
+      "description": "User can view their prompts in a list",
+      "steps": [
+        "Login and navigate to /prompts",
+        "Verify all user's prompts are displayed",
+        "Verify each prompt shows title, category, and tags",
+        "Verify public/private status is shown"
+      ],
+      "passes": false
+    },
+    {
+      "id": "prompt-003",
+      "category": "prompts",
+      "priority": 2,
+      "description": "User can edit an existing prompt",
+      "steps": [
+        "Navigate to /prompts",
+        "Click on a prompt",
+        "Click the edit button",
+        "Modify title or content",
+        "Save changes",
+        "Verify changes are reflected"
+      ],
+      "passes": false
+    },
+    {
+      "id": "prompt-004",
+      "category": "prompts",
+      "priority": 2,
+      "description": "User can delete a prompt",
+      "steps": [
+        "Navigate to a prompt detail page",
+        "Click the delete button",
+        "Confirm deletion",
+        "Verify user is redirected to /prompts",
+        "Verify deleted prompt no longer appears"
+      ],
+      "passes": false
+    },
+    {
+      "id": "prompt-005",
+      "category": "prompts",
+      "priority": 2,
+      "description": "User can add tags to a prompt",
+      "steps": [
+        "Create or edit a prompt",
+        "Enter comma-separated tags",
+        "Save the prompt",
+        "Verify tags are displayed on prompt card"
+      ],
+      "passes": false
+    },
+    {
+      "id": "prompt-006",
+      "category": "prompts",
+      "priority": 2,
+      "description": "User can set prompt as public or private",
+      "steps": [
+        "Create or edit a prompt",
+        "Toggle the public/private checkbox",
+        "Save the prompt",
+        "Verify correct status badge is shown"
+      ],
+      "passes": false
+    },
+    {
+      "id": "browse-001",
+      "category": "browse",
+      "priority": 2,
+      "description": "Guest can browse public prompts",
+      steps": [
+        "Visit /prompts without logging in",
+        "Verify public prompts are displayed",
+        "Verify prompt cards show author info"
+      ],
+      "passes": false
+    },
+    {
+      "id": "browse-002",
+      "category": "browse",
+      "priority": 3,
+      "description": "User can filter prompts by category",
+      "steps": [
+        "Navigate to /prompts",
+        "Click on a category filter",
+        "Verify only prompts in that category are shown"
+      ],
+      "passes": false
+    },
+    {
+      "id": "favorite-001",
+      "category": "favorites",
+      "priority": 2,
+      "description": "User can favorite a prompt",
+      "steps": [
+        "View a public prompt",
+        "Click the favorite button",
+        "Verify favorite count increases",
+        "Verify prompt appears in /collections"
+      ],
+      "passes": false
+    },
+    {
+      "id": "favorite-002",
+      "category": "favorites",
+      "priority": 2,
+      "description": "User can view their favorited prompts",
+      "steps": [
+        "Login and navigate to /collections",
+        "Verify all favorited prompts are displayed",
+        "Verify prompt details are correct"
+      ],
+      "passes": false
+    },
+    {
+      "id": "favorite-003",
+      "category": "favorites",
+      "priority": 3,
+      "description": "User can unfavorite a prompt",
+      "steps": [
+        "Navigate to /collections",
+        "Remove a prompt from favorites",
+        "Verify prompt no longer appears in list"
+      ],
+      "passes": false
+    },
+    {
+      "id": "search-001",
+      "category": "search",
+      "priority": 3,
+      "description": "User can search prompts by keyword",
+      "steps": [
+        "Enter a search term in search box",
+        "Submit search",
+        "Verify results contain the search term"
+      ],
+      "passes": false
+    },
+    {
+      "id": "ui-001",
+      "category": "ui",
+      "priority": 2,
+      "description": "Application has responsive design",
+      "steps": [
+        "View application on mobile viewport",
+        "Verify navbar is responsive",
+        "Verify cards stack properly",
+        "Verify forms are usable on mobile"
+      ],
+      "passes": false
+    },
+    {
+      "id": "ui-002",
+      "category": "ui",
+      "priority": 3,
+      "description": "Application supports dark mode",
+      "steps": [
+        "Toggle dark mode",
+        "Verify all components have proper dark styles",
+        "Verify text remains readable"
+      ],
+      "passes": false
+    },
+    {
+      "id": "db-001",
+      "category": "database",
+      "priority": 1,
+      "description": "Database is properly seeded with initial data",
+      "steps": [
+        "Run prisma db seed",
+        "Verify categories are created",
+        "Verify demo user exists",
+        "Verify sample prompts exist"
+      ],
+      "passes": false
+    },
+    {
+      "id": "deploy-001",
+      "category": "deployment",
+      "priority": 3,
+      "description": "Application can be deployed with Docker",
+      "steps": [
+        "Build Docker image",
+        "Run docker-compose up",
+        "Verify application starts",
+        "Verify database connection works"
+      ],
+      "passes": false
+    }
+  ]
+}
+```

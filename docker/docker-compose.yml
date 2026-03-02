@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: aura_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-aura_db}
+      MYSQL_USER: ${MYSQL_USER:-aura}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-aura_password}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - aura_network
+
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: aura_app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-aura}:${MYSQL_PASSWORD:-aura_password}@mysql:3306/${MYSQL_DATABASE:-aura_db}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+    depends_on:
+      - mysql
+    networks:
+      - aura_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: aura_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    networks:
+      - aura_network
+
+volumes:
+  mysql_data:
+
+networks:
+  aura_network:
+    driver: bridge
