@@ -384,6 +384,66 @@ cd docker
 
 ---
 
+### 2026-03-03 - Phase 1 Loading Animation (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Coding Agent
+
+**Feature**: phase1-week1-001 - 页面加载时显示优雅的加载动画
+
+**Completed Work**:
+- Used Frontend Design skill direction to implement a polished, token-aligned loading animation
+- Created reusable `LoadingSpinner` component with layered ring animation and reduced-motion support
+- Added global App Router loading UI in `app/loading.tsx` with gradient background and glassmorphism loading card
+- Fixed an existing JSX tag mismatch in navbar so the app can compile and navigate normally
+- Marked `phase1-week1-001` as completed in `feature_list_phase1.json`
+
+**Testing Performed**:
+- Started dev server and verified `/` and `/browse` routes compile and render successfully in browser flow
+- Navigated from homepage to browse page and confirmed loading UI does not persist after content load
+- Attempted `npm run lint` (blocked by Next.js ESLint setup prompt; no lint config committed in this session)
+
+**Files Created**:
+- `components/ui/loading-spinner.tsx` - Reusable loading spinner UI component
+- `app/loading.tsx` - Global route loading screen for App Router transitions
+
+**Files Modified**:
+- `components/layout/navbar.tsx` - Fixed unbalanced JSX tags
+- `feature_list_phase1.json` - Marked `phase1-week1-001` as `passes: true`
+
+**Status**: ✅ COMPLETE
+
+---
+
+### 2026-03-03 - Phase 1 Prompts Skeleton Loading (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Coding Agent
+
+**Feature**: phase1-week1-002 - 提示词列表页面显示骨架屏
+
+**Completed Work**:
+- Used Frontend Design skill direction to design a shimmer-based skeleton style aligned with current tokens
+- Added reusable `PromptCardSkeleton` component for prompt card placeholder structure
+- Added route-level loading UI at `/prompts` via `app/(dashboard)/prompts/loading.tsx`
+- Rendered 6 responsive skeleton cards to match actual prompts grid layout
+- Marked `phase1-week1-002` as completed in `feature_list_phase1.json`
+
+**Testing Performed**:
+- Started Next.js dev server and compiled related routes (`/login`, `/dashboard`, `/prompts`)
+- Verified `/prompts` loading fallback is rendered by inspecting streamed HTML response from `GET /prompts`
+- Confirmed loading markup includes: page header skeleton + text `正在加载提示词列表...` + 6 card skeleton blocks
+- Confirmed `/prompts` route compiles successfully and returns normal page shell after load
+
+**Files Created**:
+- `components/prompts/prompt-card-skeleton.tsx` - Reusable prompt card skeleton component
+- `app/(dashboard)/prompts/loading.tsx` - Prompts page loading fallback UI
+
+**Files Modified**:
+- `feature_list_phase1.json` - Marked `phase1-week1-002` as `passes: true`
+
+**Status**: ✅ COMPLETE
+
+---
+
 ## Quick Start for Next Session
 
 When starting a new session, follow these steps:

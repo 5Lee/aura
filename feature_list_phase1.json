@@ -36,7 +36,7 @@
         "确保深色模式样式正确",
         "验证响应式布局"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week1-001",
@@ -51,7 +51,7 @@
         "测试导航到任意页面时加载动画显示",
         "验证动画在内容加载完成后消失"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week1-002",
@@ -66,7 +66,7 @@
         "验证骨架屏与实际卡片布局一致",
         "验证数据加载后骨架屏平滑过渡到真实内容"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week1-003",
