@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "last_updated": "2026-03-02",
     "total_features": 20,
-    "completed_features": 1
+    "completed_features": 10
   },
   "features": [
     {
@@ -19,7 +19,7 @@
         "Verify user is redirected to /login",
         "Verify user can log in with new credentials"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "auth-002",
@@ -33,7 +33,7 @@
         "Verify user is redirected to /dashboard",
         "Verify user's name appears in navbar"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "auth-003",
@@ -46,7 +46,7 @@
         "Verify user is redirected to home page",
         "Verify accessing /dashboard redirects to /login"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "dashboard-001",
@@ -60,7 +60,7 @@
         "Verify favorite count is displayed",
         "Verify recent prompts are shown"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "prompt-001",
@@ -74,7 +74,7 @@
         "Verify success message appears",
         "Verify prompt appears in /prompts list"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "prompt-002",
@@ -87,7 +87,7 @@
         "Verify each prompt shows title, category, and tags",
         "Verify public/private status is shown"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "prompt-003",
@@ -102,7 +102,7 @@
         "Save changes",
         "Verify changes are reflected"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "prompt-004",
@@ -116,7 +116,7 @@
         "Verify user is redirected to /prompts",
         "Verify deleted prompt no longer appears"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "prompt-005",
@@ -129,7 +129,7 @@
         "Save the prompt",
         "Verify tags are displayed on prompt card"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "prompt-006",
@@ -142,7 +142,7 @@
         "Save the prompt",
         "Verify correct status badge is shown"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "browse-001",

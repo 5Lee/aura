@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,62 +8,64 @@ datasource db {
 }
 
 model User {
-  id            String             @id @default(cuid())
-  name          String?
-  email         String             @unique
-  password      String
-  image         String?
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-  prompts       Prompt[]
-  collections   PromptCollection[]
-  favorites     Favorite[]
-  accounts      Account[]
-  sessions      Session[]
+  id          String             @id @default(cuid())
+  name        String?
+  email       String             @unique
+  password    String
+  image       String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  accounts    Account[]
+  favorites   Favorite[]
+  prompts     Prompt[]
+  collections PromptCollection[]
+  sessions    Session[]
 }
 
 model Prompt {
-  id            String    @id @default(cuid())
+  id            String      @id @default(cuid())
   title         String
-  content       String    @db.Text
-  description   String?   @db.Text
-  category      Category  @relation(fields: [categoryId], references: [id])
+  content       String      @db.Text
+  description   String?     @db.Text
   categoryId    String
-  isPublic      Boolean   @default(false)
-  author        User?     @relation(fields: [authorId], references: [id])
+  isPublic      Boolean     @default(false)
   authorId      String?
-  viewCount     Int       @default(0)
-  favoriteCount Int       @default(0)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  tags          PromptTag[]
+  viewCount     Int         @default(0)
+  favoriteCount Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
   favorites     Favorite[]
+  author        User?       @relation(fields: [authorId], references: [id])
+  category      Category    @relation(fields: [categoryId], references: [id])
+  tags          PromptTag[]
+
+  @@index([authorId], map: "Prompt_authorId_fkey")
+  @@index([categoryId], map: "Prompt_categoryId_fkey")
 }
 
 model Category {
-  id          String    @id @default(cuid())
-  name        String    @unique
-  slug        String    @unique
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
   description String?
-  order       Int       @default(0)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
   prompts     Prompt[]
-  createdAt   DateTime  @default(now())
 }
 
 model Tag {
   id        String      @id @default(cuid())
   name      String      @unique
   slug      String      @unique
-  tags      PromptTag[]
   createdAt DateTime    @default(now())
+  tags      PromptTag[]
 }
 
-// Explicit many-to-many relation table for Prompt <-> Tag
 model PromptTag {
-  prompt    Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
-  promptId  String
-  tag       Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  tagId     String
+  promptId String
+  tagId    String
+  prompt   Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  tag      Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([promptId, tagId])
   @@index([promptId])
@@ -77,25 +76,26 @@ model PromptCollection {
   id          String   @id @default(cuid())
   name        String
   description String?
-  user        User     @relation(fields: [userId], references: [id])
   userId      String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "PromptCollection_userId_fkey")
 }
 
 model Favorite {
   id        String   @id @default(cuid())
-  user      User     @relation(fields: [userId], references: [id])
   userId    String
-  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
   promptId  String
   createdAt DateTime @default(now())
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, promptId])
   @@index([promptId])
 }
 
-// NextAuth.js Models
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -109,8 +109,7 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId])
