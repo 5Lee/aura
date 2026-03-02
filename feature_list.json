@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "last_updated": "2026-03-02",
     "total_features": 20,
-    "completed_features": 10
+    "completed_features": 15
   },
   "features": [
     {
@@ -150,11 +150,11 @@
       "priority": 2,
       "description": "Guest can browse public prompts",
       "steps": [
-        "Visit /prompts without logging in",
+        "Visit /browse without logging in",
         "Verify public prompts are displayed",
         "Verify prompt cards show author info"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "browse-002",
@@ -162,11 +162,11 @@
       "priority": 3,
       "description": "User can filter prompts by category",
       "steps": [
-        "Navigate to /prompts",
+        "Navigate to /browse",
         "Click on a category filter",
         "Verify only prompts in that category are shown"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "favorite-001",
@@ -179,7 +179,7 @@
         "Verify favorite count increases",
         "Verify prompt appears in /collections"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "favorite-002",
@@ -191,7 +191,7 @@
         "Verify all favorited prompts are displayed",
         "Verify prompt details are correct"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "favorite-003",
@@ -203,7 +203,7 @@
         "Remove a prompt from favorites",
         "Verify prompt no longer appears in list"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "search-001",

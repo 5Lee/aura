@@ -53,7 +53,7 @@ export default function HomePage() {
               免费开始使用
             </Link>
             <Link
-              href="/prompts"
+              href="/browse"
               className="px-8 py-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-all border border-gray-200 dark:border-gray-700"
             >
               浏览提示词

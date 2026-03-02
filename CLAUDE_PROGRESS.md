@@ -156,6 +156,49 @@ This file tracks the progress of AI agents working on the Aura project.
 
 ---
 
+### 2026-03-02 - Favorites and Browse Features (Coding Agent Session)
+**Agent**: Claude Code
+**Session Type**: Coding Agent
+
+**Completed Work**:
+- Created FavoriteButton component for adding/removing favorites
+- Updated prompt detail page to show favorite button
+- Verified favorite API functionality (POST/DELETE)
+- Verified collections page displays favorited prompts
+- Created public browse page at /browse
+- Created BrowseNavbar component for public navigation
+- Added category filter to browse page
+- Updated homepage to link to /browse instead of /prompts
+
+**Features Completed** (5 new features):
+- ✅ favorite-001: User can favorite a prompt
+- ✅ favorite-002: User can view favorited prompts in /collections
+- ✅ favorite-003: User can unfavorite a prompt
+- ✅ browse-001: Guest can browse public prompts
+- ✅ browse-002: User can filter prompts by category
+
+**Files Created**:
+- `components/prompts/favorite-button.tsx` - Client-side favorite button component
+- `app/browse/page.tsx` - Public browse page with category filters
+- `components/layout/browse-navbar.tsx` - Navigation bar for public pages
+
+**Files Modified**:
+- `app/(dashboard)/prompts/[id]/page.tsx` - Added favorite button, check favorite status
+- `app/page.tsx` - Updated browse link to /browse
+- `feature_list.json` - Updated completed_features to 15, marked features as passes: true
+
+**Total Progress**: 15/20 features completed (75%)
+
+**Status**: ✅ COMPLETE - Favorites and browse features implemented
+
+**Remaining Features** (5):
+- search-001: User can search prompts by keyword
+- ui-001: Application has responsive design
+- ui-002: Application supports dark mode
+- deploy-001: Application can be deployed with Docker
+
+---
+
 ## Quick Start for Next Session
 
 When starting a new session, follow these steps:

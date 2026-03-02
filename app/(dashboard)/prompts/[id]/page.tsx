@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { FavoriteButton } from "@/components/prompts/favorite-button"
 import Link from "next/link"
 
 export default async function PromptDetailPage({
@@ -35,32 +36,53 @@ export default async function PromptDetailPage({
 
   const canEdit = isOwner
 
+  // Check if user has favorited this prompt
+  let isFavorited = false
+  if (session?.user) {
+    const favorite = await prisma.favorite.findUnique({
+      where: {
+        userId_promptId: {
+          userId: session.user.id,
+          promptId: prompt.id,
+        },
+      },
+    })
+    isFavorited = !!favorite
+  }
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <Link href="/prompts">
           <Button variant="ghost">← 返回列表</Button>
         </Link>
-        {canEdit && (
-          <div className="flex gap-2">
-            <Link href={`/prompts/${prompt.id}/edit`}>
-              <Button variant="outline">编辑</Button>
-            </Link>
-            <Button
-              variant="destructive"
-              onClick={async () => {
-                if (confirm("确定要删除这个提示词吗？")) {
-                  await fetch(`/api/prompts/${prompt.id}`, {
-                    method: "DELETE",
-                  })
-                  redirect("/prompts")
-                }
-              }}
-            >
-              删除
-            </Button>
-          </div>
-        )}
+        <div className="flex gap-2">
+          <FavoriteButton
+            promptId={prompt.id}
+            isFavorited={isFavorited}
+            favoriteCount={prompt.favoriteCount}
+          />
+          {canEdit && (
+            <>
+              <Link href={`/prompts/${prompt.id}/edit`}>
+                <Button variant="outline">编辑</Button>
+              </Link>
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  if (confirm("确定要删除这个提示词吗？")) {
+                    await fetch(`/api/prompts/${prompt.id}`, {
+                      method: "DELETE",
+                    })
+                    redirect("/prompts")
+                  }
+                }}
+              >
+                删除
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       <Card>
