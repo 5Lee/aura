@@ -1,0 +1,546 @@
+{
+  "meta": {
+    "project": "Aura - AI Prompt Management Platform",
+    "phase": "Phase 1: 体验优化",
+    "version": "1.2.0",
+    "last_updated": "2026-03-02",
+    "total_features": 36,
+    "completed_features": 0
+  },
+  "features": [
+    {
+      "id": "phase1-week1-design-001",
+      "category": "design",
+      "priority": 1,
+      "week": 1,
+      "description": "使用 Frontend Design skill 设计整体 UI 规范",
+      "steps": [
+        "运行 /web-design-guidelines skill 检查当前 UI",
+        "分析现有页面的设计问题",
+        "制定颜色主题、间距、圆角、阴影等设计规范",
+        "创建 design-tokens.css 定义设计变量",
+        "更新 tailwind.config.ts 使用自定义设计系统"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week1-design-002",
+      "category": "design",
+      "priority": 1,
+      "week": 1,
+      "description": "使用 Frontend Design skill 美化首页和导航栏",
+      "steps": [
+        "使用 Frontend Design skill 分析首页布局",
+        "重新设计首页 hero 区域",
+        "美化导航栏视觉效果",
+        "确保深色模式样式正确",
+        "验证响应式布局"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week1-001",
+      "category": "loading",
+      "priority": 1,
+      "week": 1,
+      "description": "页面加载时显示优雅的加载动画",
+      "steps": [
+        "使用 Frontend Design skill 设计加载动画样式",
+        "创建 LoadingSpinner 组件",
+        "在 app/loading.tsx 中使用加载动画",
+        "测试导航到任意页面时加载动画显示",
+        "验证动画在内容加载完成后消失"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week1-002",
+      "category": "skeleton",
+      "priority": 1,
+      "week": 1,
+      "description": "提示词列表页面显示骨架屏",
+      "steps": [
+        "使用 Frontend Design skill 设计骨架屏样式",
+        "创建 PromptCardSkeleton 组件",
+        "在 /prompts 页面加载时显示 3-6 个骨架卡片",
+        "验证骨架屏与实际卡片布局一致",
+        "验证数据加载后骨架屏平滑过渡到真实内容"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week1-003",
+      "category": "skeleton",
+      "priority": 1,
+      "week": 1,
+      "description": "Browse 页面显示骨架屏",
+      "steps": [
+        "在 /browse 页面加载时显示骨架卡片",
+        "验证骨架屏响应式布局正确",
+        "验证搜索/筛选时骨架屏正确显示"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week1-004",
+      "category": "design",
+      "priority": 2,
+      "week": 1,
+      "description": "统一颜色主题和设计规范",
+      "steps": [
+        "创建 design-tokens.css 定义颜色变量",
+        "更新 tailwind.config.ts 使用自定义颜色",
+        "验证所有页面使用统一的主题色",
+        "验证深色模式下颜色正确切换"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week1-005",
+      "category": "design",
+      "priority": 2,
+      "week": 1,
+      "description": "统一间距和圆角规范",
+      "steps": [
+        "定义标准间距比例 (4, 8, 12, 16, 24, 32)",
+        "定义标准圆角 (sm, md, lg, full)",
+        "检查所有组件使用标准间距",
+        "检查所有卡片使用统一圆角"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week1-006",
+      "category": "form",
+      "priority": 1,
+      "week": 1,
+      "description": "表单输入框增加实时验证反馈",
+      "steps": [
+        "使用 Frontend Design skill 设计表单验证样式",
+        "登录表单：邮箱格式验证，密码长度验证",
+        "注册表单：所有字段实时验证",
+        "创建提示词表单：标题和内容必填验证",
+        "验证错误信息清晰显示在输入框下方"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week1-007",
+      "category": "form",
+      "priority": 2,
+      "week": 1,
+      "description": "表单提交时显示加载状态",
+      "steps": [
+        "提交按钮在点击后显示加载动画",
+        "提交过程中禁用所有表单输入",
+        "提交成功后显示成功提示",
+        "提交失败后显示错误信息并恢复表单"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week1-008",
+      "category": "form",
+      "priority": 2,
+      "week": 1,
+      "description": "表单输入框增加 focus 状态样式",
+      "steps": [
+        "使用 Frontend Design skill 设计 focus 状态样式",
+        "输入框获得焦点时显示明显的边框变化",
+        "验证所有输入框 focus 样式一致",
+        "验证深色模式下 focus 样式可见",
+        "验证键盘导航时 focus 状态正确"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week2-design-001",
+      "category": "design",
+      "priority": 1,
+      "week": 2,
+      "description": "使用 Frontend Design skill 美化提示词卡片",
+      "steps": [
+        "使用 /web-design-guidelines skill 审查卡片设计",
+        "设计卡片悬停效果和阴影",
+        "优化卡片内容布局和视觉层次",
+        "设计标签、徽章等小部件样式",
+        "确保卡片在浅色/深色模式下都美观"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week2-001",
+      "category": "interaction",
+      "priority": 2,
+      "week": 2,
+      "description": "提示词卡片增加悬停效果",
+      "steps": [
+        "鼠标悬停时卡片轻微上浮 (translateY -2px)",
+        "悬停时显示阴影增强效果",
+        "悬停时边框颜色变化",
+        "验证过渡动画流畅 (duration-200)"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week2-002",
+      "category": "interaction",
+      "priority": 2,
+      "week": 2,
+      "description": "按钮增加点击反馈效果",
+      "steps": [
+        "使用 Frontend Design skill 设计按钮交互效果",
+        "主要按钮点击时有缩放效果",
+        "按钮禁用状态视觉明显",
+        "按钮加载状态显示 spinner",
+        "验证所有按钮使用统一的交互效果"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week2-003",
+      "category": "animation",
+      "priority": 3,
+      "week": 2,
+      "description": "页面切换时显示过渡动画",
+      "steps": [
+        "创建 PageTransition 组件使用 framer-motion",
+        "页面进入时有淡入效果",
+        "页面退出时有淡出效果",
+        "验证过渡动画不影响页面性能"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week2-004",
+      "category": "animation",
+      "priority": 3,
+      "week": 2,
+      "description": "卡片列表加载时有交错动画",
+      "steps": [
+        "使用 framer-motion 的 staggerChildren",
+        "每张卡片依次淡入",
+        "交错间隔 100ms",
+        "验证动画不会阻塞内容显示"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week2-005",
+      "category": "feedback",
+      "priority": 2,
+      "week": 2,
+      "description": "复制提示词内容时显示成功提示",
+      "steps": [
+        "在提示词详情页添加复制按钮",
+        "点击复制后显示 Toast 提示",
+        "验证复制到剪贴板功能正常",
+        "验证提示 3 秒后自动消失"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week2-006",
+      "category": "feedback",
+      "priority": 2,
+      "week": 2,
+      "description": "操作成功/失败显示 Toast 通知",
+      "steps": [
+        "使用 Frontend Design skill 设计 Toast 样式",
+        "创建 Toaster 组件",
+        "登录/注册成功显示成功提示",
+        "创建/编辑/删除提示词显示结果提示",
+        "验证 Toast 支持不同类型 (success/error/info)"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week2-007",
+      "category": "empty-state",
+      "priority": 2,
+      "week": 2,
+      "description": "提示词列表为空时显示友好提示",
+      "steps": [
+        "使用 Frontend Design skill 设计空状态样式",
+        "创建 EmptyState 组件",
+        "用户无提示词时显示创建引导",
+        "无搜索结果时显示提示",
+        "包含操作按钮引导用户行动"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week2-008",
+      "category": "empty-state",
+      "priority": 2,
+      "week": 2,
+      "description": "收藏列表为空时显示友好提示",
+      "steps": [
+        "用户无收藏时显示浏览引导",
+        "包含浏览公开提示词的链接",
+        "验证图标和文案友好",
+        "验证深色模式下样式正确"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week3-design-001",
+      "category": "design",
+      "priority": 1,
+      "week": 3,
+      "description": "使用 Frontend Design skill 优化移动端体验",
+      "steps": [
+        "使用 /web-design-guidelines skill 检查移动端 UI",
+        "设计移动端汉堡菜单样式",
+        "优化触摸交互区域大小",
+        "设计移动端卡片和表单布局",
+        "确保移动端导航体验流畅"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week3-001",
+      "category": "mobile",
+      "priority": 1,
+      "week": 3,
+      "description": "创建移动端汉堡菜单",
+      "steps": [
+        "创建 MobileMenu 组件",
+        "小屏幕时 navbar 显示汉堡按钮",
+        "点击展开侧边菜单",
+        "菜单包含所有导航链接"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week3-002",
+      "category": "mobile",
+      "priority": 1,
+      "week": 3,
+      "description": "优化移动端表单体验",
+      "steps": [
+        "输入框高度适合触摸操作 (min 44px)",
+        "按钮大小适合触摸 (min 44x44px)",
+        "表单在小屏幕上全宽显示",
+        "验证虚拟键盘弹出时表单可滚动"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week3-003",
+      "category": "mobile",
+      "priority": 2,
+      "week": 3,
+      "description": "优化移动端卡片布局",
+      "steps": [
+        "小屏幕时卡片全宽显示",
+        "卡片内文字大小适合移动端",
+        "卡片间距在小屏幕上适当调整",
+        "验证长标题正确截断"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week3-004",
+      "category": "mobile",
+      "priority": 2,
+      "week": 3,
+      "description": "优化移动端导航体验",
+      "steps": [
+        "底部导航栏 (可选)",
+        "返回按钮功能正确",
+        "页面标题在移动端显示",
+        "验证导航手势流畅"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week3-005",
+      "category": "performance",
+      "priority": 1,
+      "week": 3,
+      "description": "图片懒加载优化",
+      "steps": [
+        "使用 Next.js Image 组件",
+        "验证图片懒加载生效",
+        "验证 placeholder 显示",
+        "验证 LCP 指标改善"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week3-006",
+      "category": "performance",
+      "priority": 2,
+      "week": 3,
+      "description": "组件代码分割优化",
+      "steps": [
+        "使用 dynamic import 懒加载大型组件",
+        "分析 bundle 大小",
+        "验证首屏加载时间 < 2s",
+        "验证动态导入组件正常工作"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week3-007",
+      "category": "performance",
+      "priority": 2,
+      "week": 3,
+      "description": "列表虚拟滚动优化 (大量数据时)",
+      "steps": [
+        "使用 react-window 或类似库",
+        "测试 100+ 条提示词时性能",
+        "验证滚动流畅度",
+        "验证内存使用合理"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week3-008",
+      "category": "performance",
+      "priority": 2,
+      "week": 3,
+      "description": "字体加载优化",
+      "steps": [
+        "使用 font-display: swap",
+        "预加载关键字体",
+        "验证 FOIT/FOUT 最小化",
+        "验证字体加载不影响 LCP"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week4-design-001",
+      "category": "design",
+      "priority": 1,
+      "week": 4,
+      "description": "使用 Frontend Design skill 进行最终 UI 审查",
+      "steps": [
+        "运行 /web-design-guidelines skill 全面审查 UI",
+        "检查所有页面的设计一致性",
+        "验证可访问性标准符合要求",
+        "修复发现的 UI 问题",
+        "记录设计规范文档"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week4-001",
+      "category": "testing",
+      "priority": 1,
+      "week": 4,
+      "description": "配置 Jest 和 React Testing Library",
+      "steps": [
+        "安装 jest, @testing-library/react",
+        "配置 jest.config.js",
+        "创建测试工具文件",
+        "验证 npm test 命令正常工作"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week4-002",
+      "category": "testing",
+      "priority": 1,
+      "week": 4,
+      "description": "为核心组件编写单元测试",
+      "steps": [
+        "Button 组件测试 (渲染, 点击, 禁用状态)",
+        "Input 组件测试 (渲染, 输入, 验证)",
+        "Card 组件测试 (渲染, 内容显示)",
+        "验证测试覆盖率 > 70%"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week4-003",
+      "category": "testing",
+      "priority": 1,
+      "week": 4,
+      "description": "配置 Playwright E2E 测试",
+      "steps": [
+        "安装 @playwright/test",
+        "配置 playwright.config.ts",
+        "创建测试辅助函数",
+        "验证 .mcp.json 中 Playwright MCP 配置正确",
+        "使用 Playwright MCP 启动浏览器测试"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week4-004",
+      "category": "testing",
+      "priority": 1,
+      "week": 4,
+      "description": "使用 Playwright MCP 调试认证流程",
+      "steps": [
+        "使用 Playwright MCP 导航到 /register",
+        "自动填写注册表单并提交",
+        "验证注册成功并跳转",
+        "使用 Playwright MCP 测试登录流程",
+        "使用 Playwright MCP 测试登出流程",
+        "截图记录测试过程"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week4-005",
+      "category": "testing",
+      "priority": 2,
+      "week": 4,
+      "description": "使用 Playwright MCP 测试提示词 CRUD",
+      "steps": [
+        "使用 Playwright MCP 登录测试账户",
+        "导航到 /prompts/new 创建提示词",
+        "填写表单并提交，验证创建成功",
+        "使用 Playwright MCP 编辑提示词",
+        "使用 Playwright MCP 删除提示词",
+        "截图验证每个操作的结果"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week4-006",
+      "category": "accessibility",
+      "priority": 2,
+      "week": 4,
+      "description": "配置 axe-core 可访问性测试",
+      "steps": [
+        "安装 @axe-core/react",
+        "在开发模式下集成 axe",
+        "修复发现的可访问性问题",
+        "验证页面无严重可访问性问题"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week4-007",
+      "category": "accessibility",
+      "priority": 2,
+      "week": 4,
+      "description": "确保键盘导航可用",
+      "steps": [
+        "验证所有交互元素可通过 Tab 访问",
+        "验证 focus 状态可见",
+        "验证 Enter/Space 可激活按钮",
+        "验证 Escape 可关闭模态框"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase1-week4-008",
+      "category": "performance",
+      "priority": 2,
+      "week": 4,
+      "description": "建立性能基准测试",
+      "steps": [
+        "使用 Lighthouse CI",
+        "设定性能预算",
+        "建立 CI 性能监控",
+        "验证 LCP < 2.5s, FID < 100ms, CLS < 0.1"
+      ],
+      "passes": false
+    }
+  ]
+}
