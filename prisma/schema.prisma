@@ -32,8 +32,6 @@ model Prompt {
   description   String?   @db.Text
   category      Category  @relation(fields: [categoryId], references: [id])
   categoryId    String
-  tags          Tag[]     @relation(fields: [tagsIds])
-  tagsIds       String[]
   isPublic      Boolean   @default(false)
   author        User?     @relation(fields: [authorId], references: [id])
   authorId      String?
@@ -41,7 +39,7 @@ model Prompt {
   favoriteCount Int       @default(0)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  collections   PromptCollection[]
+  tags          PromptTag[]
   favorites     Favorite[]
 }
 
@@ -56,11 +54,23 @@ model Category {
 }
 
 model Tag {
-  id          String    @id @default(cuid())
-  name        String    @unique
-  slug        String    @unique
-  prompts     Prompt[]
-  createdAt   DateTime  @default(now())
+  id        String      @id @default(cuid())
+  name      String      @unique
+  slug      String      @unique
+  tags      PromptTag[]
+  createdAt DateTime    @default(now())
+}
+
+// Explicit many-to-many relation table for Prompt <-> Tag
+model PromptTag {
+  prompt    Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  promptId  String
+  tag       Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagId     String
+
+  @@id([promptId, tagId])
+  @@index([promptId])
+  @@index([tagId])
 }
 
 model PromptCollection {

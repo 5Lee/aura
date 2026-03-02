@@ -103,7 +103,7 @@ async function main() {
       categoryId: categories[0].id,
       authorId: demoUser.id,
       isPublic: true,
-      tagsIds: [tags[0].id, tags[3].id],
+      tagIds: [tags[0].id, tags[3].id],
     },
     {
       title: '代码审查专家',
@@ -112,7 +112,7 @@ async function main() {
       categoryId: categories[1].id,
       authorId: demoUser.id,
       isPublic: true,
-      tagsIds: [tags[0].id],
+      tagIds: [tags[0].id],
     },
     {
       title: '数据分析助手',
@@ -121,16 +121,36 @@ async function main() {
       categoryId: categories[2].id,
       authorId: demoUser.id,
       isPublic: true,
-      tagsIds: [tags[1].id],
+      tagIds: [tags[1].id],
     },
   ]
 
   for (const promptData of samplePrompts) {
-    await prisma.prompt.upsert({
+    const { tagIds, ...data } = promptData
+
+    // Create prompt
+    const prompt = await prisma.prompt.upsert({
       where: { id: promptData.title.toLowerCase().replace(/\s+/g, '-') },
       update: {},
-      create: promptData,
+      create: data,
     })
+
+    // Create tag relations
+    for (const tagId of tagIds) {
+      await prisma.promptTag.upsert({
+        where: {
+          promptId_tagId: {
+            promptId: prompt.id,
+            tagId: tagId,
+          },
+        },
+        update: {},
+        create: {
+          promptId: prompt.id,
+          tagId: tagId,
+        },
+      })
+    }
   }
 
   console.log('数据库种子数据创建成功！')

@@ -13,7 +13,11 @@ export async function GET(
       where: { id: params.id },
       include: {
         category: true,
-        tags: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
         author: {
           select: { id: true, name: true, email: true },
         },
@@ -33,7 +37,13 @@ export async function GET(
       data: { viewCount: { increment: 1 } },
     })
 
-    return NextResponse.json(prompt)
+    // Transform tags
+    const transformed = {
+      ...prompt,
+      tags: prompt.tags.map(pt => pt.tag),
+    }
+
+    return NextResponse.json(transformed)
   } catch (error) {
     console.error("Error fetching prompt:", error)
     return NextResponse.json(
@@ -79,19 +89,7 @@ export async function PATCH(
 
     const { title, content, description, categoryId, isPublic, tags } = await request.json()
 
-    // Handle tags
-    const tagConnections = await Promise.all(
-      (tags || []).map(async (tagName: string) => {
-        const slug = tagName.toLowerCase().replace(/\s+/g, "-")
-        const tag = await prisma.tag.upsert({
-          where: { slug },
-          update: {},
-          create: { name: tagName, slug },
-        })
-        return { id: tag.id }
-      })
-    )
-
+    // Update prompt fields
     const updated = await prisma.prompt.update({
       where: { id: params.id },
       data: {
@@ -100,18 +98,61 @@ export async function PATCH(
         description: description ?? prompt.description,
         categoryId: categoryId ?? prompt.categoryId,
         isPublic: isPublic ?? prompt.isPublic,
-        tags: {
-          set: [], // Clear existing
-          connect: tagConnections, // Connect new
-        },
       },
       include: {
         category: true,
-        tags: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
       },
     })
 
-    return NextResponse.json(updated)
+    // Update tags if provided
+    if (tags !== undefined) {
+      // Delete existing tag relations
+      await prisma.promptTag.deleteMany({
+        where: { promptId: params.id },
+      })
+
+      // Create new tag relations
+      for (const tagName of tags) {
+        const slug = tagName.toLowerCase().replace(/\s+/g, "-")
+        const tag = await prisma.tag.upsert({
+          where: { slug },
+          update: {},
+          create: { name: tagName, slug },
+        })
+
+        await prisma.promptTag.create({
+          data: {
+            promptId: params.id,
+            tagId: tag.id,
+          },
+        })
+      }
+    }
+
+    // Fetch final result
+    const final = await prisma.prompt.findUnique({
+      where: { id: params.id },
+      include: {
+        category: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+    })
+
+    const transformed = {
+      ...final!,
+      tags: final!.tags.map(pt => pt.tag),
+    }
+
+    return NextResponse.json(transformed)
   } catch (error) {
     console.error("Error updating prompt:", error)
     return NextResponse.json(

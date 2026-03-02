@@ -40,7 +40,11 @@ export async function GET(request: Request) {
       where,
       include: {
         category: true,
-        tags: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
         author: {
           select: { id: true, name: true, email: true },
         },
@@ -48,7 +52,13 @@ export async function GET(request: Request) {
       orderBy: { updatedAt: "desc" },
     })
 
-    return NextResponse.json(prompts)
+    // Transform tags to match expected format
+    const transformedPrompts = prompts.map(prompt => ({
+      ...prompt,
+      tags: prompt.tags.map(pt => pt.tag),
+    }))
+
+    return NextResponse.json(transformedPrompts)
   } catch (error) {
     console.error("Error fetching prompts:", error)
     return NextResponse.json(
@@ -80,19 +90,7 @@ export async function POST(request: Request) {
       )
     }
 
-    // Handle tags - connect or create
-    const tagConnections = await Promise.all(
-      (tags || []).map(async (tagName: string) => {
-        const slug = tagName.toLowerCase().replace(/\s+/g, "-")
-        const tag = await prisma.tag.upsert({
-          where: { slug },
-          update: {},
-          create: { name: tagName, slug },
-        })
-        return { id: tag.id }
-      })
-    )
-
+    // Create the prompt first
     const prompt = await prisma.prompt.create({
       data: {
         title,
@@ -101,17 +99,57 @@ export async function POST(request: Request) {
         categoryId,
         isPublic: isPublic || false,
         authorId: session.user.id,
-        tags: {
-          connect: tagConnections,
-        },
       },
       include: {
         category: true,
-        tags: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
       },
     })
 
-    return NextResponse.json(prompt, { status: 201 })
+    // Handle tags - connect or create
+    if (tags && tags.length > 0) {
+      for (const tagName of tags) {
+        const slug = tagName.toLowerCase().replace(/\s+/g, "-")
+        const tag = await prisma.tag.upsert({
+          where: { slug },
+          update: {},
+          create: { name: tagName, slug },
+        })
+
+        // Create PromptTag relation
+        await prisma.promptTag.create({
+          data: {
+            promptId: prompt.id,
+            tagId: tag.id,
+          },
+        })
+      }
+    }
+
+    // Fetch the updated prompt with tags
+    const updatedPrompt = await prisma.prompt.findUnique({
+      where: { id: prompt.id },
+      include: {
+        category: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+    })
+
+    // Transform response
+    const transformed = {
+      ...updatedPrompt!,
+      tags: updatedPrompt!.tags.map(pt => pt.tag),
+    }
+
+    return NextResponse.json(transformed, { status: 201 })
   } catch (error) {
     console.error("Error creating prompt:", error)
     return NextResponse.json(

@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "last_updated": "2026-03-02",
     "total_features": 20,
-    "completed_features": 0
+    "completed_features": 1
   },
   "features": [
     {
@@ -253,7 +253,7 @@
         "Verify demo user exists (demo@aura.ai)",
         "Verify sample prompts exist"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "deploy-001",
