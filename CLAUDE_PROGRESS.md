@@ -2388,3 +2388,35 @@ npx prisma db seed    # Seed database with sample data
 - `logs/e2e-mcp/20260303-round5-browse-search-filter/network-requests.log`
 
 **Status**: ✅ COMPLETE（继续下一条测试）
+
+---
+
+### 2026-03-03 - Phase 3 Round 6 Playwright MCP Favorite/Collections Flow (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Playwright MCP 实测（先测试后修复）
+
+**Feature Under Test**: phase3-e2e-006 - 实测收藏与收藏列表一致性
+
+**Executed Steps**:
+- 在公开提示词详情页（`代码审查专家`）执行收藏
+- 验证详情页收藏按钮计数与“收藏 N 次”统计同步
+- 进入 `/collections` 验证收藏项出现并刷新后保持一致
+- 回到详情页执行取消收藏
+- 再次验证 `/collections` 列表移除与空态展示，刷新后状态一致
+
+**Result**:
+- 收藏/取消收藏与收藏列表同步：✅ 通过
+- 新增缺陷：无
+
+**Evidence**:
+- `logs/e2e-mcp/20260303-round6-favorite-collections/browse-before-favorite.png`
+- `logs/e2e-mcp/20260303-round6-favorite-collections/detail-before-favorite.png`
+- `logs/e2e-mcp/20260303-round6-favorite-collections/detail-after-favorite.png`
+- `logs/e2e-mcp/20260303-round6-favorite-collections/collections-after-favorite.png`
+- `logs/e2e-mcp/20260303-round6-favorite-collections/detail-after-unfavorite.png`
+- `logs/e2e-mcp/20260303-round6-favorite-collections/collections-after-unfavorite.png`
+- `logs/e2e-mcp/20260303-round6-favorite-collections/round6-report.json`
+- `logs/e2e-mcp/20260303-round6-favorite-collections/console-errors.log`
+- `logs/e2e-mcp/20260303-round6-favorite-collections/network-requests.log`
+
+**Status**: ✅ COMPLETE（继续下一条测试）
