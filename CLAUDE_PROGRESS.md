@@ -2262,3 +2262,65 @@ npx prisma db seed    # Seed database with sample data
   - `logs/e2e-mcp/20260303-round1-auth/logout-home.png`
 
 **Status**: ⏳ WAIT_USER（等待用户确认是否立即修复该缺陷）
+
+---
+
+### 2026-03-03 - Phase 3 Round 2 Playwright MCP Auth Negative Flow (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Playwright MCP 实测（先记录问题，暂不修复）
+
+**Feature Under Test**: phase3-e2e-002 - 实测登录异常流与校验提示
+
+**Executed Steps**:
+- 验证空字段提交：直接点击“登录”
+- 验证邮箱格式校验：输入非法邮箱 `abc`
+- 验证错误密码提示：`demo@aura.ai` + `wrongpass`
+- 验证未登录访问受限页：直接访问 `/dashboard`
+
+**Result**:
+- 异常流主路径：⚠️ 部分通过（错误密码提示、邮箱格式校验正常）
+- 发现缺陷：⚠️ 3 条（均不阻塞后续测试）
+
+**Found Bugs**:
+- `E2E-20260303-002`（P2）空提交未展示自定义校验文案（原生 required 拦截）
+- `E2E-20260303-003`（P3）未登录访问 `/dashboard` 先出现加载态再跳转登录
+- `E2E-20260303-004`（P3）错误密码场景产生控制台 401 error 级日志
+- 均已记录到：`docs/e2e-mcp-bug-tracker.md`
+- 证据：
+  - `logs/e2e-mcp/20260303-round2-auth-negative/round2-report.json`
+  - `logs/e2e-mcp/20260303-round2-auth-negative/empty-submit.png`
+  - `logs/e2e-mcp/20260303-round2-auth-negative/invalid-email-format.png`
+  - `logs/e2e-mcp/20260303-round2-auth-negative/wrong-password.png`
+  - `logs/e2e-mcp/20260303-round2-auth-negative/dashboard-unauth-initial.png`
+  - `logs/e2e-mcp/20260303-round2-auth-negative/dashboard-unauth-final.png`
+  - `logs/e2e-mcp/20260303-round2-auth-negative/console-errors.log`
+  - `logs/e2e-mcp/20260303-round2-auth-negative/network-requests.log`
+
+**Status**: ⏳ WAIT_USER（按用户要求先保存问题，继续下一条测试）
+
+---
+
+### 2026-03-03 - Phase 3 Round 3 Playwright MCP Prompt Create/Detail Flow (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Playwright MCP 实测（先测试后修复）
+
+**Feature Under Test**: phase3-e2e-003 - 实测提示词创建与详情展示
+
+**Executed Steps**:
+- 新建测试账号并登录：`mcp.direct.1772548888@aura.test`
+- 在 `/prompts/new` 创建提示词（标题：`E2E MCP Prompt 20260303-001`）
+- 验证创建后列表出现新卡片
+- 进入详情页验证标题、描述、内容、分类与标签一致性
+
+**Result**:
+- 提示词创建与详情展示：✅ 通过
+- 新增缺陷：无（沿用已知历史问题，不在本轮新增）
+
+**Evidence**:
+- `logs/e2e-mcp/20260303-round3-prompt-create/create-form-filled.png`
+- `logs/e2e-mcp/20260303-round3-prompt-create/prompt-list-after-create.png`
+- `logs/e2e-mcp/20260303-round3-prompt-create/prompt-detail-after-create.png`
+- `logs/e2e-mcp/20260303-round3-prompt-create/console-errors.log`
+- `logs/e2e-mcp/20260303-round3-prompt-create/network-requests.log`
+
+**Status**: ✅ COMPLETE（进入下一条测试前已完成记录）
