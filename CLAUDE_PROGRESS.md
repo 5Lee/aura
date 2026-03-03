@@ -1933,3 +1933,58 @@ npx prisma db seed    # Seed database with sample data
 - `CLAUDE_PROGRESS.md`
 
 **Status**: ✅ COMPLETE (字体策略已明确为离线稳定方案，构建链路不再依赖 Google Font 外网拉取)
+
+---
+
+### 2026-03-03 - Phase 2 Codex Loop MCP Fail-Fast Hardening (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Coding Agent
+
+**Feature**: phase2-week2-004 - 修复 run_codex_loop 在 MCP 启动阶段卡住的问题
+
+**Completed Work**:
+- Enhanced `run_codex_loop.sh` with explicit MCP fail-fast and timeout controls:
+  - `CODEX_MCP_FAIL_FAST`
+  - `CODEX_MCP_FAIL_FAST_SEC`
+  - `CODEX_RUN_TIMEOUT_SEC`
+  - `CODEX_MCP_RETRY_PER_RUN`
+  - `CODEX_MCP_RETRY_DELAY_SEC`
+  - `CODEX_BIN` (for testability/mocking and binary override)
+- Added watchdog execution path for each Codex run:
+  - detects startup stall when output stays empty beyond threshold
+  - hard-kills stuck process tree
+  - classifies failure reason (`mcp-startup-stall`, `mcp-startup-timeout`, `run-timeout`, etc.)
+- Added per-run automatic retry when MCP startup failures are detected before counting run as failed.
+- Improved diagnostics and stop reason clarity:
+  - preflight logs now include classified failure reason
+  - run failures print explicit `Failure reason:` and use that reason as `Stop reason`
+- Added documentation for recovery and stop strategy:
+  - `docs/codex-loop-resilience.md`
+  - linked from `AGENT_SESSION_GUIDE.md`
+- Added regression tests for loop resilience configuration/behavior markers:
+  - `__tests__/run-codex-loop-resilience.test.js`
+- Marked `phase2-week2-004` as completed in `feature_list_phase2.json`.
+
+**Validation Performed**:
+- `bash -n run_codex_loop.sh` ✅
+- Mock background multi-run verification (`max_runs=2`) ✅
+  - confirmed loop runs multiple rounds and completes pending items in background-style execution
+- Mock MCP stall verification with fail-fast (`CODEX_MCP_FAIL_FAST_SEC=2`) ✅
+  - confirmed `Failure reason: mcp-startup-stall` and `Stop reason: mcp-startup-stall`
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm test` ✅ (65/65)
+- `npm run build` ✅
+- `npm run feature:meta:check` ✅
+
+**Files Created**:
+- `docs/codex-loop-resilience.md`
+- `__tests__/run-codex-loop-resilience.test.js`
+
+**Files Modified**:
+- `run_codex_loop.sh`
+- `AGENT_SESSION_GUIDE.md`
+- `feature_list_phase2.json`
+- `CLAUDE_PROGRESS.md`
+
+**Status**: ✅ COMPLETE (循环脚本可快速识别并截断 MCP 启动卡住，支持单轮自动恢复与可诊断停止原因)

@@ -116,6 +116,12 @@ git commit -m "feat: 描述功能"
 | 功能未测试 | 只在 E2E 测试通过后标记 passes: true |
 | 环境问题 | 使用 init.sh 脚本确保环境一致 |
 
+### 循环任务（run_codex_loop）恢复建议
+- 默认开启 MCP fail-fast，若启动阶段长时间无输出会自动截断并分类为 `mcp-startup-stall`。
+- 可通过 `CODEX_MCP_RETRY_PER_RUN` 配置单轮自动重试，避免偶发 MCP 超时直接中断整轮开发。
+- 建议在后台循环时设置 `CODEX_CONTINUE_ON_ERROR=1` + `CODEX_MAX_NO_PROGRESS`，防止无限卡住。
+- 详细参数与停止策略见 `docs/codex-loop-resilience.md`。
+
 ---
 
 ## 📁 项目文件结构
