@@ -2324,3 +2324,36 @@ npx prisma db seed    # Seed database with sample data
 - `logs/e2e-mcp/20260303-round3-prompt-create/network-requests.log`
 
 **Status**: ✅ COMPLETE（进入下一条测试前已完成记录）
+
+---
+
+### 2026-03-03 - Phase 3 Round 4 Playwright MCP Prompt Edit/Delete Flow (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Playwright MCP 实测（先记录问题，延后修复）
+
+**Feature Under Test**: phase3-e2e-004 - 实测提示词编辑与删除流程
+
+**Executed Steps**:
+- 基于上一轮创建的提示词进入详情页并记录编辑前状态（含标签）
+- 进入编辑页，仅修改标题/描述/内容/分类并提交更新
+- 返回详情页验证字段更新结果与标签状态
+- 执行删除并验证列表移除
+- 访问已删除详情页与二次删除 API（404）验证异常分支
+
+**Result**:
+- 编辑/删除主流程：✅ 通过（更新成功、删除成功、删除后资源不可访问）
+- 发现缺陷：⚠️ 1 条（高优先级数据一致性问题）
+
+**Found Bug**:
+- `E2E-20260303-005`（P1）编辑时未修改标签也会被清空（数据丢失）
+- 已记录到：`docs/e2e-mcp-bug-tracker.md`
+- 证据：
+  - `logs/e2e-mcp/20260303-round4-prompt-edit-delete/detail-before-edit.png`
+  - `logs/e2e-mcp/20260303-round4-prompt-edit-delete/edit-form-before-submit.png`
+  - `logs/e2e-mcp/20260303-round4-prompt-edit-delete/list-after-edit.png`
+  - `logs/e2e-mcp/20260303-round4-prompt-edit-delete/detail-after-edit.png`
+  - `logs/e2e-mcp/20260303-round4-prompt-edit-delete/list-after-delete.png`
+  - `logs/e2e-mcp/20260303-round4-prompt-edit-delete/deleted-detail-404.png`
+  - `logs/e2e-mcp/20260303-round4-prompt-edit-delete/round4-report.json`
+
+**Status**: ⏳ WAIT_USER（按当前策略先继续测试，修复待确认）
