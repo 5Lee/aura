@@ -2563,3 +2563,62 @@ npx prisma db seed    # Seed database with sample data
 - `logs/e2e-mcp/20260304-round9-regression-fixed-bugs/network-requests.log`
 
 **Status**: ✅ COMPLETE（`phase3-e2e-009` 通过，`E2E-20260303-006` 状态更新为 CLOSED）
+
+---
+
+### 2026-03-04 - Phase 3 Round 10 Remaining Bug Fix Implementation (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 全量修复（无需用户二次确认）
+
+**Scope**: 修复台账中剩余 `WAIT_USER` 缺陷（`E2E-20260303-001/002/003/004/005/007`）
+
+**Fixes Implemented**:
+- `E2E-20260303-001`：新增 `public/favicon.ico`，并在 `app/layout.tsx` 配置 icons，消除 `/favicon.ico` 404。
+- `E2E-20260303-002`：`/login` 表单增加 `noValidate`，移除输入框 `required` 原生拦截，空提交展示自定义内联提示。
+- `E2E-20260303-003`：新增 `middleware.ts`，未登录访问 `/dashboard|/prompts|/collections` 前置重定向到 `/login?callbackUrl=...`。
+- `E2E-20260303-004`：新增 `/api/auth/validate-credentials` 预校验流程，登录失败不再触发 `callback/credentials` 401 控制台噪音。
+- `E2E-20260303-005`：编辑页标签输入预填已有标签；标签写入改为按 `name` 找回/创建并去重，避免标签丢失与唯一键冲突。
+- `E2E-20260303-007`：移动端抽屉遮罩从无名按钮改为非交互层，开关按钮保留可访问名称。
+
+**Automation Added/Updated**:
+- `__tests__/e2e-bugfix-regression.test.js`
+- `__tests__/prompt-tag-normalization.test.js`
+- `__tests__/keyboard-navigation-accessibility.test.js`（阈值更新）
+
+**Verification (Automated)**:
+- `npm test -- --runInBand` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+
+---
+
+### 2026-03-04 - Phase 3 Round 11 Final Bugfix Retest (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 修复后全量回归复测（Playwright MCP）
+
+**Retest Target**: `E2E-20260303-001` ~ `E2E-20260303-007`
+
+**Final Retest Result**:
+- 全部目标缺陷复测通过：✅
+- 关键校验：
+  - favicon 返回 `200`（无 404）
+  - 登录空提交展示自定义文案（邮箱/密码必填）
+  - 未登录访问 `/dashboard` 直接重定向到 `/login?callbackUrl=%2Fdashboard`
+  - 错误密码流程无 `callback/credentials 401`（预校验与回调均为 `200`）
+  - 编辑提示词后标签保留（`GPT-4`）
+  - 私有提示词边界仍正确（非作者 `403`、未登录 `401`、作者 `200`）
+  - 移动端菜单无 `control-has-accessible-name` serious 问题
+
+**Evidence**:
+- `logs/e2e-mcp/20260304-round11-bugfix-final-retest/retest-report.json`
+- `logs/e2e-mcp/20260304-round11-bugfix-final-retest/bug001-favicon-ok.png`
+- `logs/e2e-mcp/20260304-round11-bugfix-final-retest/bug002-empty-submit-validation.png`
+- `logs/e2e-mcp/20260304-round11-bugfix-final-retest/bug003-dashboard-redirect-login.png`
+- `logs/e2e-mcp/20260304-round11-bugfix-final-retest/bug004-wrong-password.png`
+- `logs/e2e-mcp/20260304-round11-bugfix-final-retest/bug005-tags-verified-via-api.png`
+- `logs/e2e-mcp/20260304-round11-bugfix-final-retest/bug006-permission-final.png`
+- `logs/e2e-mcp/20260304-round11-bugfix-final-retest/bug007-mobile-menu-final.png`
+- `logs/e2e-mcp/20260304-round11-bugfix-final-retest/console-all.log`
+- `logs/e2e-mcp/20260304-round11-bugfix-final-retest/network-requests.log`
+
+**Status**: ✅ COMPLETE（Phase 3 全部缺陷修复并完成终轮回归）
