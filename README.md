@@ -133,6 +133,10 @@ npx prisma studio    # 打开数据库管理界面
 
 配置见 `.github/workflows/quality-gate.yml`，规则说明见 `docs/quality-gate.md`。
 
+## 故障排查
+
+常见环境/网络/循环任务故障与修复命令见 `docs/troubleshooting.md`。
+
 ## License
 
 MIT

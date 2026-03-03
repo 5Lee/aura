@@ -2140,3 +2140,98 @@ npx prisma db seed    # Seed database with sample data
 - `CLAUDE_PROGRESS.md`
 
 **Status**: ✅ COMPLETE (主分支统一质量门禁已落地，失败阶段可直接定位，且可配置为 required status check)
+
+---
+
+### 2026-03-03 - Phase 2 Unified Preflight Command (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Coding Agent
+
+**Feature**: phase2-week3-002 - 提供统一 preflight 检查命令供人工和代理使用
+
+**Completed Work**:
+- Added unified preflight script:
+  - `tools/preflight-check.sh`
+  - checks dependency, database ping, typecheck, and test readiness
+  - supports two modes:
+    - `--mode fast` (dependency/db/typecheck/smoke test)
+    - `--mode full` (dependency/db/typecheck/lint/full test/build)
+  - supports `--skip-db` for database-unavailable environments
+  - standardized output prefixes for cross-machine consistent parsing (`[RUN]/[PASS]/[FAIL]/[SKIP]`)
+- Added npm command entrypoints:
+  - `npm run preflight`
+  - `npm run preflight:fast`
+  - `npm run preflight:full`
+- Added preflight docs:
+  - `docs/preflight-check.md`
+- Integrated preflight guidance into session guide:
+  - `AGENT_SESSION_GUIDE.md`
+- Added regression tests for command wiring and doc/script contract:
+  - `__tests__/preflight-check-tooling.test.js`
+- Marked `phase2-week3-002` as completed in `feature_list_phase2.json`.
+
+**Validation Performed**:
+- `bash ./tools/preflight-check.sh --mode fast --skip-db` ✅
+- `bash ./tools/preflight-check.sh --mode full --skip-db` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm test` ✅ (74/74)
+- `npm run feature:meta:check` ✅
+
+**Files Created**:
+- `tools/preflight-check.sh`
+- `docs/preflight-check.md`
+- `__tests__/preflight-check-tooling.test.js`
+
+**Files Modified**:
+- `package.json`
+- `AGENT_SESSION_GUIDE.md`
+- `feature_list_phase2.json`
+- `CLAUDE_PROGRESS.md`
+
+**Status**: ✅ COMPLETE (统一 preflight 命令已提供，支持快速/完整模式，并具备一致输出格式便于人工与代理复用)
+
+---
+
+### 2026-03-03 - Phase 2 Troubleshooting Handbook Completion (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Coding Agent
+
+**Feature**: phase2-week3-003 - 完善故障排查手册并沉淀常见失败模式
+
+**Completed Work**:
+- Added dedicated troubleshooting handbook:
+  - `docs/troubleshooting.md`
+  - covers high-frequency failures observed in project history:
+    - Prisma `P1001` (DB unreachable)
+    - `ENOTFOUND registry.npmjs.org` (network/DNS)
+    - MCP startup timeout/stall in loop execution
+    - `next lint` interactive prompt blocking
+    - `.next/types`-related TypeScript instability
+- Added concrete recovery command paths for each failure mode.
+- Added new-member onboarding validation checklist for independent environment recovery.
+- Linked handbook from entry docs:
+  - `README.md`
+  - `AGENT_SESSION_GUIDE.md`
+- Added regression test coverage for handbook content and doc linkage:
+  - `__tests__/troubleshooting-handbook.test.js`
+- Marked `phase2-week3-003` as completed in `feature_list_phase2.json`.
+
+**Validation Performed**:
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm test` ✅ (77/77)
+- `npm run build` ✅
+- `npm run feature:meta:check` ✅
+
+**Files Created**:
+- `docs/troubleshooting.md`
+- `__tests__/troubleshooting-handbook.test.js`
+
+**Files Modified**:
+- `README.md`
+- `AGENT_SESSION_GUIDE.md`
+- `feature_list_phase2.json`
+- `CLAUDE_PROGRESS.md`
+
+**Status**: ✅ COMPLETE (高频失败模式已形成可执行排查手册，新成员可按文档独立恢复环境)

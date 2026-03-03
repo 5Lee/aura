@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "last_updated": "2026-03-03",
     "total_features": 15,
-    "completed_features": 13
+    "completed_features": 15
   },
   "features": [
     {
@@ -202,7 +202,7 @@
         "将脚本接入 AGENT_SESSION_GUIDE.md",
         "验证不同机器环境下输出一致"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase2-week3-003",
@@ -216,7 +216,7 @@
         "补充到 README 或专用 troubleshooting 文档",
         "验证新成员可按文档独立恢复环境"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

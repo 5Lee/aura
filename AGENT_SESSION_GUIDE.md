@@ -30,6 +30,7 @@ git log --oneline -5   # 查看最近的提交
 ### Step 4: 验证现有功能
 在实现新功能前，先运行基本测试确保现有功能正常：
 ```bash
+npm run preflight      # 快速预检（依赖/数据库/类型/测试烟雾）
 npm run typecheck      # 运行 TypeScript 检查（不依赖 .next/types）
 npm test               # 运行单元测试
 npm run test:e2e       # 运行 E2E 测试 (本地离线兼容 Playwright runner)
@@ -124,6 +125,7 @@ git commit -m "feat: 描述功能"
 - 循环状态会写入 `logs/codex-loop/<timestamp>/loop_state.json`，中断后可据此恢复。
 - 可使用 `./tools/loop-log-summary.sh` 快速查看最新轮次结果与失败原因汇总。
 - 详细参数与停止策略见 `docs/codex-loop-resilience.md`。
+- 常见故障排查总手册见 `docs/troubleshooting.md`。
 
 ---
 
@@ -223,6 +225,12 @@ git commit -m "feat: 描述功能"
 
 ### 运行测试
 ```bash
+# 快速预检（推荐每次会话开始先跑）
+npm run preflight
+
+# 完整预检（包含 lint/test/build）
+npm run preflight:full
+
 # TypeScript 类型检查
 npm run typecheck
 
@@ -243,6 +251,7 @@ npm test -- --coverage
 ```
 
 统一 CI 质量门禁见 `docs/quality-gate.md`（build/typecheck/lint/test）。
+Preflight 脚本说明见 `docs/preflight-check.md`。
 
 ---
 
