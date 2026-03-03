@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "last_updated": "2026-03-03",
     "total_features": 15,
-    "completed_features": 6
+    "completed_features": 7
   },
   "features": [
     {
@@ -104,7 +104,7 @@
         "确保 init.sh 的失败信息包含明确修复建议",
         "验证本地冷启动与异常启动场景"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase2-week2-002",

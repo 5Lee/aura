@@ -1807,3 +1807,45 @@ npx prisma db seed    # Seed database with sample data
 - `AGENT_SESSION_GUIDE.md`
 
 **Status**: ✅ COMPLETE (Phase 2 Week1 001~006 全部完成，构建基线与任务元数据校验已稳定)
+
+---
+
+### 2026-03-03 - Phase 2 init.sh Robustness Hardening (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Coding Agent
+
+**Feature**: phase2-week2-001 - 增强 init.sh 对数据库与端口状态的鲁棒性
+
+**Completed Work**:
+- Refactored `init.sh` startup flow to degrade gracefully when database is unavailable:
+  - DB check now uses `prisma db execute` ping and no longer hard-fails startup on DB outage
+  - added explicit remediation guidance for `DATABASE_URL`, MySQL service startup, and db sync/seed commands
+  - migration/seed steps execute only when DB is reachable
+- Added port preflight and conflict handling:
+  - `AURA_DEV_PORT` to set preferred port
+  - `AURA_PORT_STRATEGY=auto|fail` to control auto-switch vs fail-fast behavior
+  - automatic scan to next free port with clear owner/process hint
+- Added automation-friendly startup mode:
+  - `AURA_INIT_NO_DEV=1` for preflight-only runs (skip long-running dev server)
+  - `AURA_SKIP_DB=1` to bypass DB checks in constrained environments
+- Added regression tests in `__tests__/init-script-resilience.test.js` covering port strategy, no-dev mode, and DB degradation messaging.
+- Marked `phase2-week2-001` as completed in `feature_list_phase2.json`.
+
+**Validation Performed**:
+- `AURA_INIT_NO_DEV=1 AURA_SKIP_DB=1 ./init.sh` ✅
+- Occupied port 3000 + `AURA_INIT_NO_DEV=1 AURA_SKIP_DB=1 ./init.sh` ✅ (auto-switched to 3001)
+- Occupied port 3000 + `AURA_PORT_STRATEGY=fail` ✅ (returned non-zero with actionable hint)
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm test` ✅ (59/59)
+- `npm run build` ✅
+
+**Files Created**:
+- `__tests__/init-script-resilience.test.js`
+
+**Files Modified**:
+- `init.sh`
+- `feature_list_phase2.json`
+- `CLAUDE_PROGRESS.md`
+
+**Status**: ✅ COMPLETE (`init.sh` now supports DB fail-soft startup, port preflight auto/fail strategy, and clear recovery guidance)
