@@ -232,12 +232,17 @@ npm test
 # E2E 测试
 npm run test:e2e
 
+# 构建验证
+npm run build
+
 # 测试覆盖率
 npm test -- --coverage
 
 # 使用 Playwright MCP 调试 (在 Claude Code 中)
 # 直接描述你要测试的功能，Agent 会使用 MCP 工具
 ```
+
+统一 CI 质量门禁见 `docs/quality-gate.md`（build/typecheck/lint/test）。
 
 ---
 

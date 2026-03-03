@@ -2093,3 +2093,50 @@ npx prisma db seed    # Seed database with sample data
 - `CLAUDE_PROGRESS.md`
 
 **Status**: ✅ COMPLETE (循环日志已具备可汇总诊断视图、失败原因聚合、按日期归档与可执行清理策略)
+
+---
+
+### 2026-03-03 - Phase 2 Unified CI Quality Gate (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Coding Agent
+
+**Feature**: phase2-week3-001 - 建立统一质量门禁（build/typecheck/lint/test）
+
+**Completed Work**:
+- Added unified CI quality gate workflow:
+  - `.github/workflows/quality-gate.yml`
+  - includes one consolidated pipeline with clear stage names:
+    1) `Stage 1 - Typecheck` (`npm run typecheck`)
+    2) `Stage 2 - Lint` (`npm run lint`)
+    3) `Stage 3 - Test` (`npm test`)
+    4) `Stage 4 - Build` (`npm run build`)
+- Added quality gate documentation and branch protection guidance:
+  - `docs/quality-gate.md`
+  - defines minimal gate matrix and explains required status check setup on `main`
+- Added regression tests to prevent CI gate drift:
+  - `__tests__/quality-gate-workflow.test.js`
+  - verifies workflow triggers and required gate commands/stage naming
+- Synced developer guidance:
+  - updated `AGENT_SESSION_GUIDE.md` test run section to include build verification and quality-gate reference
+  - updated `README.md` with CI quality gate overview
+- Marked `phase2-week3-001` as completed in `feature_list_phase2.json`.
+
+**Validation Performed**:
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm test` ✅ (71/71)
+- `npm run build` ✅
+- `npm run feature:meta:check` ✅
+
+**Files Created**:
+- `.github/workflows/quality-gate.yml`
+- `docs/quality-gate.md`
+- `__tests__/quality-gate-workflow.test.js`
+
+**Files Modified**:
+- `AGENT_SESSION_GUIDE.md`
+- `README.md`
+- `feature_list_phase2.json`
+- `CLAUDE_PROGRESS.md`
+
+**Status**: ✅ COMPLETE (主分支统一质量门禁已落地，失败阶段可直接定位，且可配置为 required status check)

@@ -122,6 +122,17 @@ npm run start        # 启动生产服务器
 npx prisma studio    # 打开数据库管理界面
 ```
 
+## CI 质量门禁
+
+主分支统一质量门禁覆盖以下命令：
+
+- `npm run typecheck`
+- `npm run lint`
+- `npm test`
+- `npm run build`
+
+配置见 `.github/workflows/quality-gate.yml`，规则说明见 `docs/quality-gate.md`。
+
 ## License
 
 MIT
