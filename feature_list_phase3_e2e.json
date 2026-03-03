@@ -1,0 +1,142 @@
+{
+  "meta": {
+    "project": "Aura - AI Prompt Management Platform",
+    "phase": "Phase 3: Playwright MCP 实测修复",
+    "version": "1.0.0",
+    "last_updated": "2026-03-03",
+    "total_features": 10,
+    "completed_features": 0
+  },
+  "features": [
+    {
+      "id": "phase3-e2e-001",
+      "category": "auth",
+      "priority": 1,
+      "description": "实测注册/登录/退出主流程",
+      "steps": [
+        "使用 Playwright MCP 打开注册页并完成新用户注册",
+        "验证注册后跳转与登录状态",
+        "执行退出并验证状态回收",
+        "记录问题并与用户确认是否立即修复"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase3-e2e-002",
+      "category": "auth",
+      "priority": 1,
+      "description": "实测登录异常流与校验提示",
+      "steps": [
+        "验证错误密码提示",
+        "验证空字段与格式校验提示",
+        "验证未登录访问受限页面处理",
+        "记录问题并与用户确认是否立即修复"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase3-e2e-003",
+      "category": "prompt-crud",
+      "priority": 1,
+      "description": "实测提示词创建与详情展示",
+      "steps": [
+        "创建新提示词并校验列表出现",
+        "进入详情页校验字段完整性",
+        "校验标签/分类渲染一致性",
+        "记录问题并与用户确认是否立即修复"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase3-e2e-004",
+      "category": "prompt-crud",
+      "priority": 1,
+      "description": "实测提示词编辑与删除流程",
+      "steps": [
+        "编辑提示词核心字段并验证更新",
+        "执行删除并验证列表与详情状态",
+        "验证删除异常提示",
+        "记录问题并与用户确认是否立即修复"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase3-e2e-005",
+      "category": "browse",
+      "priority": 2,
+      "description": "实测浏览页搜索与筛选",
+      "steps": [
+        "执行关键字搜索并验证结果",
+        "执行分类筛选并验证结果",
+        "验证空结果态与交互提示",
+        "记录问题并与用户确认是否立即修复"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase3-e2e-006",
+      "category": "favorite",
+      "priority": 2,
+      "description": "实测收藏与收藏列表一致性",
+      "steps": [
+        "在详情页收藏/取消收藏",
+        "验证 collections 页面同步",
+        "验证收藏状态刷新一致性",
+        "记录问题并与用户确认是否立即修复"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase3-e2e-007",
+      "category": "permission",
+      "priority": 2,
+      "description": "实测私有/公开权限边界",
+      "steps": [
+        "验证非作者编辑/删除限制",
+        "验证私有数据访问控制",
+        "验证 API 返回错误提示一致性",
+        "记录问题并与用户确认是否立即修复"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase3-e2e-008",
+      "category": "mobile",
+      "priority": 3,
+      "description": "实测移动端关键路径",
+      "steps": [
+        "切换移动端视口执行登录与浏览",
+        "验证移动导航与返回逻辑",
+        "验证关键按钮可达性",
+        "记录问题并与用户确认是否立即修复"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase3-e2e-009",
+      "category": "stability",
+      "priority": 2,
+      "description": "回归所有已修复 E2E 缺陷",
+      "steps": [
+        "按 bug 台账逐条复测",
+        "确认无回归与新副作用",
+        "补充缺失自动化用例",
+        "记录问题并与用户确认是否立即修复"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase3-e2e-010",
+      "category": "documentation",
+      "priority": 3,
+      "description": "沉淀最终测试报告与修复清单",
+      "steps": [
+        "汇总测试覆盖矩阵与通过率",
+        "汇总所有 bug 的状态与修复提交",
+        "整理剩余风险与后续建议",
+        "更新文档并完成归档"
+      ],
+      "passes": false
+    }
+  ]
+}

@@ -2235,3 +2235,30 @@ npx prisma db seed    # Seed database with sample data
 - `CLAUDE_PROGRESS.md`
 
 **Status**: ✅ COMPLETE (高频失败模式已形成可执行排查手册，新成员可按文档独立恢复环境)
+
+---
+
+### 2026-03-03 - Phase 3 Round 1 Playwright MCP Auth Flow (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Playwright MCP 实测（边测边修）
+
+**Feature Under Test**: phase3-e2e-001 - 实测注册/登录/退出主流程
+
+**Executed Steps**:
+- Playwright MCP 打开 `/register`，填写新用户并提交注册
+- 通过“立即登录”进入 `/login`，使用新账号登录
+- 验证登录后进入 `/dashboard` 且展示当前昵称
+- 点击退出，验证返回首页并恢复未登录导航
+
+**Result**:
+- 主流程：✅ 通过（注册/登录/退出均可用）
+- 发现缺陷：⚠️ 1 条（非阻塞）
+
+**Found Bug**:
+- `E2E-20260303-001`（P3）缺少 favicon 导致 `GET /favicon.ico 404`
+- 已记录到：`docs/e2e-mcp-bug-tracker.md`
+- 证据：
+  - `logs/e2e-mcp/20260303-round1-auth/console-errors.log`
+  - `logs/e2e-mcp/20260303-round1-auth/logout-home.png`
+
+**Status**: ⏳ WAIT_USER（等待用户确认是否立即修复该缺陷）
