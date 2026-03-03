@@ -30,6 +30,7 @@ git log --oneline -5   # 查看最近的提交
 ### Step 4: 验证现有功能
 在实现新功能前，先运行基本测试确保现有功能正常：
 ```bash
+npm run typecheck      # 运行 TypeScript 检查（不依赖 .next/types）
 npm test               # 运行单元测试
 npx playwright test    # 运行 E2E 测试 (如果已配置)
 ```
@@ -159,6 +160,11 @@ git commit -m "feat: 描述功能"
 - 测试文件放在 `e2e/` 目录
 - 每个关键用户流程都应有 E2E 测试
 
+### TypeScript 类型检查
+- 使用 `npm run typecheck`（执行 `tsc --noEmit -p tsconfig.typecheck.json`）
+- 默认不依赖 `.next/types` 生成产物，clean 环境可直接执行
+- 如需验证 Next.js 路由增强类型，再运行 `npm run dev` 或 `npm run build`
+
 ### Playwright MCP 浏览器调试
 使用 Playwright MCP 进行实时浏览器调试和测试：
 
@@ -208,6 +214,9 @@ git commit -m "feat: 描述功能"
 
 ### 运行测试
 ```bash
+# TypeScript 类型检查
+npm run typecheck
+
 # 单元测试
 npm test
 

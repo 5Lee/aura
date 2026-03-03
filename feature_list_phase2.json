@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "last_updated": "2026-03-03",
     "total_features": 15,
-    "completed_features": 0
+    "completed_features": 6
   },
   "features": [
     {
@@ -20,7 +20,7 @@
         "验证 npm ls 依赖树中可解析上述包",
         "验证 npm run build 不再出现 Module not found"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase2-week1-002",
@@ -34,7 +34,7 @@
         "执行 npx tsc --noEmit 验证该页面相关错误消失",
         "补充对应单元测试或类型回归用例"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase2-week1-003",
@@ -48,7 +48,7 @@
         "修复新增 lint 报错或在必要时记录技术债",
         "将 lint 纳入后续自动化检查流程"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase2-week1-004",
@@ -62,7 +62,7 @@
         "验证在 clean 环境下 npx tsc --noEmit 可稳定运行",
         "更新文档说明 typecheck 前置条件"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase2-week1-005",
@@ -76,7 +76,7 @@
         "输出构建成功的最小复现实验步骤",
         "将构建基线结果记录到项目文档"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase2-week1-006",
@@ -90,7 +90,7 @@
         "修正 meta 字段并补充校验脚本",
         "验证后续更新 passes 时 meta 不再漂移"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase2-week2-001",

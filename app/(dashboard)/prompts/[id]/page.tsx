@@ -40,7 +40,11 @@ export default async function PromptDetailPage({
     where: { id: params.id },
     include: {
       category: true,
-      tags: true,
+      tags: {
+        include: {
+          tag: true,
+        },
+      },
       author: {
         select: { id: true, name: true, email: true },
       },
@@ -122,19 +126,19 @@ export default async function PromptDetailPage({
             <span className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-3 py-1 rounded-full">
               {prompt.category.name}
             </span>
-            {prompt.tags.map((tag) => (
+            {prompt.tags.map((promptTag) => (
               <span
-                key={tag.id}
+                key={promptTag.tagId}
                 className="text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 px-3 py-1 rounded-full"
               >
-                {tag.name}
+                {promptTag.tag.name}
               </span>
             ))}
           </div>
 
           <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 pt-4 border-t">
             <span>
-              作者: {prompt.author.name || prompt.author.email}
+              作者: {prompt.author?.name || prompt.author?.email || "匿名用户"}
             </span>
             <span>
               查看 {prompt.viewCount} 次 · 收藏 {prompt.favoriteCount} 次

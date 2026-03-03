@@ -107,6 +107,8 @@
   /* ============================================
    * 字体系统 (Typography)
    * ============================================ */
+  --font-inter: 'Inter';
+  --font-jetbrains-mono: 'JetBrains Mono';
   --font-family-sans: var(--font-inter), 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
   --font-family-mono: var(--font-jetbrains-mono), 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
 

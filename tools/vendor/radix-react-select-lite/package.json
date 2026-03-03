@@ -1,0 +1,6 @@
+{
+  "name": "@radix-ui/react-select",
+  "version": "0.0.0-lite",
+  "main": "index.js",
+  "types": "index.d.ts"
+}

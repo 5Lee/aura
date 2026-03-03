@@ -2,6 +2,7 @@
 node_modules
 .pnp
 .pnp.js
+node_modules_stale_*
 
 # Testing
 coverage
@@ -14,6 +15,7 @@ dist
 
 # Production
 *.log
+logs/
 
 # Misc
 .DS_Store

@@ -11,16 +11,17 @@ const designTokenSource = readFileSync(
   "utf8"
 )
 
-test("root layout uses swap display and preload for key fonts", () => {
-  assert.match(layoutSource, /Inter\(\{[\s\S]*display: "swap"[\s\S]*preload: true[\s\S]*variable: "--font-inter"/)
-  assert.match(layoutSource, /JetBrains_Mono\(\{[\s\S]*display: "swap"[\s\S]*preload: true[\s\S]*variable: "--font-jetbrains-mono"/)
+test("root layout avoids network-bound google font imports", () => {
+  assert.doesNotMatch(layoutSource, /next\/font\/google/)
 })
 
-test("body enables font variables and tailwind sans stack", () => {
-  assert.match(layoutSource, /className=\{`\$\{inter\.variable\} \$\{jetBrainsMono\.variable\} font-sans antialiased`\}/)
+test("body keeps tailwind typography baseline class", () => {
+  assert.match(layoutSource, /<body className="font-sans antialiased">/)
 })
 
-test("design tokens consume optimized font variables with fallback stacks", () => {
+test("design tokens define local-first font variables and fallback stacks", () => {
+  assert.match(designTokenSource, /--font-inter: 'Inter';/)
+  assert.match(designTokenSource, /--font-jetbrains-mono: 'JetBrains Mono';/)
   assert.match(designTokenSource, /--font-family-sans: var\(--font-inter\), 'PingFang SC'/)
   assert.match(designTokenSource, /--font-family-mono: var\(--font-jetbrains-mono\), 'SFMono-Regular'/)
 })

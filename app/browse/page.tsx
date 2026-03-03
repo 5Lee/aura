@@ -104,7 +104,7 @@ export default async function BrowsePage({
         {searchParams.q && (
           <div className="mb-6">
             <p className="text-sm text-muted-foreground">
-              搜索结果: <strong>"{searchParams.q}"</strong> ({prompts.length} 个结果)
+              搜索结果: <strong>&quot;{searchParams.q}&quot;</strong> ({prompts.length} 个结果)
             </p>
           </div>
         )}
