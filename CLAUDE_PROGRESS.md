@@ -2420,3 +2420,37 @@ npx prisma db seed    # Seed database with sample data
 - `logs/e2e-mcp/20260303-round6-favorite-collections/network-requests.log`
 
 **Status**: ✅ COMPLETE（继续下一条测试）
+
+---
+
+### 2026-03-03 - Phase 3 Round 7 Playwright MCP Permission Boundary Flow (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Playwright MCP 实测（先记录问题，延后修复）
+
+**Feature Under Test**: phase3-e2e-007 - 实测私有/公开权限边界
+
+**Executed Steps**:
+- 以用户 A（`mcp.direct.1772548888@aura.test`）创建私有提示词：`E2E Private Prompt 20260303-001`
+- 切换用户 B（`demo@aura.ai`）访问私有详情页与编辑页，验证 UI 重定向行为
+- 用户 B 直连 API：`GET/PATCH/DELETE /api/prompts/:id` 验证权限返回
+- 清除登录态后以未登录状态复测 API 权限返回
+
+**Result**:
+- UI 边界：✅ 通过（非作者访问私有详情/编辑均被重定向到 `/prompts`）
+- API 边界：❌ 失败（发现严重越权读取）
+
+**Found Bug**:
+- `E2E-20260303-006`（P0）私有提示词可被非作者与未登录用户通过 `GET /api/prompts/:id` 直接读取
+- 同时验证：`PATCH/DELETE` 对非作者返回 403，`PATCH` 对未登录返回 401（错误文案一致）
+- 已记录到：`docs/e2e-mcp-bug-tracker.md`
+- 证据：
+  - `logs/e2e-mcp/20260303-round7-permission-boundary/private-create-form.png`
+  - `logs/e2e-mcp/20260303-round7-permission-boundary/private-prompt-in-owner-list.png`
+  - `logs/e2e-mcp/20260303-round7-permission-boundary/private-detail-redirected-to-prompts.png`
+  - `logs/e2e-mcp/20260303-round7-permission-boundary/private-edit-redirected-to-prompts.png`
+  - `logs/e2e-mcp/20260303-round7-permission-boundary/unauth-home-after-cookie-clear.png`
+  - `logs/e2e-mcp/20260303-round7-permission-boundary/round7-report.json`
+  - `logs/e2e-mcp/20260303-round7-permission-boundary/console-errors.log`
+  - `logs/e2e-mcp/20260303-round7-permission-boundary/network-requests.log`
+
+**Status**: ⏳ WAIT_USER（发现 P0 安全问题，按策略先记录并等待是否优先修复）
