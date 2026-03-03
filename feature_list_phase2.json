@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "last_updated": "2026-03-03",
     "total_features": 15,
-    "completed_features": 8
+    "completed_features": 9
   },
   "features": [
     {
@@ -132,7 +132,7 @@
         "验证 npm run build 在无外网时不因字体下载直接失败",
         "更新字体策略与性能影响说明"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase2-week2-004",

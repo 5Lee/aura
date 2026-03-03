@@ -1900,3 +1900,36 @@ npx prisma db seed    # Seed database with sample data
 - `feature_list_phase2.json`
 
 **Status**: ✅ COMPLETE (Playwright/LHCI default test commands no longer rely on runtime `npx` temporary installs)
+
+---
+
+### 2026-03-03 - Phase 2 Font Build Stability Closure (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Coding Agent
+
+**Feature**: phase2-week2-003 - 处理 next/font 外网拉取导致的构建不稳定
+
+**Completed Work**:
+- Confirmed production code path no longer uses `next/font/google`; root layout remains local font-stack based (`app/layout.tsx` + `styles/design-tokens.css`).
+- Hardened regression coverage for network font independence:
+  - extended `__tests__/font-loading-optimization.test.js` to scan `app/`, `components/`, `styles/` and assert no `next/font/google`, `fonts.googleapis.com`, or `fonts.gstatic.com` references.
+- Added explicit font strategy/performance documentation in `docs/performance-baseline.md`:
+  - rationale for offline-stable local-first font stacks
+  - performance tradeoff notes
+  - future option for `next/font/local` with in-repo assets
+- Marked `phase2-week2-003` as completed in `feature_list_phase2.json`.
+
+**Validation Performed**:
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm test` ✅ (62/62)
+- `npm run build` ✅
+- `npm run feature:meta:check` ✅
+
+**Files Modified**:
+- `__tests__/font-loading-optimization.test.js`
+- `docs/performance-baseline.md`
+- `feature_list_phase2.json`
+- `CLAUDE_PROGRESS.md`
+
+**Status**: ✅ COMPLETE (字体策略已明确为离线稳定方案，构建链路不再依赖 Google Font 外网拉取)

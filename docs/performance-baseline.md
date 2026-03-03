@@ -17,6 +17,17 @@ Phase 1 performance baseline is managed through Lighthouse CI with budgets in `l
   - `/`
   - `/browse`
 
+## Font Strategy (Offline-Stable)
+
+- 不使用 `next/font/google`，避免构建阶段请求 `fonts.googleapis.com` / `fonts.gstatic.com`。
+- 当前采用本地优先字体栈（`styles/design-tokens.css`）：
+  - Sans: `Inter` -> `PingFang SC` -> `Hiragino Sans GB` -> `Microsoft YaHei` -> `Noto Sans CJK SC` -> `sans-serif`
+  - Mono: `JetBrains Mono` -> `SFMono-Regular` -> `Menlo` -> `Monaco` -> `Consolas` -> `monospace`
+- 性能影响：
+  - 优点：构建链路在弱网/离线场景稳定，不会因为字体下载失败中断。
+  - 代价：首屏字体可能由系统 fallback 呈现，跨设备字形一致性略低于远程托管字体。
+  - 若后续需要统一字形，可引入 `next/font/local` + 项目内字体文件（不依赖外网）。
+
 ## Local Run
 
 ```bash
