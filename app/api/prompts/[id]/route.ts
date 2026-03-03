@@ -9,6 +9,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const session = await getServerSession(authOptions)
     const prompt = await prisma.prompt.findUnique({
       where: { id: params.id },
       include: {
@@ -28,6 +29,21 @@ export async function GET(
       return NextResponse.json(
         { error: "提示词不存在" },
         { status: 404 }
+      )
+    }
+
+    const isOwner = session?.user?.id === prompt.authorId
+    if (!prompt.isPublic && !isOwner) {
+      if (!session?.user) {
+        return NextResponse.json(
+          { error: "请先登录" },
+          { status: 401 }
+        )
+      }
+
+      return NextResponse.json(
+        { error: "无权限查看此提示词" },
+        { status: 403 }
       )
     }
 

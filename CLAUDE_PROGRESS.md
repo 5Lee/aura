@@ -2454,3 +2454,27 @@ npx prisma db seed    # Seed database with sample data
   - `logs/e2e-mcp/20260303-round7-permission-boundary/network-requests.log`
 
 **Status**: ⏳ WAIT_USER（发现 P0 安全问题，按策略先记录并等待是否优先修复）
+
+---
+
+### 2026-03-03 - Phase 3 Round 7 P0 Hotfix (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 修复 + 回归验证
+
+**Bug**: `E2E-20260303-006`（P0）私有提示词 API 越权读取
+
+**Fix Implemented**:
+- 在 `GET /api/prompts/[id]` 增加私有访问鉴权：
+  - 未登录访问私有提示词返回 `401`（`请先登录`）
+  - 非作者访问私有提示词返回 `403`（`无权限查看此提示词`）
+- 保持公开提示词可正常读取，PATCH/DELETE 原有鉴权逻辑不变。
+- 增加防回归测试：`__tests__/prompt-api-private-access-control.test.js`
+
+**Regression Validation**:
+- 未登录 `GET /api/prompts/:id(private)` => `401` ✅
+- 非作者登录 `GET /api/prompts/:id(private)` => `403` ✅
+- 非作者登录 `PATCH /api/prompts/:id(private)` => `403` ✅
+- 非作者登录 `DELETE /api/prompts/:id(private)` => `403` ✅
+- 验证记录：`logs/e2e-mcp/20260303-round7-permission-boundary/round7-fix-verification.json`
+
+**Status**: ✅ VERIFIED（P0 漏洞已完成修复并回归通过）
