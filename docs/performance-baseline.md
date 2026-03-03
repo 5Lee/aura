@@ -20,5 +20,15 @@ Phase 1 performance baseline is managed through Lighthouse CI with budgets in `l
 ## Local Run
 
 ```bash
+npm run test:perf
+```
+
+## Network-Limited Fallback
+
+- 默认 `npm run test:perf` 使用本地 `@lhci/cli`（`tools/testing/lhci-cli-lite`），不会触发 `npx` 临时下载。
+- E2E 测试使用 `npm run test:e2e`（本地 `@playwright/test` lite 包）。
+- 若需要完整在线 Lighthouse CLI，可手动运行：
+
+```bash
 npx --yes @lhci/cli@0.15.1 autorun --config=./lighthouserc.json
 ```

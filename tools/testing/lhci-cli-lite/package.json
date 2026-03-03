@@ -1,0 +1,9 @@
+{
+  "name": "@lhci/cli",
+  "version": "0.0.0-local",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "lhci": "bin/lhci.js"
+  }
+}

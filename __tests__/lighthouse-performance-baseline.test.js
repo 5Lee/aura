@@ -31,8 +31,5 @@ test("lighthouse workflow monitors performance in CI", () => {
   assert.match(workflowSource, /name: Lighthouse CI/)
   assert.match(workflowSource, /schedule:/)
   assert.match(workflowSource, /npm run build/)
-  assert.match(
-    workflowSource,
-    /npx --yes @lhci\/cli@0\.15\.1 autorun --config=\.\/lighthouserc\.json/
-  )
+  assert.match(workflowSource, /npm run test:perf/)
 })

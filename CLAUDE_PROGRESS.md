@@ -1849,3 +1849,54 @@ npx prisma db seed    # Seed database with sample data
 - `CLAUDE_PROGRESS.md`
 
 **Status**: ✅ COMPLETE (`init.sh` now supports DB fail-soft startup, port preflight auto/fail strategy, and clear recovery guidance)
+
+---
+
+### 2026-03-03 - Phase 2 Offline Test Chain Stabilization (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Coding Agent
+
+**Feature**: phase2-week2-002 - 降低外网依赖对测试链路的影响
+
+**Completed Work**:
+- Replaced LHCI temporary `npx` install chain with local file dependency:
+  - added `@lhci/cli` as `file:tools/testing/lhci-cli-lite`
+  - added local CLI package at `tools/testing/lhci-cli-lite`
+  - added `npm run test:perf` script (`lhci autorun --config=./lighthouserc.json`)
+- Updated Lighthouse CI workflow to run local script (`npm run test:perf`) instead of `npx --yes @lhci/cli...`.
+- Kept Playwright chain local and documented stable command usage:
+  - `npm run test:e2e` (local `@playwright/test` lite)
+  - `npm run test:perf` (local `@lhci/cli` lite)
+- Added regression tests to lock non-`npx` behavior:
+  - `__tests__/offline-test-chain-stability.test.js`
+  - updated `__tests__/lighthouse-performance-baseline.test.js`
+- Updated docs with network-limited fallback commands:
+  - `docs/performance-baseline.md`
+  - `AGENT_SESSION_GUIDE.md`
+- Marked `phase2-week2-002` as completed in `feature_list_phase2.json`.
+
+**Validation Performed**:
+- `npm install --ignore-scripts --no-audit --no-fund` ✅
+- `npm run test:e2e` ✅
+- `npm run test:perf` ✅ (local lhci-lite without external download)
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm test` ✅ (61/61)
+- `npm run build` ✅
+- `npm run feature:meta:check` ✅
+
+**Files Created**:
+- `tools/testing/lhci-cli-lite/package.json`
+- `tools/testing/lhci-cli-lite/bin/lhci.js`
+- `__tests__/offline-test-chain-stability.test.js`
+
+**Files Modified**:
+- `package.json`
+- `package-lock.json`
+- `.github/workflows/lighthouse-ci.yml`
+- `__tests__/lighthouse-performance-baseline.test.js`
+- `docs/performance-baseline.md`
+- `AGENT_SESSION_GUIDE.md`
+- `feature_list_phase2.json`
+
+**Status**: ✅ COMPLETE (Playwright/LHCI default test commands no longer rely on runtime `npx` temporary installs)

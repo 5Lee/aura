@@ -32,7 +32,7 @@ git log --oneline -5   # 查看最近的提交
 ```bash
 npm run typecheck      # 运行 TypeScript 检查（不依赖 .next/types）
 npm test               # 运行单元测试
-npx playwright test    # 运行 E2E 测试 (如果已配置)
+npm run test:e2e       # 运行 E2E 测试 (本地离线兼容 Playwright runner)
 ```
 
 ### Step 5: 实现功能
@@ -221,7 +221,7 @@ npm run typecheck
 npm test
 
 # E2E 测试
-npx playwright test
+npm run test:e2e
 
 # 测试覆盖率
 npm test -- --coverage

@@ -8,6 +8,7 @@
     "start": "next start",
     "test": "jest",
     "test:e2e": "playwright test",
+    "test:perf": "lhci autorun --config=./lighthouserc.json",
     "lint": "next lint",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
     "feature:meta:check": "node tools/check-feature-list-meta.mjs",
@@ -39,6 +40,7 @@
   "devDependencies": {
     "@axe-core/react": "file:tools/testing/axe-core-react-lite",
     "@playwright/test": "file:tools/testing/playwright-test-lite",
+    "@lhci/cli": "file:tools/testing/lhci-cli-lite",
     "@testing-library/jest-dom": "file:tools/testing/jest-dom-lite",
     "@testing-library/react": "file:tools/testing/testing-library-react-lite",
     "@radix-ui/react-label": "file:tools/vendor/radix-react-label-lite",
