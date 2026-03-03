@@ -23,6 +23,8 @@ export default function LoginPage() {
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const callbackUrl = searchParams.get("callbackUrl")
+  const safeCallbackUrl = callbackUrl?.startsWith("/") ? callbackUrl : "/dashboard"
 
   const normalizedEmail = email.trim()
   const emailError = !email.trim()
@@ -70,6 +72,36 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
+      const precheckResponse = await fetch("/api/auth/validate-credentials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: normalizedEmail,
+          password,
+        }),
+      })
+
+      const precheckResult = await precheckResponse.json()
+      if (!precheckResponse.ok) {
+        setError(precheckResult.error || "登录失败，请重试")
+        toast({
+          type: "error",
+          title: "登录失败",
+          description: precheckResult.error || "网络异常，请稍后再试。",
+        })
+        return
+      }
+
+      if (!precheckResult.ok) {
+        setError("邮箱或密码错误")
+        toast({
+          type: "error",
+          title: "登录失败",
+          description: "邮箱或密码错误，请检查后重试。",
+        })
+        return
+      }
+
       const result = await signIn("credentials", {
         email: normalizedEmail,
         password,
@@ -89,7 +121,7 @@ export default function LoginPage() {
           title: "登录成功",
           description: "欢迎回来，正在进入控制台。",
         })
-        router.push("/dashboard")
+        router.push(safeCallbackUrl)
         router.refresh()
       }
     } catch (error) {
@@ -113,7 +145,7 @@ export default function LoginPage() {
             登录你的 Aura 账号
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit} className="w-full">
+        <form onSubmit={handleSubmit} noValidate className="w-full">
           <CardContent className="space-y-4">
             {error && (
               <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
@@ -138,7 +170,6 @@ export default function LoginPage() {
                 className={cn(shouldShowEmailError && "border-red-500 focus-visible:ring-red-500")}
                 aria-invalid={shouldShowEmailError}
                 aria-describedby={shouldShowEmailError ? "login-email-error" : undefined}
-                required
                 disabled={isLoading}
               />
               {shouldShowEmailError && (
@@ -165,7 +196,6 @@ export default function LoginPage() {
                 className={cn(shouldShowPasswordError && "border-red-500 focus-visible:ring-red-500")}
                 aria-invalid={shouldShowPasswordError}
                 aria-describedby={shouldShowPasswordError ? "login-password-error" : undefined}
-                required
                 disabled={isLoading}
               />
               {shouldShowPasswordError && (

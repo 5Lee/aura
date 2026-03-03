@@ -2,7 +2,7 @@ import { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "./db"
-import * as bcrypt from "bcryptjs"
+import { verifyUserCredentials } from "./auth-credentials"
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
@@ -24,22 +24,8 @@ export const authOptions: NextAuthOptions = {
           throw new Error("请输入邮箱和密码")
         }
 
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
-        })
-
-        if (!user || !user.password) {
-          throw new Error("邮箱或密码错误")
-        }
-
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        )
-
-        if (!isPasswordValid) {
+        const user = await verifyUserCredentials(credentials.email, credentials.password)
+        if (!user) {
           throw new Error("邮箱或密码错误")
         }
 

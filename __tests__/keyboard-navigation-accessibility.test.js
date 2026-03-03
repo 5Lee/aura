@@ -31,5 +31,5 @@ test("action controls keep native button semantics for Enter and Space activatio
   assert.match(buttonSource, /const Comp = asChild \? Slot : "button"/)
 
   const buttonTypeCount = [...mobileNavSource.matchAll(/type="button"/g)].length
-  assert.ok(buttonTypeCount >= 3)
+  assert.ok(buttonTypeCount >= 2)
 })

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { findOrCreateTagByName, normalizeTagNames } from "@/lib/tag-utils"
 
 // GET /api/prompts/[id] - Get a single prompt
 export async function GET(
@@ -127,19 +128,19 @@ export async function PATCH(
 
     // Update tags if provided
     if (tags !== undefined) {
+      const normalizedTags = normalizeTagNames(tags)
+
       // Delete existing tag relations
       await prisma.promptTag.deleteMany({
         where: { promptId: params.id },
       })
 
       // Create new tag relations
-      for (const tagName of tags) {
-        const slug = tagName.toLowerCase().replace(/\s+/g, "-")
-        const tag = await prisma.tag.upsert({
-          where: { slug },
-          update: {},
-          create: { name: tagName, slug },
-        })
+      for (const tagName of normalizedTags) {
+        const tag = await findOrCreateTagByName(tagName)
+        if (!tag) {
+          continue
+        }
 
         await prisma.promptTag.create({
           data: {

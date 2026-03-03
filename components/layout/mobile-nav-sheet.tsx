@@ -137,12 +137,10 @@ export function MobileMenu({
 
       {open && (
         <div className="fixed inset-0 z-[var(--z-modal)] md:hidden" role="dialog" aria-modal="true" aria-labelledby={`${panelId}-title`}>
-          <button
-            type="button"
+          <div
             className="absolute inset-0 bg-foreground/35 backdrop-blur-[1px]"
             onClick={() => setOpen(false)}
             aria-hidden="true"
-            tabIndex={-1}
           />
 
           <div

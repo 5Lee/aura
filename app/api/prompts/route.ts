@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { findOrCreateTagByName, normalizeTagNames } from "@/lib/tag-utils"
 
 // GET /api/prompts - Get prompts (user's own or public)
 export async function GET(request: Request) {
@@ -111,14 +112,13 @@ export async function POST(request: Request) {
     })
 
     // Handle tags - connect or create
-    if (tags && tags.length > 0) {
-      for (const tagName of tags) {
-        const slug = tagName.toLowerCase().replace(/\s+/g, "-")
-        const tag = await prisma.tag.upsert({
-          where: { slug },
-          update: {},
-          create: { name: tagName, slug },
-        })
+    const normalizedTags = normalizeTagNames(tags)
+    if (normalizedTags.length > 0) {
+      for (const tagName of normalizedTags) {
+        const tag = await findOrCreateTagByName(tagName)
+        if (!tag) {
+          continue
+        }
 
         // Create PromptTag relation
         await prisma.promptTag.create({

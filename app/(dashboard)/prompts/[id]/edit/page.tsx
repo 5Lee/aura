@@ -28,7 +28,13 @@ export default async function EditPromptPage({
 
   const prompt = await prisma.prompt.findUnique({
     where: { id: params.id },
-    include: { tags: true },
+    include: {
+      tags: {
+        include: {
+          tag: true,
+        },
+      },
+    },
   })
 
   if (!prompt) {
@@ -51,6 +57,7 @@ export default async function EditPromptPage({
     description: prompt.description || "",
     categoryId: prompt.categoryId,
     isPublic: prompt.isPublic,
+    tags: prompt.tags.map((promptTag) => promptTag.tag.name).join(", "),
   }
 
   return (

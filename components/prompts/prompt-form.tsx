@@ -21,6 +21,7 @@ interface PromptFormProps {
     description: string
     categoryId: string
     isPublic: boolean
+    tags: string
   }
 }
 
@@ -33,7 +34,7 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
   const [description, setDescription] = useState(initialData?.description || "")
   const [categoryId, setCategoryId] = useState(initialData?.categoryId || "")
   const [isPublic, setIsPublic] = useState(initialData?.isPublic || false)
-  const [tags, setTags] = useState("")
+  const [tags, setTags] = useState(initialData?.tags || "")
   const [touched, setTouched] = useState({
     title: false,
     categoryId: false,
