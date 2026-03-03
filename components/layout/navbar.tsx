@@ -6,6 +6,7 @@ import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/theme/theme-toggle"
+import { MobileMenu } from "@/components/layout/mobile-nav-sheet"
 
 export function Navbar() {
   const pathname = usePathname()
@@ -24,15 +25,15 @@ export function Navbar() {
           Aura
         </Link>
 
-        <div className="flex items-center gap-6">
-          {/* Navigation Links */}
-          <div className="hidden md:flex items-center gap-1">
+        <div className="hidden items-center gap-6 md:flex">
+          <div className="flex items-center gap-1">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={pathname === item.href ? "page" : undefined}
                 className={cn(
-                  "px-3 py-2 text-sm font-medium rounded-lg transition-all",
+                  "rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                   pathname === item.href
                     ? "bg-primary/10 text-primary dark:bg-primary/20"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -43,7 +44,6 @@ export function Navbar() {
             ))}
           </div>
 
-          {/* Right Side Actions */}
           <div className="flex items-center gap-3">
             <ThemeToggle />
 
@@ -58,7 +58,7 @@ export function Navbar() {
                   variant="outline"
                   size="sm"
                   onClick={() => signOut({ callbackUrl: "/" })}
-                  className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20"
+                  className="h-10 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20"
                 >
                   退出
                 </Button>
@@ -69,6 +69,51 @@ export function Navbar() {
               </Link>
             )}
           </div>
+        </div>
+
+        <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggle />
+          <MobileMenu title="工作台导航">
+            {status === "loading" ? (
+              <div className="h-11 w-full rounded-lg bg-muted animate-pulse" />
+            ) : session?.user ? (
+              <div className="rounded-xl border border-border bg-card/80 p-3 shadow-card">
+                <p className="text-sm font-medium text-foreground">{session.user.name || session.user.email}</p>
+                <p className="mt-1 text-xs text-muted-foreground">已登录账号</p>
+              </div>
+            ) : null}
+
+            <div className="space-y-2">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex min-h-11 items-center rounded-lg border px-4 text-sm font-medium transition-colors touch-manipulation",
+                    pathname === item.href
+                      ? "border-primary/40 bg-primary/10 text-primary"
+                      : "border-border text-foreground hover:bg-muted"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+
+            {session?.user ? (
+              <Button
+                variant="outline"
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="w-full h-11 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20"
+              >
+                退出登录
+              </Button>
+            ) : (
+              <Link href="/login" className="block">
+                <Button className="w-full h-11">登录</Button>
+              </Link>
+            )}
+          </MobileMenu>
         </div>
       </div>
     </nav>

@@ -1,0 +1,13 @@
+<svg width="600" height="400" viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="edu-bg" x1="42" y1="38" x2="558" y2="362" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1D3557"/>
+      <stop offset="1" stop-color="#457B9D"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="400" rx="28" fill="url(#edu-bg)"/>
+  <path d="M122 156L302 96L478 156L302 216L122 156Z" fill="#F1FAEE" fill-opacity="0.9"/>
+  <path d="M164 186V246C164 264 248 298 302 298C356 298 440 264 440 246V186" fill="#A8DADC" fill-opacity="0.62"/>
+  <path d="M478 156V240" stroke="#F1FAEE" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="478" cy="258" r="18" fill="#F4A261"/>
+</svg>

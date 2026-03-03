@@ -1,11 +1,34 @@
 import { getServerSession } from "next-auth"
 import { redirect, notFound } from "next/navigation"
+import dynamic from "next/dynamic"
+
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { FavoriteButton } from "@/components/prompts/favorite-button"
+import {
+  PromptCopyButtonLoading,
+  PromptDetailActionsLoading,
+} from "@/components/prompts/prompt-dynamic-loading"
 import Link from "next/link"
+
+const PromptCopyButton = dynamic(
+  () =>
+    import("@/components/prompts/prompt-copy-button").then((module) => module.PromptCopyButton),
+  {
+    loading: () => <PromptCopyButtonLoading />,
+  }
+)
+
+const PromptDetailActions = dynamic(
+  () =>
+    import("@/components/prompts/prompt-detail-actions").then(
+      (module) => module.PromptDetailActions
+    ),
+  {
+    loading: () => <PromptDetailActionsLoading />,
+  }
+)
 
 export default async function PromptDetailPage({
   params,
@@ -56,33 +79,12 @@ export default async function PromptDetailPage({
         <Link href="/prompts">
           <Button variant="ghost">← 返回列表</Button>
         </Link>
-        <div className="flex gap-2">
-          <FavoriteButton
-            promptId={prompt.id}
-            isFavorited={isFavorited}
-            favoriteCount={prompt.favoriteCount}
-          />
-          {canEdit && (
-            <>
-              <Link href={`/prompts/${prompt.id}/edit`}>
-                <Button variant="outline">编辑</Button>
-              </Link>
-              <Button
-                variant="destructive"
-                onClick={async () => {
-                  if (confirm("确定要删除这个提示词吗？")) {
-                    await fetch(`/api/prompts/${prompt.id}`, {
-                      method: "DELETE",
-                    })
-                    redirect("/prompts")
-                  }
-                }}
-              >
-                删除
-              </Button>
-            </>
-          )}
-        </div>
+        <PromptDetailActions
+          promptId={prompt.id}
+          canEdit={canEdit}
+          isFavorited={isFavorited}
+          favoriteCount={prompt.favoriteCount}
+        />
       </div>
 
       <Card>
@@ -105,9 +107,12 @@ export default async function PromptDetailPage({
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              提示词内容
-            </h3>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                提示词内容
+              </h3>
+              <PromptCopyButton content={prompt.content} />
+            </div>
             <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg whitespace-pre-wrap">
               {prompt.content}
             </div>

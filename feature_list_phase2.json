@@ -1,0 +1,222 @@
+{
+  "meta": {
+    "project": "Aura - AI Prompt Management Platform",
+    "phase": "Phase 2: 稳定性修复",
+    "version": "1.0.0",
+    "last_updated": "2026-03-03",
+    "total_features": 15,
+    "completed_features": 0
+  },
+  "features": [
+    {
+      "id": "phase2-week1-001",
+      "category": "dependency",
+      "priority": 1,
+      "week": 1,
+      "description": "修复 UI 基础组件缺失依赖导致 build 失败",
+      "steps": [
+        "补齐 @radix-ui/react-label、@radix-ui/react-select、@radix-ui/react-separator 依赖",
+        "执行 npm install 并更新 package-lock.json",
+        "验证 npm ls 依赖树中可解析上述包",
+        "验证 npm run build 不再出现 Module not found"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase2-week1-002",
+      "category": "type-safety",
+      "priority": 1,
+      "week": 1,
+      "description": "修复 prompts 详情页 TypeScript 报错",
+      "steps": [
+        "修复 app/(dashboard)/prompts/[id]/page.tsx 中 tag 关系字段类型不匹配",
+        "处理 prompt.author 可能为 null 的分支",
+        "执行 npx tsc --noEmit 验证该页面相关错误消失",
+        "补充对应单元测试或类型回归用例"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase2-week1-003",
+      "category": "lint",
+      "priority": 1,
+      "week": 1,
+      "description": "落地 ESLint 配置并消除 next lint 交互阻塞",
+      "steps": [
+        "创建并提交项目 ESLint 配置文件（Next.js 推荐规则基线）",
+        "确保 npm run lint 在无交互模式下可直接执行",
+        "修复新增 lint 报错或在必要时记录技术债",
+        "将 lint 纳入后续自动化检查流程"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase2-week1-004",
+      "category": "typescript",
+      "priority": 1,
+      "week": 1,
+      "description": "修复 tsconfig 对 .next/types 的脆弱依赖",
+      "steps": [
+        "分析 TS6053 根因（.next/types 引用路径与生成时机不一致）",
+        "调整 tsconfig include 或拆分检查配置，避免文件缺失即报错",
+        "验证在 clean 环境下 npx tsc --noEmit 可稳定运行",
+        "更新文档说明 typecheck 前置条件"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase2-week1-005",
+      "category": "build",
+      "priority": 1,
+      "week": 1,
+      "description": "建立可重复通过的生产构建基线",
+      "steps": [
+        "在当前分支整理导致 build 失败的阻塞项并逐项修复",
+        "在干净依赖环境执行 npm run build",
+        "输出构建成功的最小复现实验步骤",
+        "将构建基线结果记录到项目文档"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase2-week1-006",
+      "category": "data-hygiene",
+      "priority": 2,
+      "week": 1,
+      "description": "修复 feature_list_phase1.json 元信息不一致",
+      "steps": [
+        "校验 total_features 与 features 数量是否一致",
+        "校验 completed_features 与 passes=true 数量是否一致",
+        "修正 meta 字段并补充校验脚本",
+        "验证后续更新 passes 时 meta 不再漂移"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase2-week2-001",
+      "category": "dev-experience",
+      "priority": 1,
+      "week": 2,
+      "description": "增强 init.sh 对数据库与端口状态的鲁棒性",
+      "steps": [
+        "修复 init.sh 在数据库不可用时的降级与提示逻辑",
+        "增加端口占用检测与自动切换/退出策略",
+        "确保 init.sh 的失败信息包含明确修复建议",
+        "验证本地冷启动与异常启动场景"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase2-week2-002",
+      "category": "offline",
+      "priority": 2,
+      "week": 2,
+      "description": "降低外网依赖对测试链路的影响",
+      "steps": [
+        "梳理 npx 临时安装链路（Playwright/LHCI）的外网依赖点",
+        "改为本地依赖或固定版本缓存策略",
+        "验证离线或弱网场景下测试命令行为可预期",
+        "记录网络不可用时的替代命令"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase2-week2-003",
+      "category": "performance-build",
+      "priority": 2,
+      "week": 2,
+      "description": "处理 next/font 外网拉取导致的构建不稳定",
+      "steps": [
+        "定位 fonts.gstatic.com 拉取失败涉及的字体配置",
+        "评估切换为 next/font/local 或增加稳定 fallback 方案",
+        "验证 npm run build 在无外网时不因字体下载直接失败",
+        "更新字体策略与性能影响说明"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase2-week2-004",
+      "category": "automation",
+      "priority": 1,
+      "week": 2,
+      "description": "修复 run_codex_loop 在 MCP 启动阶段卡住的问题",
+      "steps": [
+        "为 run_codex_loop 增加可配置 MCP fail-fast 策略",
+        "在日志中明确区分 preflight 卡住、MCP 超时、任务执行失败",
+        "验证后台模式下循环可持续推进多轮任务",
+        "补充自动恢复与停止策略文档"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase2-week2-005",
+      "category": "automation",
+      "priority": 2,
+      "week": 2,
+      "description": "增加循环任务的工作区卫生与隔离保护",
+      "steps": [
+        "在每轮执行前检查脏工作区并给出处理策略",
+        "避免不同任务改动混入同一提交",
+        "增加 no-progress 与重复失败时的中止阈值告警",
+        "验证中止后可从明确状态继续执行"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase2-week2-006",
+      "category": "observability",
+      "priority": 3,
+      "week": 2,
+      "description": "补齐循环执行日志的摘要与诊断视图",
+      "steps": [
+        "增加一键查看最新轮次结果的脚本",
+        "输出每轮完成数、失败原因、剩余任务数",
+        "按日期归档日志并提供清理策略",
+        "验证出现卡住时能快速定位到具体命令"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase2-week3-001",
+      "category": "ci",
+      "priority": 1,
+      "week": 3,
+      "description": "建立统一质量门禁（build/typecheck/lint/test）",
+      "steps": [
+        "定义最小 CI 质量门禁矩阵",
+        "串联 npm run build、npx tsc --noEmit、npm run lint、npm test",
+        "确保失败时可快速定位到具体阶段",
+        "验证主分支合并前必须通过门禁"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase2-week3-002",
+      "category": "tooling",
+      "priority": 2,
+      "week": 3,
+      "description": "提供统一 preflight 检查命令供人工和代理使用",
+      "steps": [
+        "新增脚本封装依赖检查、数据库检查、类型检查、测试检查",
+        "支持快速模式与完整模式",
+        "将脚本接入 AGENT_SESSION_GUIDE.md",
+        "验证不同机器环境下输出一致"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase2-week3-003",
+      "category": "documentation",
+      "priority": 3,
+      "week": 3,
+      "description": "完善故障排查手册并沉淀常见失败模式",
+      "steps": [
+        "整理历史高频失败（P1001、ENOTFOUND、MCP timeout、lint 交互）",
+        "为每类失败提供排查路径与修复命令",
+        "补充到 README 或专用 troubleshooting 文档",
+        "验证新成员可按文档独立恢复环境"
+      ],
+      "passes": false
+    }
+  ]
+}

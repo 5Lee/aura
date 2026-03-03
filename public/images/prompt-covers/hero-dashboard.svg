@@ -1,0 +1,29 @@
+<svg width="1200" height="480" viewBox="0 0 1200 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="hero-bg" x1="80" y1="40" x2="1120" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#14213D"/>
+      <stop offset="0.45" stop-color="#1F4E79"/>
+      <stop offset="1" stop-color="#4B7DAF"/>
+    </linearGradient>
+    <linearGradient id="hero-glow" x1="220" y1="80" x2="980" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F9C74F" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#F9844A" stop-opacity="0.1"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" rx="40" fill="url(#hero-bg)"/>
+  <circle cx="980" cy="120" r="180" fill="url(#hero-glow)" opacity="0.36"/>
+  <circle cx="250" cy="390" r="150" fill="#90BE6D" opacity="0.24"/>
+  <path d="M136 290C264 210 384 208 500 276C616 344 736 342 860 262C972 190 1060 190 1148 236V480H136V290Z" fill="white" fill-opacity="0.14"/>
+  <g opacity="0.88">
+    <rect x="160" y="116" width="336" height="22" rx="11" fill="white" fill-opacity="0.78"/>
+    <rect x="160" y="158" width="256" height="16" rx="8" fill="white" fill-opacity="0.54"/>
+    <rect x="160" y="194" width="196" height="16" rx="8" fill="white" fill-opacity="0.48"/>
+  </g>
+  <g>
+    <rect x="702" y="146" width="286" height="188" rx="22" fill="white" fill-opacity="0.16"/>
+    <rect x="728" y="178" width="196" height="20" rx="10" fill="white" fill-opacity="0.75"/>
+    <rect x="728" y="214" width="148" height="16" rx="8" fill="white" fill-opacity="0.54"/>
+    <rect x="728" y="248" width="112" height="16" rx="8" fill="white" fill-opacity="0.48"/>
+    <circle cx="931" cy="268" r="28" fill="#F9C74F" fill-opacity="0.68"/>
+  </g>
+</svg>

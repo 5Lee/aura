@@ -1,10 +1,19 @@
 import { getServerSession } from "next-auth"
 import { redirect, notFound } from "next/navigation"
+import dynamic from "next/dynamic"
+
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { PromptForm } from "@/components/prompts/prompt-form"
+import { PromptFormLoading } from "@/components/prompts/prompt-form-loading"
 import Link from "next/link"
+
+const PromptForm = dynamic(
+  () => import("@/components/prompts/prompt-form").then((module) => module.PromptForm),
+  {
+    loading: () => <PromptFormLoading />,
+  }
+)
 
 export default async function EditPromptPage({
   params,
@@ -45,7 +54,7 @@ export default async function EditPromptPage({
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="mx-auto w-full max-w-2xl">
       <div className="mb-6">
         <Link href={`/prompts/${prompt.id}`}>
           <button className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white mb-2">
@@ -58,7 +67,7 @@ export default async function EditPromptPage({
         </p>
       </div>
 
-      <Card>
+      <Card className="w-full">
         <CardHeader>
           <CardTitle>提示词信息</CardTitle>
           <CardDescription>

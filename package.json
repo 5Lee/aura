@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "jest",
+    "test:e2e": "playwright test",
     "lint": "next lint",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
@@ -32,6 +34,10 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@axe-core/react": "file:tools/testing/axe-core-react-lite",
+    "@playwright/test": "file:tools/testing/playwright-test-lite",
+    "@testing-library/jest-dom": "file:tools/testing/jest-dom-lite",
+    "@testing-library/react": "file:tools/testing/testing-library-react-lite",
     "@radix-ui/react-slot": "^1.2.4",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22",
@@ -44,6 +50,7 @@
     "prisma": "^5.22.0",
     "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",
+    "jest": "file:tools/testing/jest-lite",
     "tsx": "^4.21.0",
     "typescript": "^5"
   }

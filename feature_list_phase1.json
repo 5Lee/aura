@@ -79,7 +79,7 @@
         "验证骨架屏响应式布局正确",
         "验证搜索/筛选时骨架屏正确显示"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week1-004",
@@ -93,7 +93,7 @@
         "验证所有页面使用统一的主题色",
         "验证深色模式下颜色正确切换"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week1-005",
@@ -107,7 +107,7 @@
         "检查所有组件使用标准间距",
         "检查所有卡片使用统一圆角"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week1-006",
@@ -122,7 +122,7 @@
         "创建提示词表单：标题和内容必填验证",
         "验证错误信息清晰显示在输入框下方"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week1-007",
@@ -136,7 +136,7 @@
         "提交成功后显示成功提示",
         "提交失败后显示错误信息并恢复表单"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week1-008",
@@ -151,7 +151,7 @@
         "验证深色模式下 focus 样式可见",
         "验证键盘导航时 focus 状态正确"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week2-design-001",
@@ -166,7 +166,7 @@
         "设计标签、徽章等小部件样式",
         "确保卡片在浅色/深色模式下都美观"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week2-001",
@@ -180,7 +180,7 @@
         "悬停时边框颜色变化",
         "验证过渡动画流畅 (duration-200)"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week2-002",
@@ -195,7 +195,7 @@
         "按钮加载状态显示 spinner",
         "验证所有按钮使用统一的交互效果"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week2-003",
@@ -209,7 +209,7 @@
         "页面退出时有淡出效果",
         "验证过渡动画不影响页面性能"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week2-004",
@@ -223,7 +223,7 @@
         "交错间隔 100ms",
         "验证动画不会阻塞内容显示"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week2-005",
@@ -237,7 +237,7 @@
         "验证复制到剪贴板功能正常",
         "验证提示 3 秒后自动消失"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week2-006",
@@ -252,7 +252,7 @@
         "创建/编辑/删除提示词显示结果提示",
         "验证 Toast 支持不同类型 (success/error/info)"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week2-007",
@@ -267,7 +267,7 @@
         "无搜索结果时显示提示",
         "包含操作按钮引导用户行动"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week2-008",
@@ -281,7 +281,7 @@
         "验证图标和文案友好",
         "验证深色模式下样式正确"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week3-design-001",
@@ -296,7 +296,7 @@
         "设计移动端卡片和表单布局",
         "确保移动端导航体验流畅"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week3-001",
@@ -310,7 +310,7 @@
         "点击展开侧边菜单",
         "菜单包含所有导航链接"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week3-002",
@@ -324,7 +324,7 @@
         "表单在小屏幕上全宽显示",
         "验证虚拟键盘弹出时表单可滚动"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week3-003",
@@ -338,7 +338,7 @@
         "卡片间距在小屏幕上适当调整",
         "验证长标题正确截断"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week3-004",
@@ -352,7 +352,7 @@
         "页面标题在移动端显示",
         "验证导航手势流畅"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week3-005",
@@ -366,7 +366,7 @@
         "验证 placeholder 显示",
         "验证 LCP 指标改善"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week3-006",
@@ -380,7 +380,7 @@
         "验证首屏加载时间 < 2s",
         "验证动态导入组件正常工作"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week3-007",
@@ -394,7 +394,7 @@
         "验证滚动流畅度",
         "验证内存使用合理"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week3-008",
@@ -408,7 +408,7 @@
         "验证 FOIT/FOUT 最小化",
         "验证字体加载不影响 LCP"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week4-design-001",
@@ -423,7 +423,7 @@
         "修复发现的 UI 问题",
         "记录设计规范文档"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week4-001",
@@ -437,7 +437,7 @@
         "创建测试工具文件",
         "验证 npm test 命令正常工作"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week4-002",
@@ -451,7 +451,7 @@
         "Card 组件测试 (渲染, 内容显示)",
         "验证测试覆盖率 > 70%"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week4-003",
@@ -466,7 +466,7 @@
         "验证 .mcp.json 中 Playwright MCP 配置正确",
         "使用 Playwright MCP 启动浏览器测试"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week4-004",
@@ -482,7 +482,7 @@
         "使用 Playwright MCP 测试登出流程",
         "截图记录测试过程"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week4-005",
@@ -498,7 +498,7 @@
         "使用 Playwright MCP 删除提示词",
         "截图验证每个操作的结果"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week4-006",
@@ -512,7 +512,7 @@
         "修复发现的可访问性问题",
         "验证页面无严重可访问性问题"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week4-007",
@@ -526,7 +526,7 @@
         "验证 Enter/Space 可激活按钮",
         "验证 Escape 可关闭模态框"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase1-week4-008",
@@ -540,7 +540,7 @@
         "建立 CI 性能监控",
         "验证 LCP < 2.5s, FID < 100ms, CLS < 0.1"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

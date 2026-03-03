@@ -5,6 +5,8 @@ import { prisma } from "@/lib/db"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import Image from "next/image"
+import { COVER_BLUR_DATA_URL, getPromptCoverByCategory } from "@/lib/prompt-cover"
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
@@ -34,14 +36,31 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
-      <div>
-        <h1 className="text-3xl font-bold mb-2">
-          欢迎, {session.user.name || session.user.email}!
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          开始管理你的 AI 提示词
-        </p>
-      </div>
+      <Card className="overflow-hidden border border-white/30 bg-white/80 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/70">
+        <div className="relative aspect-[5/2] w-full">
+          <Image
+            src="/images/prompt-covers/hero-dashboard.svg"
+            alt="Prompt dashboard visual"
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 960px"
+            placeholder="blur"
+            blurDataURL={COVER_BLUR_DATA_URL}
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/75 via-slate-900/35 to-slate-900/10" />
+          <div className="absolute inset-0 flex items-end p-6 sm:p-8">
+            <div className="space-y-2 text-white">
+              <h1 className="text-2xl font-bold sm:text-3xl">
+                欢迎, {session.user.name || session.user.email}!
+              </h1>
+              <p className="max-w-xl text-sm text-white/85 sm:text-base">
+                开始管理你的 AI 提示词，系统会为列表中的图片自动启用懒加载与占位符，提升首次渲染体验。
+              </p>
+            </div>
+          </div>
+        </div>
+      </Card>
 
       {/* Stats */}
       <div className="grid md:grid-cols-3 gap-6">
@@ -109,16 +128,27 @@ export default async function DashboardPage() {
                 <Link
                   key={prompt.id}
                   href={`/prompts/${prompt.id}`}
-                  className="block p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
+                  className="flex items-start gap-4 rounded-lg border border-gray-200 p-4 transition-colors hover:border-blue-300 dark:border-gray-700 dark:hover:border-blue-600"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-medium">{prompt.title}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-1">
+                  <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-md">
+                    <Image
+                      src={getPromptCoverByCategory(prompt.category.name)}
+                      alt={`${prompt.category.name} prompt cover`}
+                      fill
+                      sizes="96px"
+                      placeholder="blur"
+                      blurDataURL={COVER_BLUR_DATA_URL}
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex flex-1 items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="truncate font-medium">{prompt.title}</h3>
+                      <p className="mt-1 line-clamp-1 text-sm text-gray-600 dark:text-gray-400">
                         {prompt.content}
                       </p>
                     </div>
-                    <span className="text-xs text-gray-500 ml-4">
+                    <span className="text-xs text-gray-500">
                       {prompt.category.name}
                     </span>
                   </div>
