@@ -193,6 +193,23 @@ write_state_snapshot() {
 EOF
 }
 
+append_run_summary() {
+  local summary_file="$1"
+  local run_no="$2"
+  local run_status="$3"
+  local run_reason="$4"
+  local pending_before="$5"
+  local pending_after="$6"
+  local solved="$7"
+  local head_before="$8"
+  local head_after="$9"
+  local run_log_file="${10}"
+
+  cat >>"$summary_file" <<EOF
+{"timestamp":"$(date '+%Y-%m-%d %H:%M:%S')","run_index":$run_no,"status":$run_status,"reason":"$run_reason","pending_before":$pending_before,"pending_after":$pending_after,"solved_this_run":$solved,"head_before":"$head_before","head_after":"$head_after","log_file":"$run_log_file"}
+EOF
+}
+
 build_codex_cmd() {
   local prompt="$1"
   CODEX_CMD=("$CODEX_BIN")
@@ -337,6 +354,8 @@ STOP_REASON="completed"
 START_TS="$(date +%s)"
 INITIAL_PENDING="$(count_pending_features)"
 STATE_FILE="$LOG_DIR/loop_state.json"
+RUN_SUMMARY_FILE="$LOG_DIR/runs.jsonl"
+touch "$RUN_SUMMARY_FILE"
 
 if ! [[ "$INITIAL_PENDING" =~ ^[0-9]+$ ]]; then
   echo "[ERROR] Failed to read pending feature count from: $FEATURE_FILE" >&2
@@ -369,6 +388,7 @@ log "Consecutive failure threshold: $MAX_CONSECUTIVE_FAILURES"
 log "Run timeout (sec): $RUN_TIMEOUT_SEC"
 log "MCP fail-fast: $MCP_FAIL_FAST (sec: $MCP_FAIL_FAST_SEC)"
 log "MCP retry per run: $MCP_RETRY_PER_RUN (delay: ${MCP_RETRY_DELAY_SEC}s)"
+log "Run summary file: $RUN_SUMMARY_FILE"
 
 if [[ "$SKIP_PREFLIGHT" != "1" ]]; then
   if ! run_preflight_write_check; then
@@ -467,6 +487,18 @@ while true; do
     head_changed="yes"
   fi
 
+  append_run_summary \
+    "$RUN_SUMMARY_FILE" \
+    "$RUN_INDEX" \
+    "$status" \
+    "$failure_reason" \
+    "$pending_before" \
+    "$pending_after" \
+    "$solved_this_run" \
+    "$head_before" \
+    "$head_after" \
+    "$run_log"
+
   if [[ $status -eq 0 ]]; then
     SUCCESS=$((SUCCESS + 1))
     CONSECUTIVE_FAILURES=0
@@ -535,6 +567,7 @@ log "Elapsed: ${ELAPSED}s"
 log "Log directory: $LOG_DIR"
 write_state_snapshot "$STATE_FILE" "$REMAINING" "$STOP_REASON" "$(get_head)"
 log "State file: $STATE_FILE"
+log "Run summary file: $RUN_SUMMARY_FILE"
 
 if [[ "$STOP_REASON" == "dirty-worktree" || "$STOP_REASON" == "task-isolation-violation" || "$STOP_REASON" == "consecutive-failure-threshold" ]]; then
   exit 4

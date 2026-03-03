@@ -44,10 +44,37 @@
 ## 中断后继续执行
 
 - 每轮会写入状态文件：`logs/codex-loop/<timestamp>/loop_state.json`
+- 每轮会追加摘要：`logs/codex-loop/<timestamp>/runs.jsonl`
 - 若因 `dirty-worktree` 或 `task-isolation-violation` 中止：
   1. 先处理工作区（提交/整理改动）  
   2. 重新执行 `run_codex_loop.sh`，继续使用同一个 `CODEX_FEATURE_FILE`
 - 若因 MCP 失败中止，可先提高 `CODEX_MCP_FAIL_FAST_SEC` 或 `CODEX_MCP_RETRY_PER_RUN` 再重启循环。
+
+## 诊断与归档工具
+
+- 一键查看最新轮次摘要：
+
+```bash
+./tools/loop-log-summary.sh
+```
+
+- 查看指定轮次目录（支持 JSON）：
+
+```bash
+./tools/loop-log-summary.sh --dir logs/codex-loop/<timestamp> --json
+```
+
+- 按日期归档旧日志（默认保留最近 7 天）：
+
+```bash
+./tools/loop-log-archive.sh --keep-days 7
+```
+
+- 预览归档动作（不执行）：
+
+```bash
+./tools/loop-log-archive.sh --keep-days 7 --dry-run
+```
 
 ## 建议启动方式
 

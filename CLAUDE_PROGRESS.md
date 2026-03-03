@@ -2039,3 +2039,57 @@ npx prisma db seed    # Seed database with sample data
 - `CLAUDE_PROGRESS.md`
 
 **Status**: ✅ COMPLETE (循环任务具备脏工作区拦截、单轮任务隔离、重复失败阈值中止与状态快照恢复能力)
+
+---
+
+### 2026-03-03 - Phase 2 Loop Observability & Log Archiving (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Coding Agent
+
+**Feature**: phase2-week2-006 - 补齐循环执行日志的摘要与诊断视图
+
+**Completed Work**:
+- Added per-run machine-readable summary output in loop execution:
+  - `run_codex_loop.sh` now writes `runs.jsonl` for each loop directory
+  - each record includes run index, status, reason, solved count, pending before/after, head changes, log path
+- Added one-command diagnostic view script:
+  - `tools/loop-log-summary.sh`
+  - supports latest log auto-discovery, explicit `--dir`, and `--json`
+  - shows per-run summary + failure reason aggregation + first-failure inspection hint
+- Added log archive script by date with retention strategy:
+  - `tools/loop-log-archive.sh --keep-days <n> [--dry-run]`
+  - moves old loop directories to `logs/codex-loop/archive/YYYY-MM-DD/`
+- Extended documentation and session guide:
+  - `docs/codex-loop-resilience.md`
+  - `AGENT_SESSION_GUIDE.md`
+- Added regression tests for observability tooling and markers:
+  - `__tests__/loop-log-observability-tools.test.js`
+  - updated `__tests__/run-codex-loop-resilience.test.js` coverage
+- Marked `phase2-week2-006` as completed in `feature_list_phase2.json`.
+
+**Validation Performed**:
+- `bash -n run_codex_loop.sh` ✅
+- `bash -n tools/loop-log-summary.sh` ✅
+- `bash -n tools/loop-log-archive.sh` ✅
+- Mock loop run produced `runs.jsonl` and `loop_state.json` ✅
+- `./tools/loop-log-summary.sh` ✅
+- `./tools/loop-log-summary.sh --json` ✅
+- `./tools/loop-log-archive.sh --keep-days 7 --dry-run` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm test` ✅ (69/69)
+- `npm run feature:meta:check` ✅
+
+**Files Created**:
+- `tools/loop-log-summary.sh`
+- `tools/loop-log-archive.sh`
+- `__tests__/loop-log-observability-tools.test.js`
+
+**Files Modified**:
+- `run_codex_loop.sh`
+- `docs/codex-loop-resilience.md`
+- `AGENT_SESSION_GUIDE.md`
+- `feature_list_phase2.json`
+- `CLAUDE_PROGRESS.md`
+
+**Status**: ✅ COMPLETE (循环日志已具备可汇总诊断视图、失败原因聚合、按日期归档与可执行清理策略)
