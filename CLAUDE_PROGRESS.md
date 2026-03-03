@@ -2478,3 +2478,59 @@ npx prisma db seed    # Seed database with sample data
 - 验证记录：`logs/e2e-mcp/20260303-round7-permission-boundary/round7-fix-verification.json`
 
 **Status**: ✅ VERIFIED（P0 漏洞已完成修复并回归通过）
+
+---
+
+### 2026-03-03 - Phase 3 Round 7 P0 Re-test (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 用户要求复测
+
+**Retest Target**: `E2E-20260303-006`（私有提示词越权读取）
+
+**Re-test Result**:
+- 未登录 `GET /api/prompts/:id(private)` => `401`（`请先登录`）✅
+- 非作者 `GET /api/prompts/:id(private)` => `403`（`无权限查看此提示词`）✅
+- 非作者访问私有详情页 => 重定向到 `/prompts` ✅
+- 作者 `GET /api/prompts/:id(private)` => `200`（可读取私有内容）✅
+
+**Evidence**:
+- `logs/e2e-mcp/20260303-round7-permission-retest/retest-report.json`
+- `logs/e2e-mcp/20260303-round7-permission-retest/non-owner-private-detail-redirect.png`
+- `logs/e2e-mcp/20260303-round7-permission-retest/unauth-home.png`
+- `logs/e2e-mcp/20260303-round7-permission-retest/owner-private-detail.png`
+- `logs/e2e-mcp/20260303-round7-permission-retest/console-errors.log`
+- `logs/e2e-mcp/20260303-round7-permission-retest/network-requests.log`
+
+**Status**: ✅ CONFIRMED FIXED（复测通过）
+
+---
+
+### 2026-03-03 - Phase 3 Round 8 Playwright MCP Mobile Critical Path (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Playwright MCP 实测（先记录问题）
+
+**Feature Under Test**: phase3-e2e-008 - 实测移动端关键路径
+
+**Executed Steps**:
+- 切换移动端视口（`390x844`）执行登录与浏览关键路径
+- 验证底部导航（仪表板/提示词/收藏/浏览）与详情页返回按钮
+- 验证移动端关键按钮可达（搜索、筛选、菜单开关）
+- 收集控制台可访问性错误与截图证据
+
+**Result**:
+- 关键路径功能：✅ 通过（登录、浏览、导航、返回均可用）
+- 发现缺陷：⚠️ 1 条（可访问性）
+
+**Found Bug**:
+- `E2E-20260303-007`（P2）移动端导航抽屉存在无可访问名称按钮（axe serious）
+- 已记录到：`docs/e2e-mcp-bug-tracker.md`
+- 证据：
+  - `logs/e2e-mcp/20260303-round8-mobile-critical-path/mobile-dashboard.png`
+  - `logs/e2e-mcp/20260303-round8-mobile-critical-path/mobile-browse.png`
+  - `logs/e2e-mcp/20260303-round8-mobile-critical-path/mobile-browse-menu-open.png`
+  - `logs/e2e-mcp/20260303-round8-mobile-critical-path/mobile-browse-search.png`
+  - `logs/e2e-mcp/20260303-round8-mobile-critical-path/console-errors.log`
+  - `logs/e2e-mcp/20260303-round8-mobile-critical-path/network-requests.log`
+  - `logs/e2e-mcp/20260303-round8-mobile-critical-path/round8-report.json`
+
+**Status**: ⏳ WAIT_USER（等待是否立即修复该可访问性问题）
