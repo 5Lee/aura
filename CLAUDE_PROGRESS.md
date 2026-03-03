@@ -1988,3 +1988,54 @@ npx prisma db seed    # Seed database with sample data
 - `CLAUDE_PROGRESS.md`
 
 **Status**: ✅ COMPLETE (循环脚本可快速识别并截断 MCP 启动卡住，支持单轮自动恢复与可诊断停止原因)
+
+---
+
+### 2026-03-03 - Phase 2 Loop Workspace Hygiene & Isolation Guardrails (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Coding Agent
+
+**Feature**: phase2-week2-005 - 增加循环任务的工作区卫生与隔离保护
+
+**Completed Work**:
+- Added workspace hygiene gate in `run_codex_loop.sh`:
+  - `CODEX_DIRTY_WORKTREE_POLICY=stop|warn` (default `stop`)
+  - per-run pre-check aborts on dirty workspace when policy is `stop`
+- Added task isolation guard:
+  - `CODEX_MAX_TASKS_PER_RUN` (default `1`)
+  - aborts with `task-isolation-violation` when one run marks too many tasks complete
+- Added repeated-failure stop threshold:
+  - `CODEX_MAX_CONSECUTIVE_FAILURES` (default `2`)
+  - tracks and aborts on repeated failure bursts
+- Added loop state snapshot for resumability:
+  - emits `logs/codex-loop/<timestamp>/loop_state.json`
+  - records run index, streaks, stop reason, remaining tasks, last head
+- Added and expanded resilience docs:
+  - updated `docs/codex-loop-resilience.md` with hygiene/isolation/failure thresholds and resume steps
+  - updated `AGENT_SESSION_GUIDE.md` guidance
+- Expanded script regression tests:
+  - `__tests__/run-codex-loop-resilience.test.js` now checks hygiene/isolation/state snapshot markers
+- Marked `phase2-week2-005` as completed in `feature_list_phase2.json`.
+
+**Validation Performed**:
+- `bash -n run_codex_loop.sh` ✅
+- Mock task-isolation test (`CODEX_MAX_TASKS_PER_RUN=1`) ✅
+  - detects over-completion and exits with `Stop reason: task-isolation-violation`
+- Mock dirty-worktree stop + clean resume test ✅
+  - first run: `Stop reason: dirty-worktree`
+  - cleanup and rerun: `Stop reason: completed`
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm test` ✅ (65/65)
+- `npm run build` ✅
+- `npm run feature:meta:check` ✅
+
+**Files Modified**:
+- `run_codex_loop.sh`
+- `docs/codex-loop-resilience.md`
+- `AGENT_SESSION_GUIDE.md`
+- `__tests__/run-codex-loop-resilience.test.js`
+- `feature_list_phase2.json`
+- `CLAUDE_PROGRESS.md`
+
+**Status**: ✅ COMPLETE (循环任务具备脏工作区拦截、单轮任务隔离、重复失败阈值中止与状态快照恢复能力)

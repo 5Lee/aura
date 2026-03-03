@@ -120,6 +120,8 @@ git commit -m "feat: 描述功能"
 - 默认开启 MCP fail-fast，若启动阶段长时间无输出会自动截断并分类为 `mcp-startup-stall`。
 - 可通过 `CODEX_MCP_RETRY_PER_RUN` 配置单轮自动重试，避免偶发 MCP 超时直接中断整轮开发。
 - 建议在后台循环时设置 `CODEX_CONTINUE_ON_ERROR=1` + `CODEX_MAX_NO_PROGRESS`，防止无限卡住。
+- 建议保持 `CODEX_DIRTY_WORKTREE_POLICY=stop` 与 `CODEX_MAX_TASKS_PER_RUN=1`，避免多任务改动混入同一轮提交。
+- 循环状态会写入 `logs/codex-loop/<timestamp>/loop_state.json`，中断后可据此恢复。
 - 详细参数与停止策略见 `docs/codex-loop-resilience.md`。
 
 ---

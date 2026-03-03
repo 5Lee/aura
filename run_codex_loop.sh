@@ -20,7 +20,10 @@ Environment overrides (optional):
   CODEX_MODEL                Model name passed to Codex (optional).
   CODEX_CONTINUE_ON_ERROR    1=continue after a failed run, 0=stop immediately (default: 0).
   CODEX_FEATURE_FILE         Feature JSON file path (default: <repo>/feature_list_phase1.json).
+  CODEX_DIRTY_WORKTREE_POLICY  stop=abort when workspace dirty, warn=log only (default: stop).
+  CODEX_MAX_TASKS_PER_RUN    Max pending items allowed to complete in one run (default: 1).
   CODEX_MAX_NO_PROGRESS      Stop after N runs with no pending-task reduction (default: 3).
+  CODEX_MAX_CONSECUTIVE_FAILURES  Stop after N consecutive failed runs (default: 2).
   CODEX_RUN_TIMEOUT_SEC      Hard timeout per run in seconds; 0=disabled (default: 0).
   CODEX_SKIP_PREFLIGHT       1=skip write-permission preflight check (default: 0).
   CODEX_PREFLIGHT_RETRIES    Retry count for preflight command failures (default: 3).
@@ -62,7 +65,10 @@ APPROVAL_MODE="${CODEX_APPROVAL_MODE:-never}"
 DANGEROUS_BYPASS="${CODEX_DANGEROUS_BYPASS:-0}"
 CONTINUE_ON_ERROR="${CODEX_CONTINUE_ON_ERROR:-0}"
 FEATURE_FILE="${CODEX_FEATURE_FILE:-$ROOT_DIR/feature_list_phase1.json}"
+DIRTY_WORKTREE_POLICY="${CODEX_DIRTY_WORKTREE_POLICY:-stop}"
+MAX_TASKS_PER_RUN="${CODEX_MAX_TASKS_PER_RUN:-1}"
 MAX_NO_PROGRESS="${CODEX_MAX_NO_PROGRESS:-3}"
+MAX_CONSECUTIVE_FAILURES="${CODEX_MAX_CONSECUTIVE_FAILURES:-2}"
 RUN_TIMEOUT_SEC="${CODEX_RUN_TIMEOUT_SEC:-0}"
 SKIP_PREFLIGHT="${CODEX_SKIP_PREFLIGHT:-0}"
 PREFLIGHT_RETRIES="${CODEX_PREFLIGHT_RETRIES:-3}"
@@ -90,6 +96,21 @@ fi
 
 if ! [[ "$MAX_NO_PROGRESS" =~ ^[1-9][0-9]*$ ]]; then
   echo "[ERROR] CODEX_MAX_NO_PROGRESS must be a positive integer, got: $MAX_NO_PROGRESS" >&2
+  exit 1
+fi
+
+if ! [[ "$MAX_TASKS_PER_RUN" =~ ^[1-9][0-9]*$ ]]; then
+  echo "[ERROR] CODEX_MAX_TASKS_PER_RUN must be a positive integer, got: $MAX_TASKS_PER_RUN" >&2
+  exit 1
+fi
+
+if ! [[ "$MAX_CONSECUTIVE_FAILURES" =~ ^[1-9][0-9]*$ ]]; then
+  echo "[ERROR] CODEX_MAX_CONSECUTIVE_FAILURES must be a positive integer, got: $MAX_CONSECUTIVE_FAILURES" >&2
+  exit 1
+fi
+
+if [[ "$DIRTY_WORKTREE_POLICY" != "stop" && "$DIRTY_WORKTREE_POLICY" != "warn" ]]; then
+  echo "[ERROR] CODEX_DIRTY_WORKTREE_POLICY must be stop or warn, got: $DIRTY_WORKTREE_POLICY" >&2
   exit 1
 fi
 
@@ -143,6 +164,33 @@ count_pending_features() {
 
 get_head() {
   git -C "$ROOT_DIR" rev-parse --short HEAD 2>/dev/null || echo "N/A"
+}
+
+count_dirty_entries() {
+  git -C "$ROOT_DIR" status --porcelain 2>/dev/null | wc -l | tr -d ' '
+}
+
+write_state_snapshot() {
+  local state_file="$1"
+  local pending_remaining="$2"
+  local stop_reason_value="$3"
+  local last_head="$4"
+
+  cat >"$state_file" <<EOF
+{
+  "timestamp": "$(date '+%Y-%m-%d %H:%M:%S')",
+  "run_index": $RUN_INDEX,
+  "success": $SUCCESS,
+  "failed": $FAILED,
+  "consecutive_failures": $CONSECUTIVE_FAILURES,
+  "no_progress_streak": $NO_PROGRESS_STREAK,
+  "pending_remaining": $pending_remaining,
+  "stop_reason": "$stop_reason_value",
+  "last_head": "$last_head",
+  "feature_file": "$FEATURE_FILE",
+  "log_dir": "$LOG_DIR"
+}
+EOF
 }
 
 build_codex_cmd() {
@@ -283,10 +331,12 @@ run_preflight_write_check() {
 SUCCESS=0
 FAILED=0
 RUN_INDEX=0
+CONSECUTIVE_FAILURES=0
 NO_PROGRESS_STREAK=0
 STOP_REASON="completed"
 START_TS="$(date +%s)"
 INITIAL_PENDING="$(count_pending_features)"
+STATE_FILE="$LOG_DIR/loop_state.json"
 
 if ! [[ "$INITIAL_PENDING" =~ ^[0-9]+$ ]]; then
   echo "[ERROR] Failed to read pending feature count from: $FEATURE_FILE" >&2
@@ -312,7 +362,10 @@ log "Codex binary: $CODEX_BIN"
 log "Approval mode: $APPROVAL_MODE"
 log "Sandbox mode: $SANDBOX_MODE"
 log "Dangerous bypass: $DANGEROUS_BYPASS"
+log "Dirty worktree policy: $DIRTY_WORKTREE_POLICY"
+log "Max tasks per run: $MAX_TASKS_PER_RUN"
 log "No-progress stop threshold: $MAX_NO_PROGRESS"
+log "Consecutive failure threshold: $MAX_CONSECUTIVE_FAILURES"
 log "Run timeout (sec): $RUN_TIMEOUT_SEC"
 log "MCP fail-fast: $MCP_FAIL_FAST (sec: $MCP_FAIL_FAST_SEC)"
 log "MCP retry per run: $MCP_RETRY_PER_RUN (delay: ${MCP_RETRY_DELAY_SEC}s)"
@@ -339,6 +392,18 @@ while true; do
   if [[ "$MAX_RUNS" -gt 0 && "$RUN_INDEX" -ge "$MAX_RUNS" ]]; then
     STOP_REASON="max-runs-reached"
     break
+  fi
+
+  dirty_entries="$(count_dirty_entries)"
+  if [[ "$dirty_entries" -gt 0 ]]; then
+    if [[ "$DIRTY_WORKTREE_POLICY" == "stop" ]]; then
+      STOP_REASON="dirty-worktree"
+      log "[ERROR] Workspace is dirty before run start (${dirty_entries} files)."
+      log "Stopping to avoid mixing changes across tasks."
+      log "Tip: commit/stash/reset then rerun the loop."
+      break
+    fi
+    log "[WARN] Workspace is dirty before run start (${dirty_entries} files); continuing because policy=warn."
   fi
 
   RUN_INDEX=$((RUN_INDEX + 1))
@@ -404,14 +469,24 @@ while true; do
 
   if [[ $status -eq 0 ]]; then
     SUCCESS=$((SUCCESS + 1))
+    CONSECUTIVE_FAILURES=0
     log "Run #$RUN_INDEX finished successfully."
   else
     FAILED=$((FAILED + 1))
+    CONSECUTIVE_FAILURES=$((CONSECUTIVE_FAILURES + 1))
     log "Run #$RUN_INDEX failed with exit code: $status"
     log "Failure reason: $failure_reason"
+    log "Consecutive failures: ${CONSECUTIVE_FAILURES}/${MAX_CONSECUTIVE_FAILURES}"
+    if [[ "$CONSECUTIVE_FAILURES" -ge "$MAX_CONSECUTIVE_FAILURES" ]]; then
+      STOP_REASON="consecutive-failure-threshold"
+      log "Stopping after repeated failures."
+      write_state_snapshot "$STATE_FILE" "$pending_after" "$STOP_REASON" "$head_after"
+      break
+    fi
     if [[ "$CONTINUE_ON_ERROR" != "1" ]]; then
       log "Stopping early. Set CODEX_CONTINUE_ON_ERROR=1 to continue on failures."
       STOP_REASON="$failure_reason"
+      write_state_snapshot "$STATE_FILE" "$pending_after" "$STOP_REASON" "$head_after"
       break
     fi
   fi
@@ -421,6 +496,14 @@ while true; do
   log "Overall progress: ${total_done}/${INITIAL_PENDING} (${progress}%)"
   log "Git HEAD after run: $head_after (changed: $head_changed)"
 
+  if [[ "$solved_this_run" -gt "$MAX_TASKS_PER_RUN" ]]; then
+    STOP_REASON="task-isolation-violation"
+    log "[ERROR] Run #$RUN_INDEX completed $solved_this_run tasks, exceeding max $MAX_TASKS_PER_RUN."
+    log "Stopping to avoid mixing multiple tasks in one commit."
+    write_state_snapshot "$STATE_FILE" "$pending_after" "$STOP_REASON" "$head_after"
+    break
+  fi
+
   if [[ "$solved_this_run" -gt 0 ]]; then
     NO_PROGRESS_STREAK=0
   else
@@ -429,9 +512,12 @@ while true; do
     if [[ "$NO_PROGRESS_STREAK" -ge "$MAX_NO_PROGRESS" ]]; then
       STOP_REASON="no-progress-threshold"
       log "Stopping to avoid infinite loop; pending count did not decrease."
+      write_state_snapshot "$STATE_FILE" "$pending_after" "$STOP_REASON" "$head_after"
       break
     fi
   fi
+
+  write_state_snapshot "$STATE_FILE" "$pending_after" "running" "$head_after"
 done
 
 END_TS="$(date +%s)"
@@ -447,6 +533,12 @@ log "Failed: $FAILED"
 log "Remaining pending features: $REMAINING"
 log "Elapsed: ${ELAPSED}s"
 log "Log directory: $LOG_DIR"
+write_state_snapshot "$STATE_FILE" "$REMAINING" "$STOP_REASON" "$(get_head)"
+log "State file: $STATE_FILE"
+
+if [[ "$STOP_REASON" == "dirty-worktree" || "$STOP_REASON" == "task-isolation-violation" || "$STOP_REASON" == "consecutive-failure-threshold" ]]; then
+  exit 4
+fi
 
 if [[ $FAILED -gt 0 ]]; then
   exit 1
