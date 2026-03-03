@@ -2534,3 +2534,32 @@ npx prisma db seed    # Seed database with sample data
   - `logs/e2e-mcp/20260303-round8-mobile-critical-path/round8-report.json`
 
 **Status**: ⏳ WAIT_USER（等待是否立即修复该可访问性问题）
+
+---
+
+### 2026-03-04 - Phase 3 Round 9 Playwright MCP Regression for Fixed Bugs (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Playwright MCP 回归复测（修复完成记录确认后继续测试）
+
+**Feature Under Test**: phase3-e2e-009 - 回归所有已修复 E2E 缺陷
+
+**Executed Steps**:
+- 确认 `E2E-20260303-006` 已有修复提交记录（`d4e58de`）并存在复测记录
+- 使用 Playwright MCP 新建回归测试私有提示词（作者：`mcp.regression.20260304.01@aura.test`）
+- 验证未登录 `GET /api/prompts/:id(private)` 返回 `401`
+- 验证非作者（`demo@aura.ai`）`GET /api/prompts/:id(private)` 返回 `403`，并校验私有详情页重定向到 `/prompts`
+- 验证作者 `GET /api/prompts/:id(private)` 返回 `200`，且作者可正常访问私有详情页
+
+**Result**:
+- 已修复缺陷回归：✅ 通过（无回归）
+- 新增缺陷：无
+
+**Evidence**:
+- `logs/e2e-mcp/20260304-round9-regression-fixed-bugs/retest-report.json`
+- `logs/e2e-mcp/20260304-round9-regression-fixed-bugs/owner-detail-verified-20260304.png`
+- `logs/e2e-mcp/20260304-round9-regression-fixed-bugs/non-owner-detail-redirect-verified-20260304.png`
+- `logs/e2e-mcp/20260304-round9-regression-fixed-bugs/unauth-get-401-verified.png`
+- `logs/e2e-mcp/20260304-round9-regression-fixed-bugs/console-errors.log`
+- `logs/e2e-mcp/20260304-round9-regression-fixed-bugs/network-requests.log`
+
+**Status**: ✅ COMPLETE（`phase3-e2e-009` 通过，`E2E-20260303-006` 状态更新为 CLOSED）
