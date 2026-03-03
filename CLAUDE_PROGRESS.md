@@ -2357,3 +2357,34 @@ npx prisma db seed    # Seed database with sample data
   - `logs/e2e-mcp/20260303-round4-prompt-edit-delete/round4-report.json`
 
 **Status**: ⏳ WAIT_USER（按当前策略先继续测试，修复待确认）
+
+---
+
+### 2026-03-03 - Phase 3 Round 5 Playwright MCP Browse Search/Filter Flow (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: Playwright MCP 实测（先测试后修复）
+
+**Feature Under Test**: phase3-e2e-005 - 实测浏览页搜索与筛选
+
+**Executed Steps**:
+- 打开 `/browse` 验证公开提示词列表加载
+- 输入关键词 `代码审查` 执行搜索并校验结果数量与命中项
+- 在搜索态下切换分类（`编程开发` / `写作助手`）验证过滤结果
+- 验证空结果态文案（搜索+分类）
+- 清空搜索后切换到无公开数据分类（`创意设计`）验证分类空态文案
+
+**Result**:
+- 浏览页搜索与筛选：✅ 通过
+- 新增缺陷：无
+
+**Evidence**:
+- `logs/e2e-mcp/20260303-round5-browse-search-filter/browse-all.png`
+- `logs/e2e-mcp/20260303-round5-browse-search-filter/search-code-review.png`
+- `logs/e2e-mcp/20260303-round5-browse-search-filter/filter-programming-with-query.png`
+- `logs/e2e-mcp/20260303-round5-browse-search-filter/empty-state-with-query.png`
+- `logs/e2e-mcp/20260303-round5-browse-search-filter/empty-state-category-only.png`
+- `logs/e2e-mcp/20260303-round5-browse-search-filter/round5-report.json`
+- `logs/e2e-mcp/20260303-round5-browse-search-filter/console-errors.log`
+- `logs/e2e-mcp/20260303-round5-browse-search-filter/network-requests.log`
+
+**Status**: ✅ COMPLETE（继续下一条测试）
