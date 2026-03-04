@@ -1,4 +1,4 @@
-import { PromptVersionSource } from "@prisma/client"
+import { PromptPublishStatus, PromptRole, PromptVersionSource } from "@prisma/client"
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 
@@ -32,6 +32,19 @@ function resolveUpdatedWithinDate(value: string | null) {
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000)
 }
 
+function resolvePublishStatusFilter(value: string | null) {
+  if (!value) {
+    return null
+  }
+
+  const normalized = value.trim().toUpperCase()
+  if (!Object.values(PromptPublishStatus).includes(normalized as PromptPublishStatus)) {
+    return null
+  }
+
+  return normalized as PromptPublishStatus
+}
+
 // GET /api/prompts - Get prompts with multi-dimensional filtering
 export async function GET(request: Request) {
   try {
@@ -44,18 +57,51 @@ export async function GET(request: Request) {
     const status = searchParams.get("status")?.trim() || "all"
     const scope = searchParams.get("scope")?.trim() || "all"
     const search = (searchParams.get("q") || searchParams.get("search") || "").trim()
+    const publishStatusFilter = resolvePublishStatusFilter(searchParams.get("publishStatus"))
     const updatedWithinDate = resolveUpdatedWithinDate(searchParams.get("updatedWithin"))
 
     const filters: Array<Record<string, unknown>> = []
 
     if (!session?.user) {
-      filters.push({ isPublic: true })
+      filters.push({
+        isPublic: true,
+        publishStatus: PromptPublishStatus.PUBLISHED,
+      })
     } else if (scope === "mine") {
-      filters.push({ authorId: session.user.id })
+      filters.push({
+        OR: [
+          { authorId: session.user.id },
+          { members: { some: { userId: session.user.id } } },
+        ],
+      })
     } else if (scope === "shared") {
-      filters.push({ isPublic: true, NOT: { authorId: session.user.id } })
+      filters.push({
+        OR: [
+          {
+            isPublic: true,
+            publishStatus: PromptPublishStatus.PUBLISHED,
+            NOT: { authorId: session.user.id },
+          },
+          {
+            members: {
+              some: {
+                userId: session.user.id,
+              },
+            },
+          },
+        ],
+      })
     } else {
-      filters.push({ OR: [{ authorId: session.user.id }, { isPublic: true }] })
+      filters.push({
+        OR: [
+          { authorId: session.user.id },
+          { members: { some: { userId: session.user.id } } },
+          {
+            isPublic: true,
+            publishStatus: PromptPublishStatus.PUBLISHED,
+          },
+        ],
+      })
     }
 
     if (category) {
@@ -76,8 +122,18 @@ export async function GET(request: Request) {
       if (!session?.user) {
         filters.push({ authorId: "__no_match__" })
       } else {
-        filters.push({ isPublic: false, authorId: session.user.id })
+        filters.push({
+          isPublic: false,
+          OR: [
+            { authorId: session.user.id },
+            { members: { some: { userId: session.user.id } } },
+          ],
+        })
       }
+    }
+
+    if (publishStatusFilter) {
+      filters.push({ publishStatus: publishStatusFilter })
     }
 
     if (updatedWithinDate) {
@@ -160,7 +216,17 @@ export async function POST(request: Request) {
           description: description ? String(description).trim() : null,
           categoryId,
           isPublic: Boolean(isPublic),
+          publishStatus: PromptPublishStatus.DRAFT,
           authorId: session.user.id,
+        },
+      })
+
+      await tx.promptMember.create({
+        data: {
+          promptId: prompt.id,
+          userId: session.user.id,
+          role: PromptRole.OWNER,
+          invitedById: session.user.id,
         },
       })
 
@@ -222,6 +288,7 @@ export async function POST(request: Request) {
       action: "prompt.create",
       metadata: {
         isPublic: updatedPrompt.isPublic,
+        publishStatus: updatedPrompt.publishStatus,
         categoryId: updatedPrompt.categoryId,
         tagCount: transformed.tags.length,
         variableCount: updatedPrompt.templateVariables.length,

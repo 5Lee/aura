@@ -1,3 +1,4 @@
+import { PromptPublishStatus } from "@prisma/client"
 import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
 import { FileSearch, SearchX } from "lucide-react"
@@ -6,6 +7,7 @@ import {
   type PromptAdvancedFilterState,
   PromptAdvancedFilters,
 } from "@/components/prompts/prompt-advanced-filters"
+import { PromptBatchToolbar } from "@/components/prompts/prompt-batch-toolbar"
 import { VirtualizedPromptGrid } from "@/components/prompts/virtualized-prompt-grid"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
@@ -20,6 +22,7 @@ interface PromptsPageProps {
     tag?: string | string[]
     authorId?: string | string[]
     status?: string | string[]
+    publishStatus?: string | string[]
     updatedWithin?: string | string[]
     scope?: string | string[]
   }
@@ -48,6 +51,19 @@ function resolveUpdatedWithinDate(value: string) {
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000)
 }
 
+function resolvePublishStatus(value: string) {
+  if (!value || value === "all") {
+    return null
+  }
+
+  const normalized = value.toUpperCase()
+  if (!Object.values(PromptPublishStatus).includes(normalized as PromptPublishStatus)) {
+    return null
+  }
+
+  return normalized as PromptPublishStatus
+}
+
 export default async function PromptsPage({ searchParams }: PromptsPageProps) {
   const session = await getServerSession(authOptions)
 
@@ -61,19 +77,42 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
     tag: getSingleValue(searchParams.tag).trim(),
     authorId: getSingleValue(searchParams.authorId).trim(),
     status: getSingleValue(searchParams.status).trim() || "all",
+    publishStatus: getSingleValue(searchParams.publishStatus).trim() || "all",
     updatedWithin: getSingleValue(searchParams.updatedWithin).trim(),
     scope: getSingleValue(searchParams.scope).trim() || "mine",
   }
 
   const updatedWithinDate = resolveUpdatedWithinDate(initialFilters.updatedWithin)
+  const publishStatusFilter = resolvePublishStatus(initialFilters.publishStatus)
+
   const filters: Array<Record<string, unknown>> = []
 
   if (initialFilters.scope === "all") {
-    filters.push({ OR: [{ authorId: session.user.id }, { isPublic: true }] })
+    filters.push({
+      OR: [
+        { authorId: session.user.id },
+        { members: { some: { userId: session.user.id } } },
+        { isPublic: true, publishStatus: PromptPublishStatus.PUBLISHED },
+      ],
+    })
   } else if (initialFilters.scope === "shared") {
-    filters.push({ isPublic: true, NOT: { authorId: session.user.id } })
+    filters.push({
+      OR: [
+        {
+          isPublic: true,
+          publishStatus: PromptPublishStatus.PUBLISHED,
+          NOT: { authorId: session.user.id },
+        },
+        { members: { some: { userId: session.user.id } } },
+      ],
+    })
   } else {
-    filters.push({ authorId: session.user.id })
+    filters.push({
+      OR: [
+        { authorId: session.user.id },
+        { members: { some: { userId: session.user.id } } },
+      ],
+    })
   }
 
   if (initialFilters.category) {
@@ -97,7 +136,17 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
   if (initialFilters.status === "public") {
     filters.push({ isPublic: true })
   } else if (initialFilters.status === "private") {
-    filters.push({ isPublic: false, authorId: session.user.id })
+    filters.push({
+      isPublic: false,
+      OR: [
+        { authorId: session.user.id },
+        { members: { some: { userId: session.user.id } } },
+      ],
+    })
+  }
+
+  if (publishStatusFilter) {
+    filters.push({ publishStatus: publishStatusFilter })
   }
 
   if (updatedWithinDate) {
@@ -133,7 +182,12 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
       orderBy: { updatedAt: "desc" },
     }),
     prisma.prompt.count({
-      where: { authorId: session.user.id },
+      where: {
+        OR: [
+          { authorId: session.user.id },
+          { members: { some: { userId: session.user.id } } },
+        ],
+      },
     }),
     prisma.category.findMany({
       orderBy: { order: "asc" },
@@ -158,11 +212,11 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
     id: prompt.id,
     href: `/prompts/${prompt.id}`,
     title: prompt.title,
-    description: prompt.description || prompt.content,
+    description: `${prompt.description || prompt.content}\n状态：${prompt.publishStatus}`,
     category: prompt.category.name,
     visibility: prompt.isPublic ? ("public" as const) : ("private" as const),
     author: prompt.author?.name || prompt.author?.email || "匿名用户",
-    tags: prompt.tags.map((promptTag) => promptTag.tag.name),
+    tags: [...prompt.tags.map((promptTag) => promptTag.tag.name), `status:${prompt.publishStatus}`],
     updatedAt: prompt.updatedAt.toLocaleDateString("zh-CN"),
   }))
 
@@ -173,6 +227,7 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
       initialFilters.authorId ||
       initialFilters.updatedWithin ||
       initialFilters.status !== "all" ||
+      initialFilters.publishStatus !== "all" ||
       initialFilters.scope !== "mine"
   )
 
@@ -203,8 +258,18 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
         initialFilters={initialFilters}
       />
 
+      <PromptBatchToolbar
+        prompts={prompts.map((prompt) => ({
+          id: prompt.id,
+          title: prompt.title,
+          isPublic: prompt.isPublic,
+          publishStatus: prompt.publishStatus,
+          tags: prompt.tags.map((promptTag) => promptTag.tag.name),
+        }))}
+      />
+
       <p className="text-sm text-muted-foreground">
-        当前结果 {prompts.length} 条（我的提示词总数 {totalPromptCount} 条）
+        当前结果 {prompts.length} 条（可操作提示词总数 {totalPromptCount} 条）
       </p>
 
       {prompts.length === 0 ? (

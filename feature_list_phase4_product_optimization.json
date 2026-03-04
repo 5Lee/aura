@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "last_updated": "2026-03-04",
     "total_features": 20,
-    "completed_features": 12
+    "completed_features": 16
   },
   "features": [
     {
@@ -188,7 +188,7 @@
         "支持发布说明与状态流转历史",
         "验证状态流转规则与异常回退路径"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase4-week4-002",
@@ -202,7 +202,7 @@
         "覆盖提示词查看、编辑、发布、回滚的角色边界",
         "执行权限边界自动化回归（401/403/owner 正常）"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase4-week4-003",
@@ -216,7 +216,7 @@
         "增加批量操作结果摘要与失败项重试",
         "通过 E2E 验证批量操作原子性与一致性"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase4-week4-004",
@@ -230,7 +230,7 @@
         "处理重复 ID、字段缺失、版本冲突等异常",
         "验证与 Git 工作流协同（导出后可审阅可回放）"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase4-week5-001",

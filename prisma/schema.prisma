@@ -23,6 +23,8 @@ model User {
   promptVersionsCreated  PromptVersion[]
   promptAuditLogsCreated PromptAuditLog[]
   promptEvalRunsTriggered PromptEvalRun[]
+  promptMemberships      PromptMember[]       @relation("PromptMemberUser")
+  promptMemberInvites    PromptMember[]       @relation("PromptMemberInviter")
 }
 
 model Prompt {
@@ -32,6 +34,9 @@ model Prompt {
   description      String?                @db.Text
   categoryId       String
   isPublic         Boolean                @default(false)
+  publishStatus    PromptPublishStatus    @default(DRAFT)
+  publishedAt      DateTime?
+  sourceExternalId String?                @unique
   authorId         String?
   viewCount        Int                    @default(0)
   favoriteCount    Int                    @default(0)
@@ -46,9 +51,24 @@ model Prompt {
   templateVariables PromptTemplateVariable[]
   testCases        PromptTestCase[]
   evalRuns         PromptEvalRun[]
+  members          PromptMember[]
 
   @@index([authorId], map: "Prompt_authorId_fkey")
   @@index([categoryId], map: "Prompt_categoryId_fkey")
+}
+
+enum PromptPublishStatus {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum PromptRole {
+  OWNER
+  EDITOR
+  REVIEWER
+  VIEWER
 }
 
 enum PromptVersionSource {
@@ -136,6 +156,24 @@ model PromptAuditLog {
   @@index([actorId])
   @@index([action])
   @@index([createdAt])
+}
+
+model PromptMember {
+  id         String     @id @default(cuid())
+  promptId   String
+  userId     String
+  role       PromptRole @default(VIEWER)
+  invitedById String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  prompt     Prompt     @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user       User       @relation("PromptMemberUser", fields: [userId], references: [id], onDelete: Cascade)
+  invitedBy  User?      @relation("PromptMemberInviter", fields: [invitedById], references: [id], onDelete: SetNull)
+
+  @@unique([promptId, userId])
+  @@index([promptId])
+  @@index([userId])
+  @@index([role])
 }
 
 model PromptTestCase {

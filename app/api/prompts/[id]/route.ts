@@ -1,10 +1,13 @@
-import { PromptVersionSource } from "@prisma/client"
+import { PromptPublishStatus, PromptVersionSource } from "@prisma/client"
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { recordPromptAuditLog } from "@/lib/prompt-audit-log"
+import {
+  resolvePromptPermission,
+} from "@/lib/prompt-permissions"
 import {
   replacePromptTemplateVariablesWithClient,
   sanitizeTemplateVariables,
@@ -13,7 +16,7 @@ import { createPromptVersionSnapshot } from "@/lib/prompt-versioning"
 import { findOrCreateTagByNameWithClient, normalizeTagNames } from "@/lib/tag-utils"
 
 // GET /api/prompts/[id] - Get a single prompt
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions)
     const prompt = await prisma.prompt.findUnique({
@@ -30,6 +33,20 @@ export async function GET(request: Request, { params }: { params: { id: string }
             name: "asc",
           },
         },
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
         author: {
           select: { id: true, name: true, email: true },
         },
@@ -40,8 +57,28 @@ export async function GET(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ error: "提示词不存在" }, { status: 404 })
     }
 
+    const permission = await resolvePromptPermission(
+      {
+        promptId: prompt.id,
+        isPublic: prompt.isPublic,
+        publishStatus: prompt.publishStatus,
+        authorId: prompt.authorId,
+      },
+      session?.user?.id
+    )
     const isOwner = session?.user?.id === prompt.authorId
+
     if (!prompt.isPublic && !isOwner) {
+      if (!session?.user) {
+        return NextResponse.json({ error: "请先登录" }, { status: 401 })
+      }
+
+      if (!permission.canView) {
+        return NextResponse.json({ error: "无权限查看此提示词" }, { status: 403 })
+      }
+    }
+
+    if (!permission.canView && !isOwner) {
       if (!session?.user) {
         return NextResponse.json({ error: "请先登录" }, { status: 401 })
       }
@@ -57,6 +94,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     const transformed = {
       ...prompt,
       tags: prompt.tags.map((promptTag) => promptTag.tag),
+      permission,
     }
 
     return NextResponse.json(transformed)
@@ -83,7 +121,17 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       return NextResponse.json({ error: "提示词不存在" }, { status: 404 })
     }
 
-    if (prompt.authorId !== session.user.id) {
+    const permission = await resolvePromptPermission(
+      {
+        promptId: prompt.id,
+        isPublic: prompt.isPublic,
+        publishStatus: prompt.publishStatus,
+        authorId: prompt.authorId,
+      },
+      session.user.id
+    )
+
+    if (!permission.canEdit) {
       return NextResponse.json({ error: "无权限修改此提示词" }, { status: 403 })
     }
 
@@ -108,6 +156,12 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     const sanitizedTemplateVariables =
       templateVariables === undefined ? null : sanitizeTemplateVariables(templateVariables)
 
+    const nextIsPublic = isPublic === undefined ? prompt.isPublic : Boolean(isPublic)
+    const shouldDemoteFromPublished = prompt.publishStatus === PromptPublishStatus.PUBLISHED && !nextIsPublic
+    const nextPublishStatus = shouldDemoteFromPublished
+      ? PromptPublishStatus.IN_REVIEW
+      : prompt.publishStatus
+
     await prisma.$transaction(async (tx) => {
       await tx.prompt.update({
         where: { id: params.id },
@@ -117,7 +171,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
           description:
             description === undefined ? prompt.description : String(description).trim() || null,
           categoryId: categoryId ?? prompt.categoryId,
-          isPublic: isPublic === undefined ? prompt.isPublic : Boolean(isPublic),
+          isPublic: nextIsPublic,
+          publishStatus: nextPublishStatus,
+          publishedAt:
+            nextPublishStatus === PromptPublishStatus.PUBLISHED ? prompt.publishedAt || new Date() : null,
         },
       })
 
@@ -184,6 +241,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       metadata: {
         categoryId: transformed.categoryId,
         isPublic: transformed.isPublic,
+        publishStatus: transformed.publishStatus,
         tagCount: transformed.tags.length,
         variableCount: transformed.templateVariables.length,
       },
@@ -197,7 +255,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 }
 
 // DELETE /api/prompts/[id] - Delete a prompt
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -213,8 +271,18 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
       return NextResponse.json({ error: "提示词不存在" }, { status: 404 })
     }
 
-    if (prompt.authorId !== session.user.id) {
-      return NextResponse.json({ error: "无权限删除此提示词" }, { status: 403 })
+    const permission = await resolvePromptPermission(
+      {
+        promptId: prompt.id,
+        isPublic: prompt.isPublic,
+        publishStatus: prompt.publishStatus,
+        authorId: prompt.authorId,
+      },
+      session.user.id
+    )
+
+    if (!permission.isOwner) {
+      return NextResponse.json({ error: "仅 Owner 可删除提示词" }, { status: 403 })
     }
 
     await prisma.prompt.delete({

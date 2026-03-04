@@ -6,18 +6,28 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { executePromptEvalRun } from "@/lib/prompt-evals"
 import { recordPromptAuditLog } from "@/lib/prompt-audit-log"
+import { resolvePromptPermission } from "@/lib/prompt-permissions"
 
 async function ensurePromptOwner(promptId: string, userId: string) {
   const prompt = await prisma.prompt.findUnique({
     where: { id: promptId },
-    select: { id: true, authorId: true, title: true },
+    select: { id: true, authorId: true, title: true, isPublic: true, publishStatus: true },
   })
 
   if (!prompt) {
     return { ok: false, status: 404, error: "提示词不存在" } as const
   }
 
-  if (prompt.authorId !== userId) {
+  const permission = await resolvePromptPermission(
+    {
+      promptId: prompt.id,
+      isPublic: prompt.isPublic,
+      publishStatus: prompt.publishStatus,
+      authorId: prompt.authorId,
+    },
+    userId
+  )
+  if (!permission.canReview) {
     return { ok: false, status: 403, error: "无权限执行评测" } as const
   }
 

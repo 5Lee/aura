@@ -4,19 +4,29 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { recordPromptAuditLog } from "@/lib/prompt-audit-log"
+import { resolvePromptPermission } from "@/lib/prompt-permissions"
 import { sanitizePromptTestCases } from "@/lib/prompt-test-case-utils"
 
 async function ensurePromptOwner(promptId: string, userId: string) {
   const prompt = await prisma.prompt.findUnique({
     where: { id: promptId },
-    select: { id: true, authorId: true },
+    select: { id: true, authorId: true, isPublic: true, publishStatus: true },
   })
 
   if (!prompt) {
     return { ok: false, status: 404, error: "提示词不存在" } as const
   }
 
-  if (prompt.authorId !== userId) {
+  const permission = await resolvePromptPermission(
+    {
+      promptId: prompt.id,
+      isPublic: prompt.isPublic,
+      publishStatus: prompt.publishStatus,
+      authorId: prompt.authorId,
+    },
+    userId
+  )
+  if (!permission.canEdit) {
     return { ok: false, status: 403, error: "无权限操作此提示词" } as const
   }
 

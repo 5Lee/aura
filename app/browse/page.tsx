@@ -1,3 +1,4 @@
+import { PromptPublishStatus } from "@prisma/client"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
@@ -19,7 +20,7 @@ export default async function BrowsePage({
     orderBy: { order: "asc" },
   })
 
-  const where: any = { isPublic: true }
+  const where: any = { isPublic: true, publishStatus: PromptPublishStatus.PUBLISHED }
   if (searchParams.category) {
     where.categoryId = searchParams.category
   }

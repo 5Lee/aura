@@ -19,6 +19,7 @@ export interface PromptAdvancedFilterState {
   tag: string
   authorId: string
   status: string
+  publishStatus: string
   updatedWithin: string
   scope: string
 }
@@ -62,6 +63,10 @@ function buildSearchParams(filters: PromptAdvancedFilterState) {
     params.set("status", filters.status)
   }
 
+  if (filters.publishStatus && filters.publishStatus !== "all") {
+    params.set("publishStatus", filters.publishStatus)
+  }
+
   if (filters.updatedWithin) {
     params.set("updatedWithin", filters.updatedWithin)
   }
@@ -101,6 +106,7 @@ export function PromptAdvancedFilters({
   const [tag, setTag] = useState(initialFilters.tag)
   const [authorId, setAuthorId] = useState(initialFilters.authorId)
   const [status, setStatus] = useState(initialFilters.status)
+  const [publishStatus, setPublishStatus] = useState(initialFilters.publishStatus)
   const [updatedWithin, setUpdatedWithin] = useState(initialFilters.updatedWithin)
   const [scope, setScope] = useState(initialFilters.scope)
   const [savedViews, setSavedViews] = useState<SavedPromptView[]>([])
@@ -113,11 +119,13 @@ export function PromptAdvancedFilters({
     setTag(initialFilters.tag)
     setAuthorId(initialFilters.authorId)
     setStatus(initialFilters.status)
+    setPublishStatus(initialFilters.publishStatus)
     setUpdatedWithin(initialFilters.updatedWithin)
     setScope(initialFilters.scope)
   }, [
     initialFilters.authorId,
     initialFilters.category,
+    initialFilters.publishStatus,
     initialFilters.q,
     initialFilters.scope,
     initialFilters.status,
@@ -163,6 +171,7 @@ export function PromptAdvancedFilters({
               tag: String(view.filters.tag || ""),
               authorId: String(view.filters.authorId || ""),
               status: String(view.filters.status || "all"),
+              publishStatus: String(view.filters.publishStatus || "all"),
               updatedWithin: String(view.filters.updatedWithin || ""),
               scope: String(view.filters.scope || "mine"),
             },
@@ -184,10 +193,11 @@ export function PromptAdvancedFilters({
       tag,
       authorId,
       status,
+      publishStatus,
       updatedWithin,
       scope,
     }),
-    [authorId, category, q, scope, status, tag, updatedWithin]
+    [authorId, category, publishStatus, q, scope, status, tag, updatedWithin]
   )
 
   const persistSavedViews = (views: SavedPromptView[]) => {
@@ -205,6 +215,7 @@ export function PromptAdvancedFilters({
         currentFilters.authorId ||
         currentFilters.updatedWithin ||
         currentFilters.status !== "all" ||
+        currentFilters.publishStatus !== "all" ||
         currentFilters.scope !== "mine"
     )
   }, [currentFilters])
@@ -255,6 +266,7 @@ export function PromptAdvancedFilters({
     setTag(selected.filters.tag)
     setAuthorId(selected.filters.authorId)
     setStatus(selected.filters.status)
+    setPublishStatus(selected.filters.publishStatus)
     setUpdatedWithin(selected.filters.updatedWithin)
     setScope(selected.filters.scope)
 
@@ -315,14 +327,27 @@ export function PromptAdvancedFilters({
         </select>
 
         <select
-          aria-label="按状态筛选"
+          aria-label="按可见性筛选"
           value={status}
           onChange={(event) => setStatus(event.target.value)}
           className="h-10 rounded-md border border-input bg-background px-3 text-sm"
         >
-          <option value="all">全部状态</option>
+          <option value="all">全部可见性</option>
           <option value="public">公开</option>
           <option value="private">私有</option>
+        </select>
+
+        <select
+          aria-label="按发布状态筛选"
+          value={publishStatus}
+          onChange={(event) => setPublishStatus(event.target.value)}
+          className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+        >
+          <option value="all">全部发布状态</option>
+          <option value="DRAFT">草稿</option>
+          <option value="IN_REVIEW">待审核</option>
+          <option value="PUBLISHED">已发布</option>
+          <option value="ARCHIVED">已归档</option>
         </select>
 
         <select
@@ -394,6 +419,7 @@ export function PromptAdvancedFilters({
                 tag: "",
                 authorId: "",
                 status: "all",
+                publishStatus: "all",
                 updatedWithin: "",
                 scope: "mine",
               }
@@ -403,6 +429,7 @@ export function PromptAdvancedFilters({
               setTag("")
               setAuthorId("")
               setStatus("all")
+              setPublishStatus("all")
               setUpdatedWithin("")
               setScope("mine")
               applyFilters(resetFilters)
@@ -435,10 +462,20 @@ export function PromptAdvancedFilters({
         </select>
 
         <div className="flex items-center gap-2">
-          <Button type="button" variant="secondary" onClick={applySavedView} disabled={!activeSavedViewId || isPending}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={applySavedView}
+            disabled={!activeSavedViewId || isPending}
+          >
             应用视图
           </Button>
-          <Button type="button" variant="ghost" onClick={removeSavedView} disabled={!activeSavedViewId || isPending}>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={removeSavedView}
+            disabled={!activeSavedViewId || isPending}
+          >
             <Trash2 className="mr-1 h-4 w-4" aria-hidden="true" />
             删除
           </Button>

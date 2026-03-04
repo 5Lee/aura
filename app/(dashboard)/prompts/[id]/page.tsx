@@ -4,6 +4,7 @@ import dynamic from "next/dynamic"
 
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { resolvePromptPermission } from "@/lib/prompt-permissions"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -30,6 +31,23 @@ const PromptDetailActions = dynamic(
   }
 )
 
+const PromptWorkflowPanel = dynamic(
+  () =>
+    import("@/components/prompts/prompt-workflow-panel").then(
+      (module) => module.PromptWorkflowPanel
+    ),
+  {
+    loading: () => (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">发布状态机</CardTitle>
+          <CardDescription>正在加载发布流程...</CardDescription>
+        </CardHeader>
+      </Card>
+    ),
+  }
+)
+
 const PromptVersionPanel = dynamic(
   () =>
     import("@/components/prompts/prompt-version-panel").then(
@@ -41,6 +59,40 @@ const PromptVersionPanel = dynamic(
         <CardHeader>
           <CardTitle className="text-lg">版本历史</CardTitle>
           <CardDescription>正在加载版本面板...</CardDescription>
+        </CardHeader>
+      </Card>
+    ),
+  }
+)
+
+const PromptMembersPanel = dynamic(
+  () =>
+    import("@/components/prompts/prompt-members-panel").then(
+      (module) => module.PromptMembersPanel
+    ),
+  {
+    loading: () => (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">协作者权限</CardTitle>
+          <CardDescription>正在加载权限面板...</CardDescription>
+        </CardHeader>
+      </Card>
+    ),
+  }
+)
+
+const PromptCodePanel = dynamic(
+  () =>
+    import("@/components/prompts/prompt-code-panel").then(
+      (module) => module.PromptCodePanel
+    ),
+  {
+    loading: () => (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Prompt-as-Code</CardTitle>
+          <CardDescription>正在加载导入导出工具...</CardDescription>
         </CardHeader>
       </Card>
     ),
@@ -63,6 +115,13 @@ const PromptTestCasePanel = dynamic(
     ),
   }
 )
+
+const PUBLISH_STATUS_LABELS: Record<string, string> = {
+  DRAFT: "草稿",
+  IN_REVIEW: "待审核",
+  PUBLISHED: "已发布",
+  ARCHIVED: "已归档",
+}
 
 export default async function PromptDetailPage({
   params,
@@ -89,15 +148,23 @@ export default async function PromptDetailPage({
     notFound()
   }
 
-  // Check access permission
-  const isOwner = session?.user?.id === prompt.authorId
-  if (!prompt.isPublic && !isOwner) {
+  const permission = await resolvePromptPermission(
+    {
+      promptId: prompt.id,
+      isPublic: prompt.isPublic,
+      publishStatus: prompt.publishStatus,
+      authorId: prompt.authorId,
+    },
+    session?.user?.id
+  )
+
+  if (!permission.canView) {
     redirect("/prompts")
   }
 
-  const canEdit = isOwner
+  const canEdit = permission.canEdit
+  const canManageMembers = permission.canManageMembers
 
-  // Check if user has favorited this prompt
   let isFavorited = false
   if (session?.user) {
     const favorite = await prisma.favorite.findUnique({
@@ -112,7 +179,7 @@ export default async function PromptDetailPage({
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6">
       <div className="flex items-center justify-between">
         <Link href="/prompts">
           <Button variant="ghost">← 返回列表</Button>
@@ -127,61 +194,65 @@ export default async function PromptDetailPage({
 
       <Card>
         <CardHeader>
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex-1">
-              <CardTitle className="text-2xl mb-2">{prompt.title}</CardTitle>
+              <CardTitle className="mb-2 text-2xl">{prompt.title}</CardTitle>
               <CardDescription className="text-base">
                 {prompt.description || "暂无描述"}
               </CardDescription>
             </div>
-            <span className={`text-xs px-3 py-1 rounded-full ${
-              prompt.isPublic
-                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
-                : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-            }`}>
-              {prompt.isPublic ? "公开" : "私有"}
-            </span>
+            <div className="flex flex-col gap-2 text-right">
+              <span
+                className={`rounded-full px-3 py-1 text-xs ${
+                  prompt.isPublic
+                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                    : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                }`}
+              >
+                {prompt.isPublic ? "公开" : "私有"}
+              </span>
+              <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                {PUBLISH_STATUS_LABELS[prompt.publishStatus] || prompt.publishStatus}
+              </span>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
             <div className="mb-2 flex items-center justify-between gap-3">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                提示词内容
-              </h3>
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">提示词内容</h3>
               <PromptCopyButton content={prompt.content} />
             </div>
-            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg whitespace-pre-wrap">
+            <div className="whitespace-pre-wrap rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
               {prompt.content}
             </div>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <span className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-3 py-1 rounded-full">
+            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
               {prompt.category.name}
             </span>
             {prompt.tags.map((promptTag) => (
               <span
                 key={promptTag.tagId}
-                className="text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 px-3 py-1 rounded-full"
+                className="rounded-full bg-purple-100 px-3 py-1 text-xs text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
               >
                 {promptTag.tag.name}
               </span>
             ))}
           </div>
 
-          <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 pt-4 border-t">
-            <span>
-              作者: {prompt.author?.name || prompt.author?.email || "匿名用户"}
-            </span>
-            <span>
-              查看 {prompt.viewCount} 次 · 收藏 {prompt.favoriteCount} 次
-            </span>
+          <div className="flex items-center justify-between border-t pt-4 text-sm text-gray-600 dark:text-gray-400">
+            <span>作者: {prompt.author?.name || prompt.author?.email || "匿名用户"}</span>
+            <span>查看 {prompt.viewCount} 次 · 收藏 {prompt.favoriteCount} 次</span>
           </div>
         </CardContent>
       </Card>
 
+      <PromptWorkflowPanel promptId={prompt.id} canManage={permission.canReview} />
       <PromptVersionPanel promptId={prompt.id} canManage={canEdit} />
+      <PromptMembersPanel promptId={prompt.id} canManage={canManageMembers} />
+      <PromptCodePanel promptId={prompt.id} canManage={canEdit} />
       <PromptTestCasePanel promptId={prompt.id} canManage={canEdit} />
     </div>
   )

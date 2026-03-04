@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { resolvePromptPermission } from "@/lib/prompt-permissions"
 import { listPromptVersions } from "@/lib/prompt-versioning"
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
@@ -14,13 +15,22 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
     const prompt = await prisma.prompt.findUnique({
       where: { id: params.id },
-      select: { id: true, authorId: true },
+      select: { id: true, authorId: true, isPublic: true, publishStatus: true },
     })
     if (!prompt) {
       return NextResponse.json({ error: "提示词不存在" }, { status: 404 })
     }
 
-    if (prompt.authorId !== session.user.id) {
+    const permission = await resolvePromptPermission(
+      {
+        promptId: prompt.id,
+        isPublic: prompt.isPublic,
+        publishStatus: prompt.publishStatus,
+        authorId: prompt.authorId,
+      },
+      session.user.id
+    )
+    if (!permission.canReview) {
       return NextResponse.json({ error: "无权限查看版本历史" }, { status: 403 })
     }
 

@@ -2782,3 +2782,49 @@ npx prisma db seed    # Seed database with sample data
 - `logs/phase4/20260304-week3-evals/report.json`
 
 **Status**: ✅ WEEK3 COMPLETE（继续进入 week4 工作流、权限与批量操作）
+
+### 2026-03-04 - Phase 4 Week 4 Workflow / Permission / Batch / Prompt-as-Code (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Features**:
+- ✅ `phase4-week4-001` 发布状态机（草稿/审核/发布/归档）
+- ✅ `phase4-week4-002` 角色权限矩阵（Owner/Editor/Reviewer/Viewer）
+- ✅ `phase4-week4-003` 批量操作（标签/可见性/归档恢复）
+- ✅ `phase4-week4-004` Prompt-as-Code 导入导出（JSON/YAML）
+
+**Major Changes**:
+- Week4 数据模型扩展：
+  - `prisma/schema.prisma`
+  - 新增 `PromptPublishStatus`、`PromptRole`、`PromptMember`
+  - `Prompt` 增加 `publishStatus`、`publishedAt`、`sourceExternalId`
+- 权限与发布流：
+  - `lib/prompt-permissions.ts`
+  - `app/api/prompts/[id]/workflow/route.ts`
+  - `app/api/prompts/[id]/members/route.ts`
+  - `components/prompts/prompt-workflow-panel.tsx`
+  - `components/prompts/prompt-members-panel.tsx`
+- 批量操作：
+  - `app/api/prompts/batch/route.ts`
+  - `components/prompts/prompt-batch-toolbar.tsx`
+  - `app/(dashboard)/prompts/page.tsx`
+  - `components/prompts/prompt-advanced-filters.tsx`
+- Prompt-as-Code：
+  - `lib/prompt-codec.ts`
+  - `app/api/prompts/code/route.ts`
+  - `components/prompts/prompt-code-panel.tsx`
+- 详情页集成与公开目录约束：
+  - `app/(dashboard)/prompts/[id]/page.tsx`
+  - `app/browse/page.tsx`（仅展示 `PUBLISHED` 公开提示词）
+
+**Verification**:
+- `npm run db:generate` ✅
+- `npx prisma db push --accept-data-loss` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm test -- --runInBand` ✅
+
+**Log Artifact**:
+- `logs/phase4/20260304-week4-workflow-permission/report.json`
+
+**Status**: ✅ WEEK4 COMPLETE（进入 week5 体验、安全与性能收敛）

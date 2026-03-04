@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { recordPromptAuditLog } from "@/lib/prompt-audit-log"
+import { resolvePromptPermission } from "@/lib/prompt-permissions"
 import { createPromptVersionSnapshot } from "@/lib/prompt-versioning"
 import { findOrCreateTagByNameWithClient, normalizeTagNames } from "@/lib/tag-utils"
 
@@ -17,14 +18,23 @@ export async function POST(request: Request, { params }: { params: { id: string 
   try {
     const prompt = await prisma.prompt.findUnique({
       where: { id: params.id },
-      select: { id: true, authorId: true },
+      select: { id: true, authorId: true, isPublic: true, publishStatus: true },
     })
 
     if (!prompt) {
       return NextResponse.json({ error: "提示词不存在" }, { status: 404 })
     }
 
-    if (prompt.authorId !== session.user.id) {
+    const permission = await resolvePromptPermission(
+      {
+        promptId: prompt.id,
+        isPublic: prompt.isPublic,
+        publishStatus: prompt.publishStatus,
+        authorId: prompt.authorId,
+      },
+      session.user.id
+    )
+    if (!permission.canEdit) {
       return NextResponse.json({ error: "无权限回滚此提示词" }, { status: 403 })
     }
 
