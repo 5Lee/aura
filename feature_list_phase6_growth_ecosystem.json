@@ -1,0 +1,236 @@
+{
+  "meta": {
+    "project": "Aura - AI Prompt Management Platform",
+    "phase": "Phase 6: 增长运营与生态协同",
+    "version": "1.0.0",
+    "last_updated": "2026-03-05",
+    "total_features": 16,
+    "completed_features": 1
+  },
+  "features": [
+    {
+      "id": "phase6-week21-001",
+      "category": "growth-lab",
+      "priority": 1,
+      "week": 21,
+      "description": "增长实验中心（实验定义、指标采集、状态流转）",
+      "steps": [
+        "建立实验与指标快照数据模型",
+        "实现实验创建、状态流转与指标上报 API",
+        "输出增长实验工作台与核心运营指标看板",
+        "验证实验生命周期与指标汇总一致性"
+      ],
+      "passes": true
+    },
+    {
+      "id": "phase6-week21-002",
+      "category": "segmentation",
+      "priority": 1,
+      "week": 21,
+      "description": "用户分群与实验受众编排",
+      "steps": [
+        "定义受众分群规则与版本快照",
+        "支持按标签/行为/套餐组合筛选",
+        "支持实验灰度流量比例配置",
+        "验证分群命中率与排除规则正确性"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase6-week21-003",
+      "category": "attribution",
+      "priority": 2,
+      "week": 21,
+      "description": "增长归因看板与渠道效果分析",
+      "steps": [
+        "沉淀渠道维度曝光/点击/转化归因模型",
+        "支持按实验、渠道、时间窗口聚合对比",
+        "提供异常归因规则与纠偏标记",
+        "验证归因链路与指标看板一致"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase6-week21-004",
+      "category": "alerting",
+      "priority": 2,
+      "week": 21,
+      "description": "实验异常告警与自动熔断策略",
+      "steps": [
+        "定义转化骤降、成本超阈、样本不足告警",
+        "支持实验自动暂停与人工恢复",
+        "补充告警处理审计记录",
+        "验证熔断触发与恢复路径"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase6-week22-001",
+      "category": "integration",
+      "priority": 1,
+      "week": 22,
+      "description": "第三方模型与工具连接器目录",
+      "steps": [
+        "实现连接器清单与状态管理",
+        "支持 API Key/Secret 安全存储与轮换",
+        "提供连接健康检查与故障诊断",
+        "验证连接器权限边界与最小暴露原则"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase6-week22-002",
+      "category": "integration",
+      "priority": 1,
+      "week": 22,
+      "description": "工作流节点化编排（Prompt Flow）",
+      "steps": [
+        "定义节点、边、上下文变量数据结构",
+        "支持串并行执行与失败重试策略",
+        "输出可视化流程编辑与运行日志",
+        "验证流程重放与幂等一致性"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase6-week22-003",
+      "category": "interoperability",
+      "priority": 2,
+      "week": 22,
+      "description": "跨平台导入导出适配（Langfuse/Promptfoo/OpenWebUI）",
+      "steps": [
+        "定义多源字段映射与冲突策略",
+        "支持批量导入预览与差异确认",
+        "支持导出模板与兼容模式切换",
+        "验证 round-trip 导入导出不丢字段"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase6-week22-004",
+      "category": "governance",
+      "priority": 2,
+      "week": 22,
+      "description": "连接器与工作流审计治理",
+      "steps": [
+        "记录连接器密钥变更与授权操作审计",
+        "记录工作流发布、回滚、禁用日志",
+        "提供按资源维度审计检索",
+        "验证敏感操作不可抵赖"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase6-week23-001",
+      "category": "ops",
+      "priority": 1,
+      "week": 23,
+      "description": "运营自动化任务中心",
+      "steps": [
+        "建立运营任务模板与执行计划模型",
+        "支持定时执行、重试、失败告警",
+        "支持任务运行历史与产出追踪",
+        "验证任务幂等与异常恢复"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase6-week23-002",
+      "category": "ops",
+      "priority": 1,
+      "week": 23,
+      "description": "通知编排与多通道触达",
+      "steps": [
+        "支持站内、邮件、Webhook 通道策略",
+        "支持用户级静默窗口与频控",
+        "补充触达送达率与失败回执",
+        "验证重复消息去重与补偿机制"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase6-week23-003",
+      "category": "analytics",
+      "priority": 2,
+      "week": 23,
+      "description": "运营漏斗与留存队列分析",
+      "steps": [
+        "输出激活、留存、复访漏斗指标",
+        "支持 cohort 分群与时间窗对比",
+        "接入实验结果联动分析",
+        "验证漏斗口径一致与可追溯"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase6-week23-004",
+      "category": "playbook",
+      "priority": 2,
+      "week": 23,
+      "description": "运营 Playbook 模板市场",
+      "steps": [
+        "支持运营剧本模板创建与复用",
+        "支持模板评分、标签与版本管理",
+        "支持一键应用到任务中心",
+        "验证模板升级兼容与回滚"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase6-week24-001",
+      "category": "reliability",
+      "priority": 1,
+      "week": 24,
+      "description": "全链路质量闸门（功能/性能/安全）",
+      "steps": [
+        "统一功能、性能、安全回归门禁策略",
+        "输出失败项分级与阻断策略",
+        "接入分支保护与发布门禁",
+        "验证关键缺陷无法越过发布流程"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase6-week24-002",
+      "category": "reliability",
+      "priority": 1,
+      "week": 24,
+      "description": "回归资产沉淀与自愈修复机制",
+      "steps": [
+        "沉淀高价值回归脚本资产库",
+        "建立缺陷模式与修复模板映射",
+        "支持自动修复建议与人工确认",
+        "验证重复缺陷修复效率提升"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase6-week24-003",
+      "category": "delivery",
+      "priority": 2,
+      "week": 24,
+      "description": "发布演练与灰度回滚编排",
+      "steps": [
+        "提供灰度发布窗口与流量开关",
+        "支持发布演练脚本与检查清单",
+        "支持一键回滚与影响面评估",
+        "验证灰度放量与回滚准确性"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase6-week24-004",
+      "category": "closure",
+      "priority": 2,
+      "week": 24,
+      "description": "Phase6 终验与运营化交付",
+      "steps": [
+        "完成 Phase6 功能与指标终验",
+        "补齐运维手册、应急预案与培训材料",
+        "执行上线前全链路演练与复盘",
+        "冻结基线并输出下一阶段路线图"
+      ],
+      "passes": false
+    }
+  ]
+}

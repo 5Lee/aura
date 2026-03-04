@@ -3716,3 +3716,49 @@ npx prisma db seed    # Seed database with sample data
 - `logs/e2e-mcp/20260304-round12-partners/network.log`
 
 **Status**: ✅ ROUND12 PARTNER FLOW BUGFIX COMPLETE（可继续下一轮全站回归）
+
+### 2026-03-05 - Phase 6 Week 21 Step 1 Growth Experiment Lab (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase6-week21-001` 完成增长实验中心（实验定义、指标采集、状态流转）
+
+**Major Changes**:
+- Phase6 任务清单初始化：
+  - `feature_list_phase6_growth_ecosystem.json`
+  - 新建 Phase6 Week21~Week24 共 16 项任务，并标记 `phase6-week21-001` 完成
+- 增长实验数据模型扩展：
+  - `prisma/schema.prisma`
+  - 新增 `GrowthExperiment`、`GrowthMetricSnapshot`，并补充 `GrowthExperimentStatus` / `GrowthMetricType` 枚举
+- 增长实验核心能力：
+  - `lib/growth-lab.ts`
+  - 提供实验预设、输入清洗、状态归一化、实验窗口校验、指标快照与提升率计算
+  - `lib/subscription-entitlements.ts`
+  - 新增增长实验门禁 `hasGrowthLabAccess`
+- 增长实验 API 能力：
+  - `app/api/growth-lab/experiments/route.ts`
+  - `app/api/growth-lab/experiments/[id]/route.ts`
+  - 支持实验初始化/创建、生命周期状态流转、指标快照上报与汇总
+- 增长实验工作台：
+  - `app/(dashboard)/growth-lab/page.tsx`
+  - `components/growth/growth-experiment-panel.tsx`
+  - 提供实验定义、目标配置、指标提交与进展总览
+- 导航与路由保护：
+  - `components/layout/navbar.tsx`
+  - `components/layout/mobile-page-header.tsx`
+  - `middleware.ts`
+  - 新增 `/growth-lab` 导航入口并纳入登录保护
+
+**Verification**:
+- `npm run db:generate` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅（存在 `no-img-element` 警告，不影响通过）
+- `npm test -- --runInBand __tests__/phase6-week21-growth-lab.test.js` ✅
+- `npm test -- --runInBand` ✅
+- `npm run feature:meta:check -- feature_list_phase6_growth_ecosystem.json` ✅
+
+**New Tests**:
+- `__tests__/phase6-week21-growth-lab.test.js`
+
+**Status**: ✅ WEEK21-001 COMPLETE（继续推进 week21-002 用户分群与实验受众编排）

@@ -53,6 +53,10 @@ export function resolveMobileRouteMeta(pathname: string): MobileRouteMeta {
     return { title: "广告投放", showBackButton: false }
   }
 
+  if (pathname === "/growth-lab") {
+    return { title: "增长实验", showBackButton: false }
+  }
+
   if (pathname === "/partners") {
     return { title: "伙伴结算", showBackButton: false }
   }

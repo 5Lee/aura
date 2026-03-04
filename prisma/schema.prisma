@@ -42,6 +42,8 @@ model User {
   partnerTiers            PartnerTier[]
   partnerLeads            PartnerLead[]
   partnerSettlements      PartnerSettlement[]
+  growthExperiments       GrowthExperiment[]
+  growthMetricSnapshots   GrowthMetricSnapshot[]
   supportTickets         SupportTicket[]      @relation("SupportTicketRequester")
   assignedSupportTickets SupportTicket[]      @relation("SupportTicketAssignee")
   supportTicketEvents    SupportTicketEvent[]
@@ -231,6 +233,22 @@ enum PartnerSettlementStatus {
   PROCESSING
   PAID
   DISPUTED
+}
+
+enum GrowthExperimentStatus {
+  DRAFT
+  RUNNING
+  PAUSED
+  COMPLETED
+  ARCHIVED
+}
+
+enum GrowthMetricType {
+  EXPOSURE
+  CTR
+  CONVERSION
+  RETENTION
+  REVENUE
 }
 
 enum SupportTicketPriority {
@@ -917,6 +935,55 @@ model PartnerLead {
   @@index([settlementId])
   @@index([status])
   @@index([createdAt])
+}
+
+model GrowthExperiment {
+  id                  String                 @id @default(cuid())
+  userId              String
+  name                String
+  hypothesis          String                 @db.Text
+  segmentKey          String
+  status              GrowthExperimentStatus @default(DRAFT)
+  baselineMetric      Float                  @default(0)
+  targetMetric        Float                  @default(0)
+  liftTargetPercent   Float                  @default(0)
+  startAt             DateTime
+  endAt               DateTime
+  payload             Json?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snapshots           GrowthMetricSnapshot[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([segmentKey])
+  @@index([startAt])
+  @@index([endAt])
+}
+
+model GrowthMetricSnapshot {
+  id                  String           @id @default(cuid())
+  userId              String
+  experimentId        String
+  metricType          GrowthMetricType @default(CONVERSION)
+  windowStart         DateTime
+  windowEnd           DateTime
+  exposures           Int              @default(0)
+  conversions         Int              @default(0)
+  retainedUsers       Int              @default(0)
+  revenueCents        Int              @default(0)
+  conversionRate      Float            @default(0)
+  liftPercent         Float            @default(0)
+  metadata            Json?
+  createdAt           DateTime         @default(now())
+  user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experiment          GrowthExperiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([experimentId])
+  @@index([metricType])
+  @@index([windowEnd])
 }
 
 model SupportTicket {
