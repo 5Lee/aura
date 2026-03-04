@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "last_updated": "2026-03-04",
     "total_features": 16,
-    "completed_features": 2
+    "completed_features": 3
   },
   "features": [
     {
@@ -48,7 +48,7 @@
         "增加账单历史查询与下载能力",
         "验证套餐升降级场景下权限即时生效"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase5-week17-004",

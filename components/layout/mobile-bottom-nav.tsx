@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Compass, Heart, LayoutDashboard, ScrollText } from "lucide-react"
+import { Compass, Heart, LayoutDashboard, ReceiptText, ScrollText } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -10,6 +10,7 @@ const navItems = [
   { href: "/dashboard", label: "仪表板", icon: LayoutDashboard },
   { href: "/prompts", label: "提示词", icon: ScrollText },
   { href: "/collections", label: "收藏", icon: Heart },
+  { href: "/billing", label: "账单", icon: ReceiptText },
   { href: "/browse", label: "浏览", icon: Compass },
 ]
 
@@ -26,7 +27,7 @@ export function MobileBottomNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-background/95 pb-[calc(env(safe-area-inset-bottom)+0.35rem)] pt-1 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:hidden">
-      <div className="mx-auto grid w-full max-w-md grid-cols-4 px-2">
+      <div className="mx-auto grid w-full max-w-md grid-cols-5 px-2">
         {navItems.map((item) => {
           const active = isItemActive(pathname, item.href)
           const Icon = item.icon

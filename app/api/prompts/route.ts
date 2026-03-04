@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { recordPromptAuditLog } from "@/lib/prompt-audit-log"
 import { sanitizeMultilineTextInput, sanitizeTextInput } from "@/lib/security"
+import { validatePromptCreationQuota } from "@/lib/subscription-entitlements"
 import {
   replacePromptTemplateVariablesWithClient,
   sanitizeTemplateVariables,
@@ -254,6 +255,11 @@ export async function POST(request: Request) {
 
     const normalizedTags = normalizeTagNames(tags)
     const sanitizedTemplateVariables = sanitizeTemplateVariables(templateVariables)
+    const nextIsPublic = Boolean(isPublic)
+    const quotaCheck = await validatePromptCreationQuota(session.user.id, nextIsPublic)
+    if (!quotaCheck.ok) {
+      return NextResponse.json({ error: quotaCheck.error }, { status: 403 })
+    }
 
     const createdPrompt = await prisma.$transaction(async (tx) => {
       const prompt = await tx.prompt.create({
@@ -262,7 +268,7 @@ export async function POST(request: Request) {
           content: nextContent,
           description: nextDescription,
           categoryId: nextCategoryId,
-          isPublic: Boolean(isPublic),
+          isPublic: nextIsPublic,
           publishStatus: PromptPublishStatus.DRAFT,
           authorId: session.user.id,
         },

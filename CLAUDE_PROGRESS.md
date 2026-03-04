@@ -3044,3 +3044,43 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase5-week17-billing-lifecycle.test.js`
 
 **Status**: ✅ WEEK17-002 COMPLETE（继续推进 week17-003 订阅管理与账单中心）
+
+### 2026-03-04 - Phase 5 Week 17 Step 3 Subscription Management & Billing Center (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase5-week17-003` 完成订阅管理与账单中心，并打通套餐切换后的配额即时生效
+
+**Major Changes**:
+- 新增账单中心页面与操作面板：
+  - `app/(dashboard)/billing/page.tsx`
+  - `components/billing/subscription-management-panel.tsx`
+  - 提供套餐切换、续费、取消、恢复与账单导出入口
+- 新增账单中心 API：
+  - `app/api/subscription/history/route.ts`（分页 + CSV 下载）
+  - `app/api/subscription/change-plan/route.ts`（升级/降级套餐）
+  - `app/api/subscription/resume/route.ts`（取消后恢复）
+- 即时权限生效（配额治理）：
+  - `lib/subscription-entitlements.ts`
+  - `app/api/prompts/route.ts`（创建时配额校验）
+  - `app/api/prompts/[id]/route.ts`（公开→私有时配额校验）
+- 导航与访问链路补齐：
+  - `components/layout/navbar.tsx`
+  - `components/layout/mobile-bottom-nav.tsx`
+  - `middleware.ts`（新增 `/billing/:path*` 保护）
+- Phase5 任务推进：
+  - `feature_list_phase5_commercialization.json`
+  - 标记 `phase5-week17-003` 完成，`completed_features` 更新为 `3`
+
+**Verification**:
+- `npm run db:generate` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm test -- --runInBand` ✅
+- `npm run feature:meta:check -- feature_list_phase5_commercialization.json` ✅
+
+**New Tests**:
+- `__tests__/phase5-week17-billing-center.test.js`
+
+**Status**: ✅ WEEK17-003 COMPLETE（继续推进 week17-004 发票与税务基础能力）

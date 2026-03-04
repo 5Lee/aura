@@ -9,6 +9,7 @@ import {
   resolvePromptPermission,
 } from "@/lib/prompt-permissions"
 import { sanitizeMultilineTextInput, sanitizeTextInput } from "@/lib/security"
+import { validatePrivateVisibilityTransition } from "@/lib/subscription-entitlements"
 import {
   replacePromptTemplateVariablesWithClient,
   sanitizeTemplateVariables,
@@ -198,6 +199,14 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     const nextPublishStatus = shouldDemoteFromPublished
       ? PromptPublishStatus.IN_REVIEW
       : prompt.publishStatus
+    const privateLimitCheck = await validatePrivateVisibilityTransition(
+      session.user.id,
+      prompt.isPublic,
+      nextIsPublic
+    )
+    if (!privateLimitCheck.ok) {
+      return NextResponse.json({ error: privateLimitCheck.error }, { status: 403 })
+    }
 
     await prisma.$transaction(async (tx) => {
       await tx.prompt.update({
