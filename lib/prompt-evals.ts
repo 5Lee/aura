@@ -5,6 +5,7 @@ import {
   type Prisma,
 } from "@prisma/client"
 
+import { invalidateAdvancedAnalyticsCache } from "@/lib/advanced-analytics"
 import { prisma } from "@/lib/db"
 import { getOrSetPerfCache, invalidatePerfCacheByTag } from "@/lib/perf-cache"
 import { renderPromptTemplate, validateTemplateInput } from "@/lib/prompt-template"
@@ -365,6 +366,7 @@ export async function executePromptEvalRun({
 
   if (prompt.authorId) {
     invalidatePerfCacheByTag(`quality-dashboard:${prompt.authorId}`)
+    invalidateAdvancedAnalyticsCache(prompt.authorId)
   }
 
   return updatedRun

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 
 import { authOptions } from "@/lib/auth"
+import { invalidateAdvancedAnalyticsCache } from "@/lib/advanced-analytics"
 import { prisma } from "@/lib/db"
 import { recordPromptAuditLog } from "@/lib/prompt-audit-log"
 import {
@@ -292,6 +293,8 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       },
     })
 
+    invalidateAdvancedAnalyticsCache(session.user.id)
+
     return NextResponse.json(transformed)
   } catch (error) {
     console.error("Error updating prompt:", error)
@@ -343,6 +346,8 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
         categoryId: prompt.categoryId,
       },
     })
+
+    invalidateAdvancedAnalyticsCache(session.user.id)
 
     return NextResponse.json({ message: "删除成功" })
   } catch (error) {

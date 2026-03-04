@@ -15,6 +15,8 @@ const PAID_ACCESS_STATUSES = new Set<SubscriptionStatus>([
   SubscriptionStatus.PAST_DUE,
 ])
 
+const ADVANCED_ANALYTICS_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
+
 function resolveEffectivePlanId(rawPlanId: string | null, status: SubscriptionStatus | null) {
   if (!rawPlanId || !isSubscriptionPlanId(rawPlanId)) {
     return "free" as SubscriptionPlanId
@@ -82,6 +84,13 @@ export async function getUserEntitlementSnapshot(userId: string) {
       evalUsagePercent: toPercent(monthlyEvalRuns, plan.limits.maxEvalRunsPerMonth),
     },
   }
+}
+
+export function hasAdvancedAnalyticsAccess(planId: string) {
+  if (!isSubscriptionPlanId(planId)) {
+    return false
+  }
+  return ADVANCED_ANALYTICS_PLANS.has(planId)
 }
 
 export function getPlanLimitHint(plan: SubscriptionPlan, key: keyof SubscriptionPlan["limits"]) {

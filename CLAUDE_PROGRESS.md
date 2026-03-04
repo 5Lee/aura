@@ -3124,3 +3124,43 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase5-week17-invoice-tax.test.js`
 
 **Status**: ✅ WEEK17-004 COMPLETE（Week17 商业化基础 4/4 完成，继续推进 Week18）
+
+### 2026-03-04 - Phase 5 Week 18 Step 1 Advanced Analytics Tiering (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase5-week18-001` 完成高级分析能力与套餐分层（Pro/Team），并限制 Free 访问
+
+**Major Changes**:
+- 新增高级分析引擎：
+  - `lib/advanced-analytics.ts`
+  - 输出转化漏斗（模板/测试/评测/发布）、8 周版本质量趋势、7/30 日留存指标与版本来源分布
+- 套餐分层策略落地：
+  - `lib/subscription-entitlements.ts`
+  - 新增 `hasAdvancedAnalyticsAccess`，仅 `pro/team/enterprise` 开放高级分析
+- 新增高级分析 API：
+  - `app/api/analytics/advanced/route.ts`
+  - Free 套餐返回 `403 + upgradeRequired`，Pro/Team 返回高级分析数据
+- 仪表板升级：
+  - `app/(dashboard)/dashboard/page.tsx`
+  - 新增“高级分析看板”，Free 显示升级引导，Pro/Team 显示漏斗、趋势、留存数据
+- 数据刷新链路补齐：
+  - `app/api/prompts/route.ts`
+  - `app/api/prompts/[id]/route.ts`
+  - `lib/prompt-evals.ts`
+  - 在关键创建/编辑/评测动作后失效高级分析缓存，保证看板数据及时更新
+- Phase5 任务推进：
+  - `feature_list_phase5_commercialization.json`
+  - 标记 `phase5-week18-001` 完成，`completed_features` 更新为 `5`
+
+**Verification**:
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm test -- --runInBand` ✅
+- `npm run feature:meta:check -- feature_list_phase5_commercialization.json` ✅
+
+**New Tests**:
+- `__tests__/phase5-week18-advanced-analytics.test.js`
+
+**Status**: ✅ WEEK18-001 COMPLETE（继续推进 week18-002 专属支持通道与工单体系）

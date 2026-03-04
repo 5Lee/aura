@@ -6,8 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Image from "next/image"
+import { getAdvancedAnalyticsDashboard } from "@/lib/advanced-analytics"
 import { COVER_BLUR_DATA_URL, getPromptCoverByCategory } from "@/lib/prompt-cover"
 import { getPromptQualityDashboard } from "@/lib/prompt-evals"
+import { getUserEntitlementSnapshot, hasAdvancedAnalyticsAccess } from "@/lib/subscription-entitlements"
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
@@ -17,7 +19,7 @@ export default async function DashboardPage() {
   }
 
   // Get user stats
-  const [promptCount, favoriteCount, qualityDashboard] = await Promise.all([
+  const [promptCount, favoriteCount, qualityDashboard, entitlementSnapshot] = await Promise.all([
     prisma.prompt.count({
       where: { authorId: session.user.id },
     }),
@@ -25,7 +27,13 @@ export default async function DashboardPage() {
       where: { userId: session.user.id },
     }),
     getPromptQualityDashboard(session.user.id),
+    getUserEntitlementSnapshot(session.user.id),
   ])
+
+  const hasAdvancedAccess = hasAdvancedAnalyticsAccess(entitlementSnapshot.plan.id)
+  const advancedAnalytics = hasAdvancedAccess
+    ? await getAdvancedAnalyticsDashboard(session.user.id)
+    : null
 
   // Get recent prompts
   const recentPrompts = await prisma.prompt.findMany({
@@ -156,6 +164,91 @@ export default async function DashboardPage() {
                   </div>
                 </Link>
               ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>高级分析看板</CardTitle>
+          <CardDescription>包含转化漏斗、版本质量趋势与使用留存指标（Pro / Team）。</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {!advancedAnalytics ? (
+            <div className="rounded-lg border border-border bg-muted/20 p-4">
+              <p className="text-sm font-medium text-foreground">当前套餐：{entitlementSnapshot.plan.name}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                高级分析仅对 Pro / Team 套餐开放，升级后可查看转化漏斗、版本质量趋势和留存指标。
+              </p>
+              <div className="mt-3">
+                <Button asChild size="sm">
+                  <Link href="/pricing">升级查看高级分析</Link>
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-4">
+                <div className="rounded-lg border border-border bg-muted/20 p-3">
+                  <p className="text-xs text-muted-foreground">模板覆盖率</p>
+                  <p className="mt-1 text-2xl font-semibold">{advancedAnalytics.conversionFunnel.ratios.templateCoverage}%</p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/20 p-3">
+                  <p className="text-xs text-muted-foreground">测试覆盖率</p>
+                  <p className="mt-1 text-2xl font-semibold">{advancedAnalytics.conversionFunnel.ratios.testCoverage}%</p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/20 p-3">
+                  <p className="text-xs text-muted-foreground">评测覆盖率</p>
+                  <p className="mt-1 text-2xl font-semibold">{advancedAnalytics.conversionFunnel.ratios.evaluationCoverage}%</p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/20 p-3">
+                  <p className="text-xs text-muted-foreground">发布覆盖率</p>
+                  <p className="mt-1 text-2xl font-semibold">{advancedAnalytics.conversionFunnel.ratios.publishCoverage}%</p>
+                </div>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div className="rounded-lg border border-border bg-background p-3">
+                  <p className="text-sm font-medium">版本质量趋势（8 周）</p>
+                  <div className="mt-2 space-y-2 text-sm">
+                    {advancedAnalytics.versionQualityTrend.map((item) => (
+                      <div key={item.weekStart} className="flex items-center justify-between gap-3">
+                        <span className="text-muted-foreground">{item.weekStart}</span>
+                        <span className="text-muted-foreground">
+                          通过率 {item.avgPassRate}% · 评测 {item.evalRuns} · 版本变更 {item.versionChanges}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-border bg-background p-3">
+                  <p className="text-sm font-medium">使用留存指标</p>
+                  <div className="mt-2 space-y-2 text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <span>7 日活跃天数</span>
+                      <span className="text-muted-foreground">{advancedAnalytics.retention.activeDays7} 天</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span>30 日活跃天数</span>
+                      <span className="text-muted-foreground">{advancedAnalytics.retention.activeDays30} 天</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span>7 日留存率</span>
+                      <span className="text-muted-foreground">{advancedAnalytics.retention.retentionRate7}%</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span>30 日留存率</span>
+                      <span className="text-muted-foreground">{advancedAnalytics.retention.retentionRate30}%</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span>连续活跃天数</span>
+                      <span className="text-muted-foreground">{advancedAnalytics.retention.currentStreak} 天</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </CardContent>
