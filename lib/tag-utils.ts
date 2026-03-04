@@ -41,12 +41,21 @@ export function normalizeTagNames(input: unknown) {
 }
 
 export async function findOrCreateTagByName(tagName: string) {
+  return findOrCreateTagByNameWithClient(prisma, tagName)
+}
+
+type TagClient = Pick<
+  typeof prisma,
+  "tag"
+>
+
+export async function findOrCreateTagByNameWithClient(client: TagClient, tagName: string) {
   const name = tagName.trim()
   if (!name) {
     return null
   }
 
-  const existingByName = await prisma.tag.findUnique({
+  const existingByName = await client.tag.findUnique({
     where: { name },
   })
   if (existingByName) {
@@ -59,7 +68,7 @@ export async function findOrCreateTagByName(tagName: string) {
 
   while (attempt <= 20) {
     try {
-      return await prisma.tag.create({
+      return await client.tag.create({
         data: {
           name,
           slug: slugCandidate,
@@ -75,7 +84,7 @@ export async function findOrCreateTagByName(tagName: string) {
         : []
 
       if (conflictFields.includes("name")) {
-        const conflictedTag = await prisma.tag.findUnique({ where: { name } })
+        const conflictedTag = await client.tag.findUnique({ where: { name } })
         if (conflictedTag) {
           return conflictedTag
         }

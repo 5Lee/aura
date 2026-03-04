@@ -8,39 +8,110 @@ datasource db {
 }
 
 model User {
-  id          String             @id @default(cuid())
-  name        String?
-  email       String             @unique
-  password    String
-  image       String?
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-  accounts    Account[]
-  favorites   Favorite[]
-  prompts     Prompt[]
-  collections PromptCollection[]
-  sessions    Session[]
+  id                     String              @id @default(cuid())
+  name                   String?
+  email                  String              @unique
+  password               String
+  image                  String?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  accounts               Account[]
+  favorites              Favorite[]
+  prompts                Prompt[]
+  collections            PromptCollection[]
+  sessions               Session[]
+  promptVersionsCreated  PromptVersion[]
+  promptAuditLogsCreated PromptAuditLog[]
 }
 
 model Prompt {
-  id            String      @id @default(cuid())
-  title         String
-  content       String      @db.Text
-  description   String?     @db.Text
-  categoryId    String
-  isPublic      Boolean     @default(false)
-  authorId      String?
-  viewCount     Int         @default(0)
-  favoriteCount Int         @default(0)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  favorites     Favorite[]
-  author        User?       @relation(fields: [authorId], references: [id])
-  category      Category    @relation(fields: [categoryId], references: [id])
-  tags          PromptTag[]
+  id               String                 @id @default(cuid())
+  title            String
+  content          String                 @db.Text
+  description      String?                @db.Text
+  categoryId       String
+  isPublic         Boolean                @default(false)
+  authorId         String?
+  viewCount        Int                    @default(0)
+  favoriteCount    Int                    @default(0)
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  favorites        Favorite[]
+  author           User?                  @relation(fields: [authorId], references: [id])
+  category         Category               @relation(fields: [categoryId], references: [id])
+  tags             PromptTag[]
+  versions         PromptVersion[]
+  auditLogs        PromptAuditLog[]
+  templateVariables PromptTemplateVariable[]
 
   @@index([authorId], map: "Prompt_authorId_fkey")
   @@index([categoryId], map: "Prompt_categoryId_fkey")
+}
+
+enum PromptVersionSource {
+  CREATE
+  UPDATE
+  ROLLBACK
+  IMPORT
+}
+
+model PromptVersion {
+  id            String              @id @default(cuid())
+  promptId      String
+  version       Int
+  source        PromptVersionSource @default(UPDATE)
+  changeSummary String?
+  title         String
+  content       String              @db.Text
+  description   String?             @db.Text
+  categoryId    String
+  isPublic      Boolean
+  tags          Json?
+  createdById   String?
+  createdAt     DateTime            @default(now())
+  prompt        Prompt              @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  createdBy     User?               @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([promptId, version])
+  @@index([promptId])
+  @@index([createdById])
+}
+
+model PromptTemplateVariable {
+  id           String   @id @default(cuid())
+  promptId     String
+  name         String
+  type         String   @default("string")
+  required     Boolean  @default(false)
+  defaultValue String?  @db.Text
+  description  String?  @db.Text
+  options      Json?
+  minLength    Int?
+  maxLength    Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  prompt       Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@unique([promptId, name])
+  @@index([promptId])
+}
+
+model PromptAuditLog {
+  id        String   @id @default(cuid())
+  promptId  String?
+  actorId   String?
+  action    String
+  resource  String   @default("prompt")
+  status    String   @default("success")
+  metadata  Json?
+  createdAt DateTime @default(now())
+  prompt    Prompt?  @relation(fields: [promptId], references: [id], onDelete: SetNull)
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([promptId])
+  @@index([actorId])
+  @@index([action])
+  @@index([createdAt])
 }
 
 model Category {

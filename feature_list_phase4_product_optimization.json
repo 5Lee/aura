@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "last_updated": "2026-03-04",
     "total_features": 20,
-    "completed_features": 0
+    "completed_features": 4
   },
   "features": [
     {
@@ -20,7 +20,7 @@
         "输出 Aura 当前状态与目标状态差距说明",
         "将矩阵转化为可执行任务并标注优先级与依赖关系"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase4-week1-002",
@@ -34,7 +34,7 @@
         "实现编辑后自动落版本快照与回滚能力",
         "完成 Prisma migration 与版本化 API 单元测试"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase4-week1-003",
@@ -48,7 +48,7 @@
         "落地模板渲染服务并处理缺失变量报错",
         "补充渲染引擎单元测试与边界用例测试"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase4-week1-004",
@@ -62,7 +62,7 @@
         "提供按提示词与用户维度的审计查询能力",
         "验证审计日志在异常场景下仍可追溯"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase4-week2-001",

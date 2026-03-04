@@ -1,7 +1,10 @@
+import { PromptVersionSource } from "@prisma/client"
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { recordPromptAuditLog } from "@/lib/prompt-audit-log"
+import { createPromptVersionSnapshot } from "@/lib/prompt-versioning"
 import { findOrCreateTagByName, normalizeTagNames } from "@/lib/tag-utils"
 
 // GET /api/prompts/[id] - Get a single prompt
@@ -169,6 +172,24 @@ export async function PATCH(
       tags: final!.tags.map(pt => pt.tag),
     }
 
+    await createPromptVersionSnapshot({
+      promptId: params.id,
+      source: PromptVersionSource.UPDATE,
+      actorId: session.user.id,
+      changeSummary: "Prompt updated via PATCH",
+    })
+
+    await recordPromptAuditLog({
+      promptId: params.id,
+      actorId: session.user.id,
+      action: "prompt.update",
+      metadata: {
+        categoryId: transformed.categoryId,
+        isPublic: transformed.isPublic,
+        tagCount: transformed.tags.length,
+      },
+    })
+
     return NextResponse.json(transformed)
   } catch (error) {
     console.error("Error updating prompt:", error)
@@ -215,6 +236,16 @@ export async function DELETE(
 
     await prisma.prompt.delete({
       where: { id: params.id },
+    })
+
+    await recordPromptAuditLog({
+      promptId: params.id,
+      actorId: session.user.id,
+      action: "prompt.delete",
+      metadata: {
+        title: prompt.title,
+        categoryId: prompt.categoryId,
+      },
     })
 
     return NextResponse.json({ message: "删除成功" })

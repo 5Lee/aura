@@ -1,7 +1,10 @@
+import { PromptVersionSource } from "@prisma/client"
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { recordPromptAuditLog } from "@/lib/prompt-audit-log"
+import { createPromptVersionSnapshot } from "@/lib/prompt-versioning"
 import { findOrCreateTagByName, normalizeTagNames } from "@/lib/tag-utils"
 
 // GET /api/prompts - Get prompts (user's own or public)
@@ -148,6 +151,24 @@ export async function POST(request: Request) {
       ...updatedPrompt!,
       tags: updatedPrompt!.tags.map(pt => pt.tag),
     }
+
+    await createPromptVersionSnapshot({
+      promptId: updatedPrompt!.id,
+      source: PromptVersionSource.CREATE,
+      actorId: session.user.id,
+      changeSummary: "Initial prompt version",
+    })
+
+    await recordPromptAuditLog({
+      promptId: updatedPrompt!.id,
+      actorId: session.user.id,
+      action: "prompt.create",
+      metadata: {
+        isPublic: updatedPrompt!.isPublic,
+        categoryId: updatedPrompt!.categoryId,
+        tagCount: transformed.tags.length,
+      },
+    })
 
     return NextResponse.json(transformed, { status: 201 })
   } catch (error) {
