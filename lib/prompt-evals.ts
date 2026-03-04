@@ -50,6 +50,13 @@ function isTypeMatch(value: unknown, expectedType: string) {
 }
 
 function evaluateJsonSchema(expectedSchema: string, actualOutput: string): EvaluatePromptAssertionResult {
+  if (expectedSchema.length > 20000) {
+    return {
+      passed: false,
+      errorMessage: "JSON Schema 断言配置过长",
+    }
+  }
+
   let schema: Record<string, unknown>
   let parsedOutput: unknown
 
@@ -155,6 +162,13 @@ export function evaluatePromptAssertion(
       }
     }
     case "REGEX": {
+      if (expectedOutput.length > 1000) {
+        return {
+          passed: false,
+          errorMessage: "断言失败：正则表达式过长",
+        }
+      }
+
       try {
         const pattern = new RegExp(expectedOutput, "u")
         const passed = pattern.test(actualOutput)

@@ -8,6 +8,7 @@ import { recordPromptAuditLog } from "@/lib/prompt-audit-log"
 import {
   resolvePromptPermission,
 } from "@/lib/prompt-permissions"
+import { sanitizeMultilineTextInput, sanitizeTextInput } from "@/lib/security"
 import {
   replacePromptTemplateVariablesWithClient,
   sanitizeTemplateVariables,
@@ -91,9 +92,32 @@ export async function GET(_request: Request, { params }: { params: { id: string 
       data: { viewCount: { increment: 1 } },
     })
 
+    const canSeeMembers = permission.isOwner || Boolean(permission.role)
+    const canSeeUserEmail = permission.isOwner || permission.canManageMembers
     const transformed = {
       ...prompt,
       tags: prompt.tags.map((promptTag) => promptTag.tag),
+      members: canSeeMembers
+        ? prompt.members.map((member) => ({
+            id: member.id,
+            role: member.role,
+            userId: member.userId,
+            createdAt: member.createdAt,
+            updatedAt: member.updatedAt,
+            user: {
+              id: member.user.id,
+              name: member.user.name,
+              email: canSeeUserEmail ? member.user.email : null,
+            },
+          }))
+        : [],
+      author: prompt.author
+        ? {
+            id: prompt.author.id,
+            name: prompt.author.name,
+            email: canSeeUserEmail ? prompt.author.email : null,
+          }
+        : null,
       permission,
     }
 
@@ -145,12 +169,25 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       templateVariables,
     } = await request.json()
 
-    const nextTitle = title === undefined ? prompt.title : String(title).trim()
-    const nextContent = content === undefined ? prompt.content : String(content).trim()
+    const nextTitle =
+      title === undefined ? prompt.title : sanitizeTextInput(title, 160)
+    const nextContent =
+      content === undefined
+        ? prompt.content
+        : sanitizeMultilineTextInput(content, 50000)
 
-    if (!nextTitle || !nextContent) {
+    if (!nextTitle || !nextContent.trim()) {
       return NextResponse.json({ error: "标题和内容不能为空" }, { status: 400 })
     }
+
+    const nextDescription =
+      description === undefined
+        ? prompt.description
+        : sanitizeMultilineTextInput(description, 4000).trim() || null
+    const nextCategoryId =
+      categoryId === undefined || categoryId === null
+        ? prompt.categoryId
+        : sanitizeTextInput(categoryId, 120) || prompt.categoryId
 
     const normalizedTags = tags === undefined ? null : normalizeTagNames(tags)
     const sanitizedTemplateVariables =
@@ -168,9 +205,8 @@ export async function PATCH(request: Request, { params }: { params: { id: string
         data: {
           title: nextTitle,
           content: nextContent,
-          description:
-            description === undefined ? prompt.description : String(description).trim() || null,
-          categoryId: categoryId ?? prompt.categoryId,
+          description: nextDescription,
+          categoryId: nextCategoryId,
           isPublic: nextIsPublic,
           publishStatus: nextPublishStatus,
           publishedAt:

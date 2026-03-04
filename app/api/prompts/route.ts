@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { recordPromptAuditLog } from "@/lib/prompt-audit-log"
+import { sanitizeMultilineTextInput, sanitizeTextInput } from "@/lib/security"
 import {
   replacePromptTemplateVariablesWithClient,
   sanitizeTemplateVariables,
@@ -201,7 +202,15 @@ export async function POST(request: Request) {
       templateVariables,
     } = await request.json()
 
-    if (!title || !content || !categoryId) {
+    const nextTitle = sanitizeTextInput(title, 160)
+    const nextContent = sanitizeMultilineTextInput(content, 50000)
+    const nextCategoryId = sanitizeTextInput(categoryId, 120)
+    const nextDescription =
+      description === undefined || description === null
+        ? null
+        : sanitizeMultilineTextInput(description, 4000).trim() || null
+
+    if (!nextTitle || !nextContent.trim() || !nextCategoryId) {
       return NextResponse.json({ error: "标题、内容和分类不能为空" }, { status: 400 })
     }
 
@@ -211,10 +220,10 @@ export async function POST(request: Request) {
     const createdPrompt = await prisma.$transaction(async (tx) => {
       const prompt = await tx.prompt.create({
         data: {
-          title: String(title).trim(),
-          content: String(content).trim(),
-          description: description ? String(description).trim() : null,
-          categoryId,
+          title: nextTitle,
+          content: nextContent,
+          description: nextDescription,
+          categoryId: nextCategoryId,
           isPublic: Boolean(isPublic),
           publishStatus: PromptPublishStatus.DRAFT,
           authorId: session.user.id,

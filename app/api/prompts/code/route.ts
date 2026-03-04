@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db"
 import { recordPromptAuditLog } from "@/lib/prompt-audit-log"
 import { resolvePromptPermission } from "@/lib/prompt-permissions"
 import { sanitizePromptTestCases } from "@/lib/prompt-test-case-utils"
+import { sanitizeMultilineTextInput, sanitizeTextInput } from "@/lib/security"
 import {
   parsePromptCodeFile,
   serializePromptCodeFile,
@@ -327,12 +328,12 @@ export async function POST(request: Request) {
 
     for (let index = 0; index < parsed.prompts.length; index += 1) {
       const row = parsed.prompts[index] as PromptCodeItem
-      const title = String(row.title || "").trim()
-      const contentText = String(row.content || "").trim()
-      const categorySlug = String(row.categorySlug || "").trim()
-      const sourceExternalId = String(row.sourceExternalId || "").trim()
+      const title = sanitizeTextInput(row.title, 160)
+      const contentText = sanitizeMultilineTextInput(row.content, 50000)
+      const categorySlug = sanitizeTextInput(row.categorySlug, 120)
+      const sourceExternalId = sanitizeTextInput(row.sourceExternalId, 128)
 
-      if (!title || !contentText || !categorySlug) {
+      if (!title || !contentText.trim() || !categorySlug) {
         summary.conflicts.push({ index, reason: "缺少必填字段（title/content/categorySlug）" })
         continue
       }
@@ -422,7 +423,10 @@ export async function POST(request: Request) {
             data: {
               title,
               content: contentText,
-              description: row.description ? String(row.description) : null,
+              description:
+                row.description === undefined || row.description === null
+                  ? null
+                  : sanitizeMultilineTextInput(row.description, 4000),
               categoryId: category.id,
               isPublic: nextIsPublic,
               publishStatus: publishState.publishStatus,
@@ -450,7 +454,10 @@ export async function POST(request: Request) {
           data: {
             title,
             content: contentText,
-            description: row.description ? String(row.description) : null,
+            description:
+              row.description === undefined || row.description === null
+                ? null
+                : sanitizeMultilineTextInput(row.description, 4000),
             categoryId: category.id,
             isPublic: nextIsPublic,
             publishStatus: publishState.publishStatus,

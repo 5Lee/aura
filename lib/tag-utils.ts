@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client"
 
 import { prisma } from "@/lib/db"
+import { sanitizeTextInput } from "@/lib/security"
 
 function buildTagSlug(name: string) {
   const slug = name
@@ -23,7 +24,7 @@ export function normalizeTagNames(input: unknown) {
   const tags: string[] = []
 
   for (const value of input) {
-    const name = typeof value === "string" ? value.trim() : ""
+    const name = typeof value === "string" ? sanitizeTextInput(value, 64) : ""
     if (!name) {
       continue
     }

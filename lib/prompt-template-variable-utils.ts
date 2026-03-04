@@ -1,4 +1,9 @@
 import { prisma } from "@/lib/db"
+import {
+  isSafeTemplateVariableName,
+  sanitizeMultilineTextInput,
+  sanitizeTextInput,
+} from "@/lib/security"
 
 const ALLOWED_VARIABLE_TYPES = new Set(["string", "number", "boolean", "json"])
 type PromptTemplateVariableType = "string" | "number" | "boolean" | "json"
@@ -42,7 +47,7 @@ function normalizeOptions(value: unknown) {
   const options: string[] = []
 
   for (const item of value) {
-    const option = typeof item === "string" ? item.trim() : ""
+    const option = typeof item === "string" ? sanitizeTextInput(item, 120) : ""
     if (!option) {
       continue
     }
@@ -53,6 +58,9 @@ function normalizeOptions(value: unknown) {
 
     seen.add(option)
     options.push(option)
+    if (options.length >= 100) {
+      break
+    }
   }
 
   return options.length > 0 ? options : undefined
@@ -68,10 +76,11 @@ export function sanitizeTemplateVariables(input: unknown): SanitizedPromptTempla
   return input
     .map((item) => {
       const payload = (item || {}) as PromptTemplateVariablePayload
-      const name = typeof payload.name === "string" ? payload.name.trim() : ""
+      const name =
+        typeof payload.name === "string" ? sanitizeTextInput(payload.name, 64) : ""
       const key = name.toLowerCase()
 
-      if (!name || seen.has(key)) {
+      if (!name || seen.has(key) || !isSafeTemplateVariableName(name)) {
         return null
       }
 
@@ -93,11 +102,11 @@ export function sanitizeTemplateVariables(input: unknown): SanitizedPromptTempla
         defaultValue:
           payload.defaultValue === undefined || payload.defaultValue === null
             ? null
-            : String(payload.defaultValue),
+            : sanitizeMultilineTextInput(payload.defaultValue, 4000),
         description:
           payload.description === undefined || payload.description === null
             ? null
-            : String(payload.description),
+            : sanitizeMultilineTextInput(payload.description, 2000),
         options: normalizeOptions(payload.options),
         minLength,
         maxLength,

@@ -2861,3 +2861,46 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase4-week5-ux-paths.test.js`
 
 **Status**: ✅ WEEK5-001 COMPLETE（继续推进 week5-002 安全加固）
+
+### 2026-03-04 - Phase 4 Week 5 Step 2 Security Hardening (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase4-week5-002` 加强提示词渲染安全（XSS/注入/越权）
+
+**Major Changes**:
+- 新增统一安全工具：
+  - `lib/security.ts`
+  - 提供文本净化、危险键路径拦截（`__proto__`/`prototype`/`constructor`）、JSON 深度与规模约束
+- 模板渲染链路安全加固：
+  - `lib/prompt-template.ts`
+  - `app/api/prompts/render/route.ts`
+  - 增加登录校验、模板长度上限、变量名安全校验、输入 JSON 结构约束、原型链污染防护
+- 模板变量与测试用例输入净化：
+  - `lib/prompt-template-variable-utils.ts`
+  - `lib/prompt-test-case-utils.ts`
+  - 变量名白名单限制、描述/默认值长度限制、inputVariables 递归净化
+- 评测执行防滥用约束：
+  - `lib/prompt-evals.ts`
+  - 限制超长正则与超长 JSON Schema 断言输入
+- Prompt API 越权与信息暴露收敛：
+  - `app/api/prompts/[id]/route.ts`
+  - 非特权查看者不再暴露成员邮箱/作者邮箱
+- Prompt 创建/更新与导入净化：
+  - `app/api/prompts/route.ts`
+  - `app/api/prompts/[id]/route.ts`
+  - `app/api/prompts/code/route.ts`
+  - 统一标题/内容/描述/categoryId 规范化，降低注入与畸形输入风险
+- 标签输入净化：
+  - `lib/tag-utils.ts`
+
+**Verification**:
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm test -- --runInBand` ✅
+
+**New Tests**:
+- `__tests__/phase4-week5-security-hardening.test.js`
+
+**Status**: ✅ WEEK5-002 COMPLETE（继续推进 week5-003 性能优化）

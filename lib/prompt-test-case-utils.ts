@@ -1,5 +1,11 @@
 import { PromptAssertionType, type Prisma } from "@prisma/client"
 
+import {
+  sanitizeJsonValue,
+  sanitizeMultilineTextInput,
+  sanitizeTextInput,
+} from "@/lib/security"
+
 export interface PromptTestCasePayload {
   name: string
   description?: string
@@ -39,7 +45,17 @@ function normalizeInputVariables(value: unknown) {
     return undefined
   }
 
-  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue
+  const sanitized = sanitizeJsonValue(value, {
+    maxDepth: 8,
+    maxKeysPerObject: 64,
+    maxArrayLength: 100,
+    maxStringLength: 2000,
+  })
+  if (!sanitized || typeof sanitized !== "object" || Array.isArray(sanitized)) {
+    return undefined
+  }
+
+  return sanitized as Prisma.InputJsonValue
 }
 
 export function sanitizePromptTestCases(input: unknown): SanitizedPromptTestCase[] {
@@ -52,7 +68,7 @@ export function sanitizePromptTestCases(input: unknown): SanitizedPromptTestCase
   return input
     .map((item) => {
       const payload = (item || {}) as PromptTestCasePayload
-      const name = typeof payload.name === "string" ? payload.name.trim() : ""
+      const name = typeof payload.name === "string" ? sanitizeTextInput(payload.name, 120) : ""
       if (!name) {
         return null
       }
@@ -66,8 +82,17 @@ export function sanitizePromptTestCases(input: unknown): SanitizedPromptTestCase
       const expectedOutput =
         payload.expectedOutput === undefined || payload.expectedOutput === null
           ? ""
-          : String(payload.expectedOutput)
+          : sanitizeMultilineTextInput(payload.expectedOutput, 20000)
       if (!expectedOutput.trim()) {
+        return null
+      }
+
+      const normalizedInputVariables = normalizeInputVariables(payload.inputVariables)
+      if (
+        payload.inputVariables !== undefined &&
+        payload.inputVariables !== null &&
+        normalizedInputVariables === undefined
+      ) {
         return null
       }
 
@@ -76,10 +101,10 @@ export function sanitizePromptTestCases(input: unknown): SanitizedPromptTestCase
         description:
           payload.description === undefined || payload.description === null
             ? null
-            : String(payload.description),
+            : sanitizeMultilineTextInput(payload.description, 2000),
         assertionType: normalizeAssertionType(payload.assertionType),
         expectedOutput,
-        inputVariables: normalizeInputVariables(payload.inputVariables),
+        inputVariables: normalizedInputVariables,
         enabled: payload.enabled === undefined ? true : Boolean(payload.enabled),
       }
     })

@@ -1,23 +1,61 @@
 import { NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
 
+import { authOptions } from "@/lib/auth"
+import { sanitizeTemplateVariables } from "@/lib/prompt-template-variable-utils"
+import { sanitizeJsonValue, sanitizeMultilineTextInput } from "@/lib/security"
 import {
   renderPromptTemplate,
   validateTemplateInput,
   type PromptTemplateVariableDefinition,
 } from "@/lib/prompt-template"
 
+const MAX_TEMPLATE_LENGTH = 24000
+
 export async function POST(request: Request) {
+  const session = await getServerSession(authOptions)
+  if (!session?.user) {
+    return NextResponse.json({ error: "请先登录" }, { status: 401 })
+  }
+
   try {
-    const { template, input, variables } = await request.json()
+    const { template, input, variables } = await request.json().catch(() => ({}))
 
     if (!template || typeof template !== "string") {
       return NextResponse.json({ error: "模板内容不能为空" }, { status: 400 })
     }
 
-    const variableDefinitions = Array.isArray(variables)
-      ? (variables as PromptTemplateVariableDefinition[])
-      : []
-    const payload = input && typeof input === "object" ? input : {}
+    const safeTemplate = sanitizeMultilineTextInput(template, MAX_TEMPLATE_LENGTH)
+    if (!safeTemplate.trim()) {
+      return NextResponse.json({ error: "模板内容不能为空" }, { status: 400 })
+    }
+
+    if (template.length > MAX_TEMPLATE_LENGTH) {
+      return NextResponse.json({ error: `模板长度不能超过 ${MAX_TEMPLATE_LENGTH} 字符` }, { status: 400 })
+    }
+
+    const sanitizedVariableDefinitions = sanitizeTemplateVariables(variables)
+    const variableDefinitions: PromptTemplateVariableDefinition[] = sanitizedVariableDefinitions.map((item) => ({
+      name: item.name,
+      type: item.type,
+      required: item.required,
+      defaultValue: item.defaultValue || undefined,
+      minLength: item.minLength || undefined,
+      maxLength: item.maxLength || undefined,
+      options: item.options,
+    }))
+    const sanitizedInput = sanitizeJsonValue(input, {
+      maxDepth: 6,
+      maxKeysPerObject: 64,
+      maxArrayLength: 100,
+      maxStringLength: 2000,
+    })
+    const payload =
+      sanitizedInput &&
+      typeof sanitizedInput === "object" &&
+      !Array.isArray(sanitizedInput)
+        ? (sanitizedInput as Record<string, unknown>)
+        : {}
 
     const validation = validateTemplateInput(variableDefinitions, payload as Record<string, unknown>)
     if (!validation.ok) {
@@ -30,7 +68,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const rendered = renderPromptTemplate(template, validation.normalizedInput)
+    const rendered = renderPromptTemplate(safeTemplate, validation.normalizedInput)
     if (!rendered.ok) {
       return NextResponse.json(
         {
