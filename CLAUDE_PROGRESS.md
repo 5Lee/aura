@@ -3084,3 +3084,43 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase5-week17-billing-center.test.js`
 
 **Status**: ✅ WEEK17-003 COMPLETE（继续推进 week17-004 发票与税务基础能力）
+
+### 2026-03-04 - Phase 5 Week 17 Step 4 Invoice & Tax Foundation (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase5-week17-004` 完成发票与税务基础能力（抬头管理、标准化开票、账单追踪、退款冲销）
+
+**Major Changes**:
+- 发票数据模型扩展：
+  - `prisma/schema.prisma`
+  - 新增 `InvoiceProfile`、`BillingInvoice`，并补充 `InvoiceType` / `InvoiceStatus` 枚举
+- 发票核心工具：
+  - `lib/billing-invoice.ts`
+  - 实现发票编号生成、税额计算、退款冲销草稿与状态计算
+- 发票 API 能力落地：
+  - `app/api/billing/invoice-profile/route.ts`（抬头与税号管理）
+  - `app/api/billing/invoices/route.ts`（开票 + CSV 导出）
+  - `app/api/billing/invoices/[id]/refund/route.ts`（退款冲销并生成补偿发票）
+- 账单中心升级：
+  - `app/(dashboard)/billing/page.tsx`
+  - `components/billing/invoice-management-panel.tsx`
+  - 提供发票信息维护、开票、导出、冲销入口
+- 台账追踪链路：
+  - 发票记录与 `billingEventId` 建立关联，并在事件 payload 回写 `invoiceId/invoiceNo`
+- Phase5 任务推进：
+  - `feature_list_phase5_commercialization.json`
+  - 标记 `phase5-week17-004` 完成，`completed_features` 更新为 `4`
+
+**Verification**:
+- `npm run db:generate` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm test -- --runInBand` ✅
+- `npm run feature:meta:check -- feature_list_phase5_commercialization.json` ✅
+
+**New Tests**:
+- `__tests__/phase5-week17-invoice-tax.test.js`
+
+**Status**: ✅ WEEK17-004 COMPLETE（Week17 商业化基础 4/4 完成，继续推进 Week18）

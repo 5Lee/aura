@@ -27,6 +27,8 @@ model User {
   promptMemberInvites    PromptMember[]       @relation("PromptMemberInviter")
   subscriptions          Subscription[]
   billingEvents          BillingEvent[]
+  invoiceProfile         InvoiceProfile?
+  invoices               BillingInvoice[]
 }
 
 model Prompt {
@@ -122,6 +124,19 @@ enum BillingEventProcessStatus {
   PROCESSED
   IGNORED
   FAILED
+}
+
+enum InvoiceType {
+  SUBSCRIPTION
+  REFUND
+  ADJUSTMENT
+}
+
+enum InvoiceStatus {
+  ISSUED
+  PAID
+  REFUNDED
+  VOID
 }
 
 model PromptVersion {
@@ -284,6 +299,7 @@ model Subscription {
   updatedAt              DateTime            @updatedAt
   user                   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   billingEvents          BillingEvent[]
+  invoices               BillingInvoice[]
 
   @@index([userId])
   @@index([status])
@@ -306,12 +322,68 @@ model BillingEvent {
   updatedAt       DateTime                  @updatedAt
   user            User?                     @relation(fields: [userId], references: [id], onDelete: SetNull)
   subscription    Subscription?             @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  invoices        BillingInvoice[]
 
   @@unique([provider, providerEventId])
   @@index([subscriptionId])
   @@index([userId])
   @@index([type])
   @@index([status])
+}
+
+model InvoiceProfile {
+  id            String         @id @default(cuid())
+  userId        String         @unique
+  title         String
+  taxNumber     String
+  billingEmail  String?
+  address       String?
+  phone         String?
+  bankName      String?
+  bankAccount   String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices      BillingInvoice[]
+
+  @@index([taxNumber])
+}
+
+model BillingInvoice {
+  id                 String      @id @default(cuid())
+  invoiceNo          String      @unique
+  userId             String
+  profileId          String?
+  subscriptionId     String?
+  billingEventId     String?
+  type               InvoiceType @default(SUBSCRIPTION)
+  status             InvoiceStatus @default(ISSUED)
+  currency           String      @default("CNY")
+  subtotalCents      Int
+  taxRateBasisPoints Int         @default(600)
+  taxCents           Int         @default(0)
+  totalCents         Int
+  refundedCents      Int         @default(0)
+  amountDueCents     Int
+  issuedAt           DateTime    @default(now())
+  dueAt              DateTime?
+  paidAt             DateTime?
+  refundedAt         DateTime?
+  notes              String?     @db.Text
+  metadata           Json?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile            InvoiceProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  subscription       Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  billingEvent       BillingEvent? @relation(fields: [billingEventId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([profileId])
+  @@index([subscriptionId])
+  @@index([billingEventId])
+  @@index([status])
+  @@index([type])
 }
 
 model Category {

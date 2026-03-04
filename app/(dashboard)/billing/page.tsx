@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
+import { InvoiceManagementPanel } from "@/components/billing/invoice-management-panel"
 import { SubscriptionManagementPanel } from "@/components/billing/subscription-management-panel"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -34,14 +35,28 @@ export default async function BillingPage() {
     redirect("/login")
   }
 
-  const snapshot = await getUserEntitlementSnapshot(session.user.id)
-  const billingEvents = await prisma.billingEvent.findMany({
-    where: {
-      userId: session.user.id,
-    },
-    orderBy: { createdAt: "desc" },
-    take: 20,
-  })
+  const [snapshot, billingEvents, invoiceProfile, invoices] = await Promise.all([
+    getUserEntitlementSnapshot(session.user.id),
+    prisma.billingEvent.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+    prisma.invoiceProfile.findUnique({
+      where: {
+        userId: session.user.id,
+      },
+    }),
+    prisma.billingInvoice.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+  ])
 
   const currentSubscription = snapshot.subscription
 
@@ -93,6 +108,41 @@ export default async function BillingPage() {
             currentStatus={currentSubscription?.status ?? null}
             hasSubscription={Boolean(currentSubscription)}
             cancelAtPeriodEnd={Boolean(currentSubscription?.cancelAtPeriodEnd)}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex flex-wrap items-center gap-3">
+            <CardTitle>发票与税务管理</CardTitle>
+            <Badge variant="secondary">Week17-004</Badge>
+          </div>
+          <CardDescription>
+            管理发票抬头、税号与开票信息，支持发票导出与退款冲销追踪链路。
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <InvoiceManagementPanel
+            initialProfile={{
+              title: invoiceProfile?.title ?? "",
+              taxNumber: invoiceProfile?.taxNumber ?? "",
+              billingEmail: invoiceProfile?.billingEmail ?? "",
+              address: invoiceProfile?.address ?? "",
+              phone: invoiceProfile?.phone ?? "",
+              bankName: invoiceProfile?.bankName ?? "",
+              bankAccount: invoiceProfile?.bankAccount ?? "",
+            }}
+            invoices={invoices.map((invoice) => ({
+              id: invoice.id,
+              invoiceNo: invoice.invoiceNo,
+              type: invoice.type,
+              status: invoice.status,
+              totalCents: invoice.totalCents,
+              refundedCents: invoice.refundedCents,
+              amountDueCents: invoice.amountDueCents,
+              issuedAt: invoice.issuedAt.toISOString(),
+            }))}
           />
         </CardContent>
       </Card>

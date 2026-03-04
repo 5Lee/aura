@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "last_updated": "2026-03-04",
     "total_features": 16,
-    "completed_features": 3
+    "completed_features": 4
   },
   "features": [
     {
@@ -62,7 +62,7 @@
         "对账单和发票编号建立追踪链路",
         "验证发票数据在退款场景下正确冲销"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase5-week18-001",

@@ -69,7 +69,7 @@ test("entitlement checks are wired into prompt create and visibility transition 
 
 test("billing route is protected and phase5 tracker marks week17-003 complete", () => {
   assert.match(middlewareSource, /\/billing\/:path\*/)
-  assert.equal(phase5FeatureList.meta.completed_features, 3)
+  assert.ok(phase5FeatureList.meta.completed_features >= 3)
   const feature = phase5FeatureList.features.find((item) => item.id === "phase5-week17-003")
   assert.ok(feature)
   assert.equal(feature.passes, true)
