@@ -361,6 +361,7 @@ export function PromptTestCasePanel({ promptId, canManage }: PromptTestCasePanel
             type="file"
             accept="application/json"
             className="hidden"
+            aria-label="导入测试用例文件"
             onChange={(event) => void handleImportCases(event)}
           />
         </div>
@@ -457,6 +458,7 @@ export function PromptTestCasePanel({ promptId, canManage }: PromptTestCasePanel
                       type="button"
                       size="sm"
                       variant="ghost"
+                      aria-label={`删除测试用例 ${item.name}`}
                       onClick={() => void handleDeleteCase(item.id)}
                     >
                       <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
