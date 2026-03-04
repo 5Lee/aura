@@ -91,6 +91,13 @@ docker-compose exec app npx prisma db seed
 4. 运行 `docker-compose up -d`
 5. 配置 SSL 证书（可选）
 
+### 企业私有化模板化交付
+
+- 私有化部署模板：`deploy/private-template/`
+- 一键预检脚本：`tools/enterprise-deploy-preflight.sh`
+- 私有化部署说明：`docs/enterprise-private-deployment.md`
+- 升级与回滚手册：`docs/enterprise-upgrade-rollback-runbook.md`
+
 ## 默认账号
 
 种子数据会创建一个测试账号：

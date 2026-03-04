@@ -20,6 +20,12 @@ npm run preflight:full
 bash ./tools/preflight-check.sh --mode fast --skip-db
 ```
 
+企业私有化部署预检请使用：
+
+```bash
+bash ./tools/enterprise-deploy-preflight.sh --env all --mode fast
+```
+
 ## 检查项
 
 - 依赖检查：`node` / `npm` / `node_modules`

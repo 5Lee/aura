@@ -12,6 +12,8 @@
     "preflight": "bash ./tools/preflight-check.sh --mode fast",
     "preflight:fast": "bash ./tools/preflight-check.sh --mode fast",
     "preflight:full": "bash ./tools/preflight-check.sh --mode full",
+    "enterprise:preflight": "bash ./tools/enterprise-deploy-preflight.sh --env all --mode fast --skip-docker",
+    "enterprise:preflight:full": "bash ./tools/enterprise-deploy-preflight.sh --env all --mode full --skip-docker",
     "lint": "next lint",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
     "prompt-regression": "tsx tools/prompt-regression.ts",

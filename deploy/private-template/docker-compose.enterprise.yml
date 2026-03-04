@@ -1,0 +1,74 @@
+version: "3.9"
+
+x-aura-healthcheck: &aura-healthcheck
+  interval: 20s
+  timeout: 5s
+  retries: 5
+  start_period: 20s
+
+services:
+  mysql:
+    image: mysql:8.0.36
+    restart: unless-stopped
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - aura_mysql_data:/var/lib/mysql
+      - ./backups:/var/backups/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD"]
+      <<: *aura-healthcheck
+
+  app:
+    image: ${AURA_APP_IMAGE}:${APP_IMAGE_TAG}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      FEATURE_FLAG_PRIVATE_DEPLOY: ${FEATURE_FLAG_PRIVATE_DEPLOY:-true}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      <<: *aura-healthcheck
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/enterprise.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+
+  backup:
+    image: mysql:8.0.36
+    restart: "no"
+    profiles: ["ops"]
+    entrypoint: ["bash", "-lc"]
+    command: >-
+      mysqldump -h mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE"
+      > /var/backups/mysql/backup-$(date +%Y%m%d-%H%M%S).sql
+    environment:
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./backups:/var/backups/mysql
+
+volumes:
+  aura_mysql_data:
