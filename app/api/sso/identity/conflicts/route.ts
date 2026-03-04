@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth"
 
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { recordPromptAuditLog } from "@/lib/prompt-audit-log"
 import { sanitizeTextInput } from "@/lib/security"
 import { getUserEntitlementSnapshot, hasEnterpriseSsoAccess } from "@/lib/subscription-entitlements"
 
@@ -124,6 +125,17 @@ export async function PATCH(request: Request) {
       },
       data: {
         status,
+      },
+    })
+
+    await recordPromptAuditLog({
+      actorId: session.user.id,
+      action: "sso.identity_conflict.update",
+      resource: "identity",
+      request,
+      metadata: {
+        conflictId: updated.id,
+        status: updated.status,
       },
     })
 

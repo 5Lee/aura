@@ -41,6 +41,10 @@ export function resolveMobileRouteMeta(pathname: string): MobileRouteMeta {
     return { title: "SSO 身份", showBackButton: false }
   }
 
+  if (pathname === "/compliance") {
+    return { title: "合规审计", showBackButton: false }
+  }
+
   if (pathname === "/prompts/new") {
     return { title: "新建提示词", showBackButton: true, backHref: "/prompts" }
   }

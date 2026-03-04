@@ -39,6 +39,8 @@ model User {
   userIdentities         UserIdentity[]
   directorySyncRuns      DirectorySyncRun[]
   identityConflicts      IdentityConflict[]   @relation("IdentityConflictExistingUser")
+  auditRetentionPolicy   AuditRetentionPolicy?
+  auditAnomalies         AuditAnomaly[]
 }
 
 model Prompt {
@@ -66,6 +68,7 @@ model Prompt {
   testCases        PromptTestCase[]
   evalRuns         PromptEvalRun[]
   members          PromptMember[]
+  auditAnomalies   AuditAnomaly[]
 
   @@index([authorId], map: "Prompt_authorId_fkey")
   @@index([categoryId], map: "Prompt_categoryId_fkey")
@@ -214,6 +217,13 @@ enum IdentityConflictStatus {
   RESOLVED
 }
 
+enum AuditRiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
 model PromptVersion {
   id            String              @id @default(cuid())
   promptId      String
@@ -257,20 +267,33 @@ model PromptTemplateVariable {
 }
 
 model PromptAuditLog {
-  id        String   @id @default(cuid())
-  promptId  String?
-  actorId   String?
-  action    String
-  resource  String   @default("prompt")
-  status    String   @default("success")
-  metadata  Json?
-  createdAt DateTime @default(now())
-  prompt    Prompt?  @relation(fields: [promptId], references: [id], onDelete: SetNull)
-  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  id             String         @id @default(cuid())
+  promptId       String?
+  actorId        String?
+  action         String
+  resource       String         @default("prompt")
+  status         String         @default("success")
+  riskLevel      AuditRiskLevel @default(LOW)
+  requestId      String?
+  actorEmail     String?
+  ipHash         String?
+  userAgent      String?
+  previousHash   String?
+  entryHash      String?        @unique
+  immutable      Boolean        @default(true)
+  retentionUntil DateTime?
+  metadata       Json?
+  createdAt      DateTime       @default(now())
+  prompt         Prompt?        @relation(fields: [promptId], references: [id], onDelete: SetNull)
+  actor          User?          @relation(fields: [actorId], references: [id], onDelete: SetNull)
 
   @@index([promptId])
   @@index([actorId])
   @@index([action])
+  @@index([riskLevel])
+  @@index([requestId])
+  @@index([retentionUntil])
+  @@index([entryHash])
   @@index([createdAt])
 }
 
@@ -662,6 +685,45 @@ model IdentityConflict {
   @@index([syncRunId])
   @@index([existingUserId])
   @@index([status])
+}
+
+model AuditRetentionPolicy {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
+  retentionDays           Int      @default(365)
+  exportEnabled           Boolean  @default(true)
+  failureBurstThreshold   Int      @default(5)
+  multiIpBurstThreshold   Int      @default(3)
+  sensitiveBurstThreshold Int      @default(8)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AuditAnomaly {
+  id          String         @id @default(cuid())
+  userId      String
+  promptId    String?
+  type        String
+  status      String         @default("OPEN")
+  severity    AuditRiskLevel @default(MEDIUM)
+  summary     String         @db.Text
+  matchedRule String
+  occurrences Int            @default(1)
+  firstSeenAt DateTime       @default(now())
+  lastSeenAt  DateTime       @default(now())
+  metadata    Json?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt      Prompt?        @relation(fields: [promptId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([promptId])
+  @@index([type])
+  @@index([status])
+  @@index([severity])
+  @@index([lastSeenAt])
 }
 
 model Category {

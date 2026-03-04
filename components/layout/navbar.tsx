@@ -18,6 +18,7 @@ export function Navbar() {
     { href: "/collections", label: "收藏夹" },
     { href: "/branding", label: "品牌" },
     { href: "/sso", label: "SSO" },
+    { href: "/compliance", label: "合规" },
     { href: "/support", label: "支持" },
     { href: "/sla", label: "SLA" },
     { href: "/billing", label: "账单" },

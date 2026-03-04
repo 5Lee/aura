@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth"
 
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { recordPromptAuditLog } from "@/lib/prompt-audit-log"
 import {
   normalizeDirectoryRole,
   resolveIdentityConflictReason,
@@ -305,6 +306,23 @@ export async function POST(request: Request) {
       },
       data: {
         lastSyncedAt: finishedAt,
+      },
+    })
+
+    await recordPromptAuditLog({
+      actorId: session.user.id,
+      action: "sso.directory.sync",
+      resource: "identity",
+      status: status === DirectorySyncStatus.FAILED ? "failure" : "success",
+      request,
+      metadata: {
+        providerId: provider.id,
+        syncRunId: updatedRun.id,
+        status: updatedRun.status,
+        totalUsers: updatedRun.totalUsers,
+        createdUsers: updatedRun.createdUsers,
+        linkedUsers: updatedRun.linkedUsers,
+        conflictCount: updatedRun.conflictCount,
       },
     })
 

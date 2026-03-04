@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth"
 
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { recordPromptAuditLog } from "@/lib/prompt-audit-log"
 import { maskSecret, sanitizeSsoProviderConfig } from "@/lib/sso"
 import { hasEnterpriseSsoAccess, getUserEntitlementSnapshot } from "@/lib/subscription-entitlements"
 
@@ -181,6 +182,20 @@ export async function POST(request: Request) {
         defaultRole: sanitized.defaultRole,
         enforceSso: sanitized.enforceSso,
         allowLocalFallback: sanitized.allowLocalFallback,
+      },
+    })
+
+    await recordPromptAuditLog({
+      actorId: session.user.id,
+      action: "sso.provider.upsert",
+      resource: "identity",
+      request,
+      metadata: {
+        providerId: persisted.id,
+        type: persisted.type,
+        status: persisted.status,
+        enforceSso: persisted.enforceSso,
+        allowLocalFallback: persisted.allowLocalFallback,
       },
     })
 
