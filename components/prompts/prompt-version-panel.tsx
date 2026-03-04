@@ -62,7 +62,7 @@ export function PromptVersionPanel({ promptId, canManage }: PromptVersionPanelPr
     setIsLoading(true)
     setPanelError("")
     try {
-      const response = await fetch(`/api/prompts/${promptId}/versions?take=50`)
+      const response = await fetch(`/api/prompts/${promptId}/versions?take=30`)
       const payload = await response.json()
       if (!response.ok) {
         throw new Error(payload?.error || "获取版本历史失败")

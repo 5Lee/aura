@@ -46,6 +46,22 @@ function resolvePublishStatusFilter(value: string | null) {
   return normalized as PromptPublishStatus
 }
 
+function resolvePositiveInt(value: string | null, fallback: number, min: number, max: number) {
+  const parsed = Number(value || "")
+  if (!Number.isFinite(parsed)) {
+    return fallback
+  }
+
+  const rounded = Math.floor(parsed)
+  if (rounded < min) {
+    return min
+  }
+  if (rounded > max) {
+    return max
+  }
+  return rounded
+}
+
 // GET /api/prompts - Get prompts with multi-dimensional filtering
 export async function GET(request: Request) {
   try {
@@ -60,6 +76,9 @@ export async function GET(request: Request) {
     const search = (searchParams.get("q") || searchParams.get("search") || "").trim()
     const publishStatusFilter = resolvePublishStatusFilter(searchParams.get("publishStatus"))
     const updatedWithinDate = resolveUpdatedWithinDate(searchParams.get("updatedWithin"))
+    const page = resolvePositiveInt(searchParams.get("page"), 1, 1, 10000)
+    const pageSize = resolvePositiveInt(searchParams.get("pageSize"), 60, 20, 120)
+    const skip = (page - 1) * pageSize
 
     const filters: Array<Record<string, unknown>> = []
 
@@ -151,32 +170,51 @@ export async function GET(request: Request) {
       })
     }
 
-    const takeParam = Number(searchParams.get("take") || 0)
-    const take = Number.isFinite(takeParam) && takeParam > 0 ? Math.min(takeParam, 200) : undefined
+    const includeMeta = searchParams.get("meta") === "1"
+    const where = filters.length > 0 ? { AND: filters } : undefined
 
-    const prompts = await prisma.prompt.findMany({
-      where: filters.length > 0 ? { AND: filters } : undefined,
-      include: {
-        category: true,
-        tags: {
-          include: {
-            tag: true,
+    const [prompts, total] = await prisma.$transaction([
+      prisma.prompt.findMany({
+        where,
+        include: {
+          category: true,
+          tags: {
+            include: {
+              tag: true,
+            },
+          },
+          author: {
+            select: { id: true, name: true, email: true },
           },
         },
-        author: {
-          select: { id: true, name: true, email: true },
-        },
-      },
-      orderBy: { updatedAt: "desc" },
-      take,
-    })
+        orderBy: { updatedAt: "desc" },
+        take: pageSize,
+        skip,
+      }),
+      prisma.prompt.count({
+        where,
+      }),
+    ])
 
     const transformedPrompts = prompts.map((prompt) => ({
       ...prompt,
       tags: prompt.tags.map((promptTag) => promptTag.tag),
     }))
 
-    return NextResponse.json(transformedPrompts)
+    if (!includeMeta) {
+      return NextResponse.json(transformedPrompts)
+    }
+
+    const totalPages = Math.max(1, Math.ceil(total / pageSize))
+    return NextResponse.json({
+      data: transformedPrompts,
+      meta: {
+        page,
+        pageSize,
+        total,
+        totalPages,
+      },
+    })
   } catch (error) {
     console.error("Error fetching prompts:", error)
     return NextResponse.json({ error: "获取提示词失败" }, { status: 500 })

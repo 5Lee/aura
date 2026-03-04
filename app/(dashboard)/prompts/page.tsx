@@ -25,6 +25,8 @@ interface PromptsPageProps {
     publishStatus?: string | string[]
     updatedWithin?: string | string[]
     scope?: string | string[]
+    page?: string | string[]
+    pageSize?: string | string[]
   }
 }
 
@@ -64,6 +66,40 @@ function resolvePublishStatus(value: string) {
   return normalized as PromptPublishStatus
 }
 
+function resolvePositiveInt(value: string, fallback: number, min: number, max: number) {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed)) {
+    return fallback
+  }
+
+  const rounded = Math.floor(parsed)
+  if (rounded < min) {
+    return min
+  }
+  if (rounded > max) {
+    return max
+  }
+  return rounded
+}
+
+function buildPromptsPageHref(filters: PromptAdvancedFilterState, page: number, pageSize: number) {
+  const params = new URLSearchParams()
+
+  if (filters.q) params.set("q", filters.q)
+  if (filters.category) params.set("category", filters.category)
+  if (filters.tag) params.set("tag", filters.tag)
+  if (filters.authorId) params.set("authorId", filters.authorId)
+  if (filters.status && filters.status !== "all") params.set("status", filters.status)
+  if (filters.publishStatus && filters.publishStatus !== "all") params.set("publishStatus", filters.publishStatus)
+  if (filters.updatedWithin) params.set("updatedWithin", filters.updatedWithin)
+  if (filters.scope && filters.scope !== "mine") params.set("scope", filters.scope)
+  if (page > 1) params.set("page", String(page))
+  if (pageSize !== 60) params.set("pageSize", String(pageSize))
+
+  const query = params.toString()
+  return `/prompts${query ? `?${query}` : ""}`
+}
+
 export default async function PromptsPage({ searchParams }: PromptsPageProps) {
   const session = await getServerSession(authOptions)
 
@@ -84,6 +120,9 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
 
   const updatedWithinDate = resolveUpdatedWithinDate(initialFilters.updatedWithin)
   const publishStatusFilter = resolvePublishStatus(initialFilters.publishStatus)
+  const page = resolvePositiveInt(getSingleValue(searchParams.page).trim(), 1, 1, 10000)
+  const pageSize = resolvePositiveInt(getSingleValue(searchParams.pageSize).trim(), 60, 20, 120)
+  const skip = (page - 1) * pageSize
 
   const filters: Array<Record<string, unknown>> = []
 
@@ -163,13 +202,33 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
     })
   }
 
-  const [prompts, totalPromptCount, categories, tags, authors] = await prisma.$transaction([
+  const filteredWhere = filters.length > 0 ? { AND: filters } : undefined
+
+  const [prompts, filteredPromptCount, totalPromptCount, categories, tags, authors] = await prisma.$transaction([
     prisma.prompt.findMany({
-      where: filters.length > 0 ? { AND: filters } : undefined,
-      include: {
-        category: true,
+      where: filteredWhere,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        content: true,
+        isPublic: true,
+        publishStatus: true,
+        updatedAt: true,
+        category: {
+          select: {
+            name: true,
+          },
+        },
         tags: {
-          include: { tag: true },
+          select: {
+            tag: {
+              select: {
+                name: true,
+              },
+            },
+            tagId: true,
+          },
         },
         author: {
           select: {
@@ -180,6 +239,11 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
         },
       },
       orderBy: { updatedAt: "desc" },
+      take: pageSize,
+      skip,
+    }),
+    prisma.prompt.count({
+      where: filteredWhere,
     }),
     prisma.prompt.count({
       where: {
@@ -207,6 +271,9 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
       take: 120,
     }),
   ])
+  const totalPages = Math.max(1, Math.ceil(filteredPromptCount / pageSize))
+  const hasPrevPage = page > 1
+  const hasNextPage = page < totalPages
 
   const promptCards = prompts.map((prompt) => ({
     id: prompt.id,
@@ -269,22 +336,32 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
       />
 
       <p className="text-sm text-muted-foreground">
-        当前结果 {prompts.length} 条（可操作提示词总数 {totalPromptCount} 条）
+        当前第 {page} / {totalPages} 页，本页 {prompts.length} 条（筛选结果共 {filteredPromptCount} 条，可操作提示词总数 {totalPromptCount} 条）
       </p>
 
       {prompts.length === 0 ? (
-        hasActiveFilters ? (
+        hasActiveFilters || page > 1 ? (
           <EmptyState
             icon={<SearchX aria-hidden="true" className="h-6 w-6" />}
             title="没有找到匹配的提示词"
-            description="当前筛选组合无结果，请调整条件或重置筛选。"
+            description={
+              page > 1 && filteredPromptCount > 0
+                ? "当前页无数据，请返回上一页或重置筛选。"
+                : "当前筛选组合无结果，请调整条件或重置筛选。"
+            }
             actions={
               <>
                 <Button asChild>
                   <Link href="/prompts/new">创建提示词</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href="/prompts">重置筛选</Link>
+                  {page > 1 ? (
+                    <Link href={buildPromptsPageHref(initialFilters, Math.max(1, page - 1), pageSize)}>
+                      上一页
+                    </Link>
+                  ) : (
+                    <Link href="/prompts">重置筛选</Link>
+                  )}
                 </Button>
               </>
             }
@@ -313,6 +390,34 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
       ) : (
         <VirtualizedPromptGrid prompts={promptCards} viewportLabel="我的提示词列表" />
       )}
+
+      {filteredPromptCount > 0 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 bg-card/40 px-3 py-2 text-sm">
+          <p className="text-muted-foreground">
+            每页 {pageSize} 条，已定位到第 {page} 页
+          </p>
+          <div className="flex items-center gap-2">
+            {hasPrevPage ? (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={buildPromptsPageHref(initialFilters, page - 1, pageSize)}>上一页</Link>
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" disabled>
+                上一页
+              </Button>
+            )}
+            {hasNextPage ? (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={buildPromptsPageHref(initialFilters, page + 1, pageSize)}>下一页</Link>
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" disabled>
+                下一页
+              </Button>
+            )}
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

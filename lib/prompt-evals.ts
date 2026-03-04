@@ -6,6 +6,7 @@ import {
 } from "@prisma/client"
 
 import { prisma } from "@/lib/db"
+import { getOrSetPerfCache, invalidatePerfCacheByTag } from "@/lib/perf-cache"
 import { renderPromptTemplate, validateTemplateInput } from "@/lib/prompt-template"
 
 interface EvaluatePromptAssertionResult {
@@ -362,11 +363,18 @@ export async function executePromptEvalRun({
     },
   })
 
+  if (prompt.authorId) {
+    invalidatePerfCacheByTag(`quality-dashboard:${prompt.authorId}`)
+  }
+
   return updatedRun
 }
 
 export async function getPromptQualityDashboard(userId: string) {
-  const recentRuns = await prisma.promptEvalRun.findMany({
+  return getOrSetPerfCache(
+    `quality-dashboard:${userId}`,
+    async () => {
+      const recentRuns = await prisma.promptEvalRun.findMany({
     where: {
       prompt: {
         authorId: userId,
@@ -538,31 +546,37 @@ export async function getPromptQualityDashboard(userId: string) {
     },
   ]
 
-  return {
-    overview: {
-      totalRuns,
-      averagePassRate,
-      failedAssertions: failedResults.length,
-      rollbackCount: rollbackLogs.length,
+      return {
+        overview: {
+          totalRuns,
+          averagePassRate,
+          failedAssertions: failedResults.length,
+          rollbackCount: rollbackLogs.length,
+        },
+        trend,
+        failureTypeDistribution: Array.from(failureTypeMap.entries()).map(([type, count]) => ({
+          type,
+          count,
+        })),
+        highRiskPrompts,
+        categoryComparison,
+        authorComparison,
+        projectComparison,
+        recentRuns: recentRuns.slice(0, 10).map((run) => ({
+          id: run.id,
+          promptId: run.promptId,
+          promptTitle: run.prompt.title,
+          mode: run.mode,
+          passRate: run.passRate,
+          totalCases: run.totalCases,
+          failedCases: run.failedCases,
+          createdAt: run.createdAt,
+        })),
+      }
     },
-    trend,
-    failureTypeDistribution: Array.from(failureTypeMap.entries()).map(([type, count]) => ({
-      type,
-      count,
-    })),
-    highRiskPrompts,
-    categoryComparison,
-    authorComparison,
-    projectComparison,
-    recentRuns: recentRuns.slice(0, 10).map((run) => ({
-      id: run.id,
-      promptId: run.promptId,
-      promptTitle: run.prompt.title,
-      mode: run.mode,
-      passRate: run.passRate,
-      totalCases: run.totalCases,
-      failedCases: run.failedCases,
-      createdAt: run.createdAt,
-    })),
-  }
+    {
+      ttlMs: 20000,
+      tags: [`quality-dashboard:${userId}`],
+    }
+  )
 }

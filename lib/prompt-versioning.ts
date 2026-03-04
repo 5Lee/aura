@@ -1,6 +1,7 @@
 import { PromptVersionSource } from "@prisma/client"
 
 import { prisma } from "@/lib/db"
+import { getOrSetPerfCache, invalidatePerfCacheByTag } from "@/lib/perf-cache"
 
 interface CreatePromptVersionSnapshotOptions {
   promptId: string
@@ -38,7 +39,7 @@ export async function createPromptVersionSnapshot({
 
   const version = (latestVersion?.version ?? 0) + 1
 
-  return prisma.promptVersion.create({
+  const created = await prisma.promptVersion.create({
     data: {
       promptId,
       version,
@@ -53,12 +54,41 @@ export async function createPromptVersionSnapshot({
       createdById: actorId || null,
     },
   })
+
+  invalidatePerfCacheByTag(`prompt-versions:${promptId}`)
+  return created
 }
 
 export async function listPromptVersions(promptId: string, take = 20) {
-  return prisma.promptVersion.findMany({
-    where: { promptId },
-    orderBy: { version: "desc" },
-    take,
-  })
+  return getOrSetPerfCache(
+    `prompt-versions:${promptId}:take:${take}`,
+    async () =>
+      prisma.promptVersion.findMany({
+        where: { promptId },
+        orderBy: { version: "desc" },
+        take,
+        select: {
+          id: true,
+          promptId: true,
+          version: true,
+          source: true,
+          changeSummary: true,
+          title: true,
+          content: true,
+          description: true,
+          categoryId: true,
+          isPublic: true,
+          tags: true,
+          createdAt: true,
+        },
+      }),
+    {
+      ttlMs: 10000,
+      tags: [`prompt-versions:${promptId}`],
+    }
+  )
+}
+
+export function invalidatePromptVersionListCache(promptId: string) {
+  invalidatePerfCacheByTag(`prompt-versions:${promptId}`)
 }

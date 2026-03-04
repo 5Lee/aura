@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth"
 
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { invalidatePerfCacheByTag } from "@/lib/perf-cache"
 import { recordPromptAuditLog } from "@/lib/prompt-audit-log"
 import { resolvePromptPermission } from "@/lib/prompt-permissions"
 import { createPromptVersionSnapshot } from "@/lib/prompt-versioning"
@@ -114,6 +115,9 @@ export async function POST(request: Request, { params }: { params: { id: string 
         reason: reason || null,
       },
     })
+    if (prompt.authorId) {
+      invalidatePerfCacheByTag(`quality-dashboard:${prompt.authorId}`)
+    }
 
     const updatedPrompt = await prisma.prompt.findUnique({
       where: { id: params.id },

@@ -2904,3 +2904,40 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase4-week5-security-hardening.test.js`
 
 **Status**: ✅ WEEK5-002 COMPLETE（继续推进 week5-003 性能优化）
+
+### 2026-03-04 - Phase 4 Week 5 Step 3 Performance Optimization (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase4-week5-003` 优化大规模提示词场景性能
+
+**Major Changes**:
+- 列表性能优化（服务端分页 + 轻量查询）：
+  - `app/(dashboard)/prompts/page.tsx`
+  - 按 `page/pageSize` 服务端分页查询，降低大列表首屏与查询负载
+- Prompt 列表 API 分页化：
+  - `app/api/prompts/route.ts`
+  - GET 支持 `page/pageSize` 与 `meta=1` 返回分页元数据
+- 热点查询缓存与失效策略：
+  - `lib/perf-cache.ts`
+  - `lib/prompt-versioning.ts`（版本列表缓存 + 变更失效）
+  - `lib/prompt-evals.ts`（质量看板缓存 + 评测后失效）
+  - `app/api/prompts/[id]/rollback/route.ts`（回滚后看板缓存失效）
+- 版本面板查询负载收敛：
+  - `components/prompts/prompt-version-panel.tsx`（默认查询条数从 50 降到 30）
+- 1k+ 数据集压测工具：
+  - `tools/prompt-performance-benchmark.ts`
+  - `package.json` 新增 `prompt-benchmark` script
+
+**Verification**:
+- `npm run prompt-benchmark -- --size 1200 --rounds 400 --page-size 60 --target-p95-ms 80` ✅
+  - p95: `0.078ms`（满足目标）
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm test -- --runInBand` ✅
+
+**New Tests**:
+- `__tests__/phase4-week5-performance-optimization.test.js`
+
+**Status**: ✅ WEEK5-003 COMPLETE（继续推进 week5-004 Phase4 总体验收与上线清单）
