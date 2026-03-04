@@ -3539,3 +3539,53 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase5-week20-marketplace-commission.test.js`
 
 **Status**: ✅ WEEK20-001 COMPLETE（继续推进 week20-002 API 定价与配额策略）
+
+### 2026-03-04 - Phase 5 Week 20 Step 2 API Pricing & Quota Strategy (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase5-week20-002` 完成 API 定价与配额策略（模型分级计费、API Key 配额限流联动、超量预警与自动扩容包、滥用防护）
+
+**Major Changes**:
+- API 商业化数据模型扩展：
+  - `prisma/schema.prisma`
+  - 新增 `ApiKey`、`ApiUsageRecord`、`ApiQuotaAlert`、`ApiOveragePurchase`，补充 `ApiModelTier` / `ApiKeyStatus` / `ApiQuotaAlertStatus` 枚举
+- API 定价与配额核心能力：
+  - `lib/api-pricing.ts`
+  - 定义模型级别价格矩阵、套餐配额策略、Key 生成与哈希、限流判断、月度配额判断、扩容包定价与滥用信号识别
+  - `lib/subscription-plans.ts`
+  - 扩展套餐额度（`maxApiKeys`、`maxApiCallsPerMonth`）
+  - `lib/subscription-entitlements.ts`
+  - 新增 API 商业化门禁 `hasApiPricingAccess`
+- 开发者 API 能力：
+  - `app/api/developer/keys/route.ts`
+  - `app/api/developer/keys/[id]/route.ts`
+  - `app/api/developer/keys/[id]/consume/route.ts`
+  - `app/api/developer/usage/route.ts`
+  - `app/api/developer/overage/route.ts`
+  - 支持 API Key 生命周期管理、调用计费、配额限流校验、超量自动扩容包购买、告警与风控追踪
+- 开发者工作台：
+  - `app/(dashboard)/developer-api/page.tsx`
+  - `components/developer/api-pricing-quota-panel.tsx`
+  - 提供 API 定价策略展示、Key 配额编辑、模拟调用计费、手动扩容包购买、告警与购买记录可视化
+- 导航与路由保护：
+  - `components/layout/navbar.tsx`
+  - `components/layout/mobile-page-header.tsx`
+  - `middleware.ts`
+  - 新增 `/developer-api` 导航入口，并纳入登录保护
+- Phase5 任务推进：
+  - `feature_list_phase5_commercialization.json`
+  - 标记 `phase5-week20-002` 完成，`completed_features` 更新为 `14`
+
+**Verification**:
+- `npm run db:generate` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅（存在 `no-img-element` 警告，不影响通过）
+- `npm test -- --runInBand` ✅
+- `npm run feature:meta:check -- feature_list_phase5_commercialization.json` ✅
+
+**New Tests**:
+- `__tests__/phase5-week20-api-pricing-quota.test.js`
+
+**Status**: ✅ WEEK20-002 COMPLETE（继续推进 week20-003 广告与推荐位商业策略）

@@ -19,6 +19,7 @@ const ADVANCED_ANALYTICS_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "en
 const ENTERPRISE_SSO_PLANS = new Set<SubscriptionPlanId>(["enterprise"])
 const ENTERPRISE_SUPPORT_PROCESS_PLANS = new Set<SubscriptionPlanId>(["team", "enterprise"])
 const MARKETPLACE_COMMISSION_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
+const API_PRICING_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
 
 function resolveEffectivePlanId(rawPlanId: string | null, status: SubscriptionStatus | null) {
   if (!rawPlanId || !isSubscriptionPlanId(rawPlanId)) {
@@ -115,6 +116,13 @@ export function hasMarketplaceCommissionAccess(planId: string) {
     return false
   }
   return MARKETPLACE_COMMISSION_PLANS.has(planId)
+}
+
+export function hasApiPricingAccess(planId: string) {
+  if (!isSubscriptionPlanId(planId)) {
+    return false
+  }
+  return API_PRICING_PLANS.has(planId)
 }
 
 export function getPlanLimitHint(plan: SubscriptionPlan, key: keyof SubscriptionPlan["limits"]) {

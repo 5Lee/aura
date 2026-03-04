@@ -17,6 +17,8 @@ export type SubscriptionPlan = {
     maxMembersPerPrompt: PlanLimitValue
     maxEvalRunsPerMonth: PlanLimitValue
     maxPrivatePrompts: PlanLimitValue
+    maxApiKeys: PlanLimitValue
+    maxApiCallsPerMonth: PlanLimitValue
   }
 }
 
@@ -35,6 +37,8 @@ export const subscriptionPlans: SubscriptionPlan[] = [
       maxMembersPerPrompt: 1,
       maxEvalRunsPerMonth: 100,
       maxPrivatePrompts: 20,
+      maxApiKeys: 1,
+      maxApiCallsPerMonth: 5000,
     },
   },
   {
@@ -52,6 +56,8 @@ export const subscriptionPlans: SubscriptionPlan[] = [
       maxMembersPerPrompt: 3,
       maxEvalRunsPerMonth: 3000,
       maxPrivatePrompts: 600,
+      maxApiKeys: 10,
+      maxApiCallsPerMonth: 200000,
     },
   },
   {
@@ -68,6 +74,8 @@ export const subscriptionPlans: SubscriptionPlan[] = [
       maxMembersPerPrompt: 20,
       maxEvalRunsPerMonth: 15000,
       maxPrivatePrompts: "unlimited",
+      maxApiKeys: 50,
+      maxApiCallsPerMonth: 2000000,
     },
   },
   {
@@ -84,6 +92,8 @@ export const subscriptionPlans: SubscriptionPlan[] = [
       maxMembersPerPrompt: "unlimited",
       maxEvalRunsPerMonth: "unlimited",
       maxPrivatePrompts: "unlimited",
+      maxApiKeys: "unlimited",
+      maxApiCallsPerMonth: "unlimited",
     },
   },
 ]
