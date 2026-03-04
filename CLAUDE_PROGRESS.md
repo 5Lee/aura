@@ -2622,3 +2622,21 @@ npx prisma db seed    # Seed database with sample data
 - `logs/e2e-mcp/20260304-round11-bugfix-final-retest/network-requests.log`
 
 **Status**: ✅ COMPLETE（Phase 3 全部缺陷修复并完成终轮回归）
+
+---
+
+### 2026-03-04 - Phase 4 Task List Initialization (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 任务规划（统一格式）
+
+**Objective**: 基于 GitHub 对标项目能力，启动 Aura 下一阶段产品优化任务清单。
+
+**Deliverables**:
+- 新增 Phase 4 统一任务清单：`feature_list_phase4_product_optimization.json`
+  - 覆盖 5 周、20 条任务（版本化、模板变量、评测、权限、批量操作、CI、终轮回归）
+  - 初始状态：`completed_features = 0`，全部 `passes = false`
+- 新增对标笔记：`docs/phase4-github-benchmark-notes.md`
+  - 对标项目：`langfuse/langfuse`、`promptfoo/promptfoo`、`open-webui/open-webui`、`promptslab/Promptify`
+  - 产出可落地启发与映射
+
+**Status**: ✅ READY（已可按 `phase4-week1-001` 开始执行）

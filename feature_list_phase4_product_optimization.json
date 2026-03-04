@@ -1,0 +1,292 @@
+{
+  "meta": {
+    "project": "Aura - AI Prompt Management Platform",
+    "phase": "Phase 4: 产品能力与操作体验优化",
+    "version": "1.0.0",
+    "last_updated": "2026-03-04",
+    "total_features": 20,
+    "completed_features": 0
+  },
+  "features": [
+    {
+      "id": "phase4-week1-001",
+      "category": "benchmark",
+      "priority": 1,
+      "week": 1,
+      "description": "整理对标项目能力矩阵并映射 Aura 差距",
+      "steps": [
+        "基于 langfuse、promptfoo、open-webui、PromptStack 提炼可复用能力清单",
+        "按功能、体验、协作、测试、治理五个维度建立对标矩阵",
+        "输出 Aura 当前状态与目标状态差距说明",
+        "将矩阵转化为可执行任务并标注优先级与依赖关系"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase4-week1-002",
+      "category": "data-model",
+      "priority": 1,
+      "week": 1,
+      "description": "设计提示词版本化数据模型（Versioning）",
+      "steps": [
+        "新增 prompt_versions 表并建立与 prompts 的版本关联",
+        "定义版本元数据（变更摘要、作者、时间、来源）",
+        "实现编辑后自动落版本快照与回滚能力",
+        "完成 Prisma migration 与版本化 API 单元测试"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase4-week1-003",
+      "category": "data-model",
+      "priority": 1,
+      "week": 1,
+      "description": "设计提示词变量模板模型（Templating）",
+      "steps": [
+        "支持 {{variable}} 变量声明与默认值定义",
+        "新增模板变量校验规则（必填、类型、长度、枚举）",
+        "落地模板渲染服务并处理缺失变量报错",
+        "补充渲染引擎单元测试与边界用例测试"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase4-week1-004",
+      "category": "governance",
+      "priority": 2,
+      "week": 1,
+      "description": "建立提示词变更审计与操作日志基线",
+      "steps": [
+        "记录创建、编辑、删除、回滚、发布等关键操作日志",
+        "统一日志字段格式（actor、resource、action、diff、result）",
+        "提供按提示词与用户维度的审计查询能力",
+        "验证审计日志在异常场景下仍可追溯"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase4-week2-001",
+      "category": "prompt-versioning",
+      "priority": 1,
+      "week": 2,
+      "description": "实现版本历史面板与差异对比（Diff）",
+      "steps": [
+        "在提示词详情页新增历史版本列表与筛选",
+        "支持任意两个版本的结构化差异展示",
+        "提供版本注释与关键变更高亮",
+        "使用 Playwright 验证历史浏览与差异展示可用性"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase4-week2-002",
+      "category": "prompt-versioning",
+      "priority": 1,
+      "week": 2,
+      "description": "实现一键回滚与回滚保护机制",
+      "steps": [
+        "支持将当前提示词回滚到历史任意版本",
+        "回滚动作生成新的版本记录而非覆盖历史",
+        "为高风险回滚增加二次确认与权限校验",
+        "覆盖回滚成功、回滚冲突、权限拒绝等测试场景"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase4-week2-003",
+      "category": "prompt-editor",
+      "priority": 1,
+      "week": 2,
+      "description": "升级编辑器：变量输入、渲染预览、示例运行",
+      "steps": [
+        "新增变量面板与实时渲染预览区域",
+        "支持保存变量样例并复用到测试用例",
+        "增加渲染错误提示与可定位字段反馈",
+        "验证桌面与移动端编辑体验一致性"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase4-week2-004",
+      "category": "search",
+      "priority": 2,
+      "week": 2,
+      "description": "实现高级检索与多维过滤",
+      "steps": [
+        "支持按标签、分类、作者、状态、更新时间组合筛选",
+        "支持保存常用过滤器（Saved Views）",
+        "优化空结果态、加载态与筛选重置交互",
+        "通过 E2E 验证复杂筛选条件组合结果准确性"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase4-week3-001",
+      "category": "evals",
+      "priority": 1,
+      "week": 3,
+      "description": "实现提示词测试用例管理（Prompt Test Cases）",
+      "steps": [
+        "为提示词配置输入变量、预期输出与断言类型",
+        "支持 contains/equals/regex/json-schema 等断言方式",
+        "支持批量导入导出测试用例",
+        "补充断言引擎单元测试与失败样例校验"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase4-week3-002",
+      "category": "evals",
+      "priority": 1,
+      "week": 3,
+      "description": "实现回归评测执行器与评分机制",
+      "steps": [
+        "提供手动执行与计划执行两种测试模式",
+        "输出通过率、失败断言、平均耗时等指标",
+        "支持与版本关联的回归报告留存",
+        "验证重复执行结果稳定性与可追溯性"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase4-week3-003",
+      "category": "evals",
+      "priority": 1,
+      "week": 3,
+      "description": "接入 Prompt-as-Test CI 门禁",
+      "steps": [
+        "新增 prompt-regression 命令并接入 npm scripts",
+        "将评测门禁并入 GitHub Actions 质量流水线",
+        "设定关键断言失败即阻断合并策略",
+        "验证 PR 场景的失败日志可读性与定位效率"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase4-week3-004",
+      "category": "observability",
+      "priority": 2,
+      "week": 3,
+      "description": "落地提示词质量看板与趋势追踪",
+      "steps": [
+        "展示版本维度通过率、失败类型分布、回滚频率",
+        "支持按项目、作者、分类的质量对比视图",
+        "提供最近异常版本与高风险提示词列表",
+        "验证看板数据与底层评测结果一致"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase4-week4-001",
+      "category": "workflow",
+      "priority": 1,
+      "week": 4,
+      "description": "建立提示词发布状态机（草稿/审核/发布）",
+      "steps": [
+        "新增草稿、待审核、已发布、已归档状态",
+        "限制未发布版本不可进入公开目录",
+        "支持发布说明与状态流转历史",
+        "验证状态流转规则与异常回退路径"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase4-week4-002",
+      "category": "permission",
+      "priority": 1,
+      "week": 4,
+      "description": "细化角色权限（Owner/Editor/Reviewer/Viewer）",
+      "steps": [
+        "定义角色能力矩阵与 API 授权规则",
+        "实现敏感操作最小权限控制与拒绝提示",
+        "覆盖提示词查看、编辑、发布、回滚的角色边界",
+        "执行权限边界自动化回归（401/403/owner 正常）"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase4-week4-003",
+      "category": "batch-ops",
+      "priority": 2,
+      "week": 4,
+      "description": "实现批量操作（标签/可见性/归档）",
+      "steps": [
+        "在列表页支持多选与批量动作条",
+        "提供批量改标签、改可见性、归档与恢复",
+        "增加批量操作结果摘要与失败项重试",
+        "通过 E2E 验证批量操作原子性与一致性"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase4-week4-004",
+      "category": "interoperability",
+      "priority": 2,
+      "week": 4,
+      "description": "支持 Prompt-as-Code 导入导出（YAML/JSON）",
+      "steps": [
+        "定义导入导出文件规范与版本字段",
+        "支持单条与批量导入导出",
+        "处理重复 ID、字段缺失、版本冲突等异常",
+        "验证与 Git 工作流协同（导出后可审阅可回放）"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase4-week5-001",
+      "category": "ux",
+      "priority": 2,
+      "week": 5,
+      "description": "优化关键操作路径（创建/编辑/发布/回滚）",
+      "steps": [
+        "梳理关键路径交互阻塞点并进行流程瘦身",
+        "统一提示文案、反馈时机与错误恢复路径",
+        "优化移动端操作区可达性与触控命中率",
+        "通过可用性走查与任务完成率评估改进效果"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase4-week5-002",
+      "category": "security",
+      "priority": 1,
+      "week": 5,
+      "description": "加强提示词渲染安全（XSS/注入/越权）",
+      "steps": [
+        "对富文本与变量渲染链路做输入输出净化",
+        "补充 XSS 与注入攻击回归用例",
+        "复核私有提示词 API 与页面边界策略",
+        "执行安全回归并产出风险关闭报告"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase4-week5-003",
+      "category": "performance",
+      "priority": 2,
+      "week": 5,
+      "description": "优化大规模提示词场景性能",
+      "steps": [
+        "优化列表检索、分页/虚拟滚动、版本查询性能",
+        "增加热点查询缓存与失效策略",
+        "补充 1k+ 提示词数据集性能压测",
+        "验证 P95 交互时延达成目标"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase4-week5-004",
+      "category": "release",
+      "priority": 1,
+      "week": 5,
+      "description": "完成 Phase 4 总体验收与上线清单",
+      "steps": [
+        "执行全链路回归（功能/权限/安全/性能/移动端）",
+        "核对 bug 台账与已修复问题复测结果",
+        "输出上线前检查清单与回滚预案",
+        "沉淀最终报告并归档阶段成果"
+      ],
+      "passes": false
+    }
+  ]
+}
