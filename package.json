@@ -14,6 +14,7 @@
     "preflight:full": "bash ./tools/preflight-check.sh --mode full",
     "lint": "next lint",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
+    "prompt-regression": "tsx tools/prompt-regression.ts",
     "feature:meta:check": "node tools/check-feature-list-meta.mjs",
     "feature:meta:sync": "node tools/check-feature-list-meta.mjs --write",
     "postinstall": "prisma generate",

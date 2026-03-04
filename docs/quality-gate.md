@@ -9,6 +9,7 @@ Phase 2 Week 3 uses a single CI workflow to gate merge readiness for `main`.
 | Typecheck | `npm run typecheck` | Validate TypeScript correctness |
 | Lint | `npm run lint` | Enforce style and static quality rules |
 | Test | `npm test` | Verify functional regressions (unit + workflow tests) |
+| Prompt Regression | `npm run prompt-regression -- --mode ci --allow-empty` | Enforce Prompt-as-Test assertions in CI and block merge on critical assertion failures |
 | Build | `npm run build` | Confirm production build is reproducible |
 
 Workflow file: `.github/workflows/quality-gate.yml`
@@ -19,7 +20,8 @@ Workflow file: `.github/workflows/quality-gate.yml`
   - `Stage 1 - Typecheck`
   - `Stage 2 - Lint`
   - `Stage 3 - Test`
-  - `Stage 4 - Build`
+  - `Stage 4 - Prompt Regression`
+  - `Stage 5 - Build`
 - When a stage fails, GitHub Actions immediately reports the failing stage name.
 
 ## Branch Protection Recommendation

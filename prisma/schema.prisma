@@ -22,6 +22,7 @@ model User {
   sessions               Session[]
   promptVersionsCreated  PromptVersion[]
   promptAuditLogsCreated PromptAuditLog[]
+  promptEvalRunsTriggered PromptEvalRun[]
 }
 
 model Prompt {
@@ -43,6 +44,8 @@ model Prompt {
   versions         PromptVersion[]
   auditLogs        PromptAuditLog[]
   templateVariables PromptTemplateVariable[]
+  testCases        PromptTestCase[]
+  evalRuns         PromptEvalRun[]
 
   @@index([authorId], map: "Prompt_authorId_fkey")
   @@index([categoryId], map: "Prompt_categoryId_fkey")
@@ -53,6 +56,26 @@ enum PromptVersionSource {
   UPDATE
   ROLLBACK
   IMPORT
+}
+
+enum PromptAssertionType {
+  CONTAINS
+  EQUALS
+  REGEX
+  JSON_SCHEMA
+}
+
+enum PromptEvalRunMode {
+  MANUAL
+  SCHEDULED
+  CI
+}
+
+enum PromptEvalRunStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
 }
 
 model PromptVersion {
@@ -71,6 +94,7 @@ model PromptVersion {
   createdAt     DateTime            @default(now())
   prompt        Prompt              @relation(fields: [promptId], references: [id], onDelete: Cascade)
   createdBy     User?               @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  evalRuns      PromptEvalRun[]
 
   @@unique([promptId, version])
   @@index([promptId])
@@ -112,6 +136,69 @@ model PromptAuditLog {
   @@index([actorId])
   @@index([action])
   @@index([createdAt])
+}
+
+model PromptTestCase {
+  id             String              @id @default(cuid())
+  promptId       String
+  name           String
+  description    String?             @db.Text
+  assertionType  PromptAssertionType
+  expectedOutput String              @db.Text
+  inputVariables Json?
+  enabled        Boolean             @default(true)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  prompt         Prompt              @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  results        PromptEvalResult[]
+
+  @@index([promptId])
+  @@index([enabled])
+}
+
+model PromptEvalRun {
+  id               String              @id @default(cuid())
+  promptId         String
+  promptVersionId  String?
+  mode             PromptEvalRunMode   @default(MANUAL)
+  status           PromptEvalRunStatus @default(PENDING)
+  triggeredById    String?
+  summary          String?             @db.Text
+  totalCases       Int                 @default(0)
+  passedCases      Int                 @default(0)
+  failedCases      Int                 @default(0)
+  passRate         Float               @default(0)
+  averageLatencyMs Int                 @default(0)
+  startedAt        DateTime            @default(now())
+  finishedAt       DateTime?
+  createdAt        DateTime            @default(now())
+  prompt           Prompt              @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  promptVersion    PromptVersion?      @relation(fields: [promptVersionId], references: [id], onDelete: SetNull)
+  triggeredBy      User?               @relation(fields: [triggeredById], references: [id], onDelete: SetNull)
+  results          PromptEvalResult[]
+
+  @@index([promptId])
+  @@index([promptVersionId])
+  @@index([triggeredById])
+  @@index([createdAt])
+}
+
+model PromptEvalResult {
+  id            String        @id @default(cuid())
+  runId         String
+  testCaseId    String
+  passed        Boolean
+  latencyMs     Int           @default(0)
+  renderedOutput String?      @db.Text
+  errorMessage  String?       @db.Text
+  details       Json?
+  createdAt     DateTime      @default(now())
+  run           PromptEvalRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  testCase      PromptTestCase @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@index([testCaseId])
+  @@index([passed])
 }
 
 model Category {

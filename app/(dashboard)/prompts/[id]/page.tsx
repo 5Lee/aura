@@ -47,6 +47,23 @@ const PromptVersionPanel = dynamic(
   }
 )
 
+const PromptTestCasePanel = dynamic(
+  () =>
+    import("@/components/prompts/prompt-test-case-panel").then(
+      (module) => module.PromptTestCasePanel
+    ),
+  {
+    loading: () => (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">提示词评测用例</CardTitle>
+          <CardDescription>正在加载评测面板...</CardDescription>
+        </CardHeader>
+      </Card>
+    ),
+  }
+)
+
 export default async function PromptDetailPage({
   params,
 }: {
@@ -165,6 +182,7 @@ export default async function PromptDetailPage({
       </Card>
 
       <PromptVersionPanel promptId={prompt.id} canManage={canEdit} />
+      <PromptTestCasePanel promptId={prompt.id} canManage={canEdit} />
     </div>
   )
 }

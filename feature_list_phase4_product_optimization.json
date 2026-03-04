@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "last_updated": "2026-03-04",
     "total_features": 20,
-    "completed_features": 8
+    "completed_features": 12
   },
   "features": [
     {
@@ -132,7 +132,7 @@
         "支持批量导入导出测试用例",
         "补充断言引擎单元测试与失败样例校验"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase4-week3-002",
@@ -146,7 +146,7 @@
         "支持与版本关联的回归报告留存",
         "验证重复执行结果稳定性与可追溯性"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase4-week3-003",
@@ -160,7 +160,7 @@
         "设定关键断言失败即阻断合并策略",
         "验证 PR 场景的失败日志可读性与定位效率"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase4-week3-004",
@@ -174,7 +174,7 @@
         "提供最近异常版本与高风险提示词列表",
         "验证看板数据与底层评测结果一致"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase4-week4-001",

@@ -2728,3 +2728,57 @@ npx prisma db seed    # Seed database with sample data
 - `logs/phase4/20260304-week2-version-ui/report.json`
 
 **Status**: ✅ WEEK2 COMPLETE（进入 week3 评测体系与 CI 门禁）
+
+---
+
+### 2026-03-04 - Phase 4 Week 3 Prompt Evals & CI Gate (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Features**:
+- ✅ `phase4-week3-001` 提示词测试用例管理（创建/导入/导出/删除）
+- ✅ `phase4-week3-002` 回归评测执行器与评分报告（手动+计划模式）
+- ✅ `phase4-week3-003` Prompt-as-Test CI 门禁与命令行工具
+- ✅ `phase4-week3-004` 提示词质量看板与趋势追踪
+
+**Major Changes**:
+- 数据模型扩展（评测体系）：
+  - `prisma/schema.prisma`
+  - 新增 `PromptTestCase`、`PromptEvalRun`、`PromptEvalResult` 及相关枚举
+- 评测核心能力：
+  - `lib/prompt-test-case-utils.ts`
+  - `lib/prompt-evals.ts`
+- API 能力：
+  - `app/api/prompts/[id]/test-cases/route.ts`
+  - `app/api/prompts/[id]/test-cases/[caseId]/route.ts`
+  - `app/api/prompts/[id]/evaluate/route.ts`
+  - `app/api/prompts/[id]/eval-runs/route.ts`
+  - `app/api/evals/dashboard/route.ts`
+  - `app/api/evals/scheduled/route.ts`
+- UI 能力：
+  - `components/prompts/prompt-test-case-panel.tsx`
+  - `app/(dashboard)/prompts/[id]/page.tsx`（挂载评测面板）
+  - `app/(dashboard)/dashboard/page.tsx`（质量看板）
+- CI 门禁：
+  - `tools/prompt-regression.ts`
+  - `package.json` 新增 `prompt-regression` script
+  - `.github/workflows/quality-gate.yml` 新增 Stage 4 Prompt Regression
+  - `docs/quality-gate.md` 更新 Gate Matrix
+- Week3 自动化验证：
+  - `__tests__/phase4-week3-evals.test.js`
+  - `e2e/helpers/prompt-evals-fixture.js`
+  - `e2e/prompt-evals-workflow.spec.js`
+
+**Verification**:
+- `npm run db:generate` ✅
+- `npm run db:push` ✅
+- `npm test -- --runInBand` ✅
+- `npm run test:e2e -- e2e/prompt-evals-workflow.spec.js e2e/prompt-versioning-workflow.spec.js` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm run prompt-regression -- --mode ci --allow-empty` ✅
+
+**Log Artifact**:
+- `logs/phase4/20260304-week3-evals/report.json`
+
+**Status**: ✅ WEEK3 COMPLETE（继续进入 week4 工作流、权限与批量操作）

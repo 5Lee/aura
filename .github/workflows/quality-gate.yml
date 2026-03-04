@@ -37,5 +37,8 @@ jobs:
       - name: Stage 3 - Test
         run: npm test
 
-      - name: Stage 4 - Build
+      - name: Stage 4 - Prompt Regression
+        run: npm run prompt-regression -- --mode ci --allow-empty
+
+      - name: Stage 5 - Build
         run: npm run build

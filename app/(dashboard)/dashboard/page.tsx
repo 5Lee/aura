@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Image from "next/image"
 import { COVER_BLUR_DATA_URL, getPromptCoverByCategory } from "@/lib/prompt-cover"
+import { getPromptQualityDashboard } from "@/lib/prompt-evals"
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
@@ -16,13 +17,14 @@ export default async function DashboardPage() {
   }
 
   // Get user stats
-  const [promptCount, favoriteCount] = await Promise.all([
+  const [promptCount, favoriteCount, qualityDashboard] = await Promise.all([
     prisma.prompt.count({
       where: { authorId: session.user.id },
     }),
     prisma.favorite.count({
       where: { userId: session.user.id },
     }),
+    getPromptQualityDashboard(session.user.id),
   ])
 
   // Get recent prompts
@@ -156,6 +158,89 @@ export default async function DashboardPage() {
               ))}
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>提示词质量看板</CardTitle>
+          <CardDescription>按项目、作者与分类观察评测通过率、失败类型与回滚风险。</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="grid gap-4 md:grid-cols-4">
+            <div className="rounded-lg border border-border bg-muted/20 p-3">
+              <p className="text-xs text-muted-foreground">近期待测批次</p>
+              <p className="mt-1 text-2xl font-semibold">{qualityDashboard.overview.totalRuns}</p>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/20 p-3">
+              <p className="text-xs text-muted-foreground">平均通过率</p>
+              <p className="mt-1 text-2xl font-semibold">{qualityDashboard.overview.averagePassRate}%</p>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/20 p-3">
+              <p className="text-xs text-muted-foreground">失败断言</p>
+              <p className="mt-1 text-2xl font-semibold">{qualityDashboard.overview.failedAssertions}</p>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/20 p-3">
+              <p className="text-xs text-muted-foreground">回滚频次</p>
+              <p className="mt-1 text-2xl font-semibold">{qualityDashboard.overview.rollbackCount}</p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="rounded-lg border border-border bg-background p-3">
+              <p className="text-sm font-medium">分类质量对比</p>
+              {qualityDashboard.categoryComparison.length === 0 ? (
+                <p className="mt-2 text-sm text-muted-foreground">暂无分类评测数据</p>
+              ) : (
+                <div className="mt-2 space-y-2 text-sm">
+                  {qualityDashboard.categoryComparison.slice(0, 6).map((item) => (
+                    <div key={item.categoryId} className="flex items-center justify-between gap-3">
+                      <span className="truncate">{item.category}</span>
+                      <span className="text-muted-foreground">{item.passRate}% · {item.count} 次</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-lg border border-border bg-background p-3">
+              <p className="text-sm font-medium">失败类型分布</p>
+              {qualityDashboard.failureTypeDistribution.length === 0 ? (
+                <p className="mt-2 text-sm text-muted-foreground">暂无失败断言</p>
+              ) : (
+                <div className="mt-2 space-y-2 text-sm">
+                  {qualityDashboard.failureTypeDistribution.map((item) => (
+                    <div key={item.type} className="flex items-center justify-between gap-3">
+                      <span>{item.type}</span>
+                      <span className="text-muted-foreground">{item.count}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-border bg-background p-3">
+            <p className="text-sm font-medium">高风险提示词</p>
+            {qualityDashboard.highRiskPrompts.length === 0 ? (
+              <p className="mt-2 text-sm text-muted-foreground">暂无高风险提示词</p>
+            ) : (
+              <div className="mt-2 space-y-2 text-sm">
+                {qualityDashboard.highRiskPrompts.map((item) => (
+                  <Link
+                    key={item.promptId}
+                    href={`/prompts/${item.promptId}`}
+                    className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2 hover:border-primary/40"
+                  >
+                    <span className="truncate">{item.title}</span>
+                    <span className="text-xs text-muted-foreground">
+                      通过率 {item.passRate}% · 回滚 {item.rollbackCount}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
