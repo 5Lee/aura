@@ -25,6 +25,10 @@ export function resolveMobileRouteMeta(pathname: string): MobileRouteMeta {
     return { title: "我的收藏", showBackButton: false }
   }
 
+  if (pathname === "/support") {
+    return { title: "支持工单", showBackButton: false }
+  }
+
   if (pathname === "/prompts/new") {
     return { title: "新建提示词", showBackButton: true, backHref: "/prompts" }
   }

@@ -3164,3 +3164,46 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase5-week18-advanced-analytics.test.js`
 
 **Status**: ✅ WEEK18-001 COMPLETE（继续推进 week18-002 专属支持通道与工单体系）
+
+### 2026-03-04 - Phase 5 Week 18 Step 2 Dedicated Support Channel & Ticketing (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase5-week18-002` 完成专属支持通道与工单体系，落地按套餐分层的优先级调度规则
+
+**Major Changes**:
+- 支持工单数据模型扩展：
+  - `prisma/schema.prisma`
+  - 新增 `SupportTicket`、`SupportTicketEvent`，补充优先级/状态/支持等级枚举
+- 套餐分层与调度策略：
+  - `lib/support-tickets.ts`
+  - 定义 Free/Pro/Team/Enterprise 对应 SLA、可用优先级上限与调度分值模型
+- 支持工单 API：
+  - `app/api/support/tickets/route.ts`
+  - `app/api/support/tickets/[id]/route.ts`
+  - 支持创建工单、工单列表、状态流转、优先级封顶与事件留痕
+- 支持中心页面与交互：
+  - `app/(dashboard)/support/page.tsx`
+  - `components/support/support-ticket-panel.tsx`
+  - 提供工单创建、状态更新、调度优先级预览（分值越高越优先）
+- 导航与访问控制：
+  - `components/layout/navbar.tsx`
+  - `components/layout/mobile-page-header.tsx`
+  - `middleware.ts`
+  - 新增 `/support` 导航入口，并将 `/support/:path*` 纳入登录保护
+- Phase5 任务推进：
+  - `feature_list_phase5_commercialization.json`
+  - 标记 `phase5-week18-002` 完成，`completed_features` 更新为 `6`
+
+**Verification**:
+- `npm run db:generate` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm test -- --runInBand` ✅
+- `npm run feature:meta:check -- feature_list_phase5_commercialization.json` ✅
+
+**New Tests**:
+- `__tests__/phase5-week18-support-tickets.test.js`
+
+**Status**: ✅ WEEK18-002 COMPLETE（继续推进 week18-003 品牌定制能力）
