@@ -18,7 +18,7 @@ export default async function GrowthLabPage() {
   const snapshot = await getUserEntitlementSnapshot(session.user.id)
   const hasAccess = hasGrowthLabAccess(snapshot.plan.id)
 
-  const [count, experiments, snapshots] = await Promise.all([
+  const [count, experiments, snapshots, segments, audiences] = await Promise.all([
     hasAccess
       ? prisma.growthExperiment.count({
           where: {
@@ -42,6 +42,35 @@ export default async function GrowthLabPage() {
           },
           orderBy: [{ windowEnd: "desc" }],
           take: 300,
+        })
+      : Promise.resolve([]),
+    hasAccess
+      ? prisma.growthAudienceSegment.findMany({
+          where: {
+            userId: session.user.id,
+          },
+          orderBy: [{ status: "asc" }, { updatedAt: "desc" }],
+          take: 80,
+        })
+      : Promise.resolve([]),
+    hasAccess
+      ? prisma.growthExperimentAudience.findMany({
+          where: {
+            userId: session.user.id,
+          },
+          include: {
+            segment: {
+              select: {
+                id: true,
+                name: true,
+                key: true,
+                estimatedUsers: true,
+                status: true,
+              },
+            },
+          },
+          orderBy: [{ updatedAt: "desc" }],
+          take: 160,
         })
       : Promise.resolve([]),
   ])
@@ -128,6 +157,27 @@ export default async function GrowthLabPage() {
               liftPercent: item.liftPercent,
               windowStart: item.windowStart.toISOString(),
               windowEnd: item.windowEnd.toISOString(),
+            }))}
+            segments={segments.map((item) => ({
+              id: item.id,
+              name: item.name,
+              key: item.key,
+              status: item.status,
+              version: item.version,
+              matchMode: item.matchMode,
+              estimatedUsers: item.estimatedUsers,
+            }))}
+            audiences={audiences.map((item) => ({
+              id: item.id,
+              experimentId: item.experimentId,
+              segmentId: item.segmentId,
+              rolloutPercent: item.rolloutPercent,
+              excludedSegmentKeys:
+                Array.isArray(item.excludedSegmentKeys) && item.excludedSegmentKeys.length > 0
+                  ? item.excludedSegmentKeys.filter((value) => typeof value === "string")
+                  : [],
+              status: item.status,
+              segment: item.segment,
             }))}
             summary={{
               ...summaryCore,

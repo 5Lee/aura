@@ -42,7 +42,7 @@ export async function GET() {
     })
   }
 
-  const [experiments, snapshots] = await Promise.all([
+  const [experiments, snapshots, segments, audiences] = await Promise.all([
     prisma.growthExperiment.findMany({
       where: {
         userId: session.user.id,
@@ -56,6 +56,31 @@ export async function GET() {
       },
       orderBy: [{ windowEnd: "desc" }],
       take: 300,
+    }),
+    prisma.growthAudienceSegment.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      orderBy: [{ status: "asc" }, { updatedAt: "desc" }],
+      take: 80,
+    }),
+    prisma.growthExperimentAudience.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      include: {
+        segment: {
+          select: {
+            id: true,
+            name: true,
+            key: true,
+            estimatedUsers: true,
+            status: true,
+          },
+        },
+      },
+      orderBy: [{ updatedAt: "desc" }],
+      take: 160,
     }),
   ])
 
@@ -97,6 +122,8 @@ export async function GET() {
   return NextResponse.json({
     experiments,
     snapshots,
+    segments,
+    audiences,
     summary: {
       ...summary,
       ...conversion,

@@ -3762,3 +3762,45 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase6-week21-growth-lab.test.js`
 
 **Status**: ✅ WEEK21-001 COMPLETE（继续推进 week21-002 用户分群与实验受众编排）
+
+### 2026-03-05 - Phase 6 Week 21 Step 2 Segmentation & Audience Orchestration (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase6-week21-002` 完成用户分群与实验受众编排
+
+**Major Changes**:
+- 增长分群与受众编排数据模型扩展：
+  - `prisma/schema.prisma`
+  - 新增 `GrowthAudienceSegment`、`GrowthExperimentAudience`，并补充 `GrowthSegmentStatus` / `GrowthSegmentMatchMode` 枚举
+- 分群与编排核心能力：
+  - `lib/growth-segmentation.ts`
+  - 提供分群预设、规则清洗、状态/匹配模式归一化、受众规模估算、排除分群清洗能力
+- 分群与编排 API：
+  - `app/api/growth-lab/segments/route.ts`
+  - `app/api/growth-lab/experiments/[id]/audience/route.ts`
+  - 支持分群初始化与版本化更新、实验受众绑定、灰度流量比例与排除分群编排
+- 增长实验 API 聚合增强：
+  - `app/api/growth-lab/experiments/route.ts`
+  - 返回实验时同步聚合 `segments` 与 `audiences` 数据
+- 增长实验工作台增强：
+  - `app/(dashboard)/growth-lab/page.tsx`
+  - `components/growth/growth-experiment-panel.tsx`
+  - 新增分群管理面板与受众编排面板，支持规则保存与实验绑定
+- Phase6 任务推进：
+  - `feature_list_phase6_growth_ecosystem.json`
+  - 标记 `phase6-week21-002` 完成，`completed_features` 更新为 `2`
+
+**Verification**:
+- `npm run db:generate` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅（存在 `no-img-element` 警告，不影响通过）
+- `npm test -- --runInBand __tests__/phase6-week21-growth-lab.test.js __tests__/phase6-week21-segmentation-audience.test.js` ✅
+- `npm test -- --runInBand` ✅
+- `npm run feature:meta:check -- feature_list_phase6_growth_ecosystem.json` ✅
+
+**New Tests**:
+- `__tests__/phase6-week21-segmentation-audience.test.js`
+
+**Status**: ✅ WEEK21-002 COMPLETE（继续推进 week21-003 增长归因看板与渠道效果分析）

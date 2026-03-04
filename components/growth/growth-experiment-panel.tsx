@@ -33,6 +33,32 @@ type SnapshotRow = {
   windowEnd: string
 }
 
+type SegmentRow = {
+  id: string
+  name: string
+  key: string
+  status: string
+  version: number
+  matchMode: string
+  estimatedUsers: number
+}
+
+type AudienceRow = {
+  id: string
+  experimentId: string
+  segmentId: string
+  rolloutPercent: number
+  excludedSegmentKeys: string[]
+  status: string
+  segment: {
+    id: string
+    name: string
+    key: string
+    estimatedUsers: number
+    status: string
+  }
+}
+
 type Summary = {
   totalExposures: number
   totalConversions: number
@@ -48,6 +74,8 @@ type GrowthExperimentPanelProps = {
   planId: string
   experiments: ExperimentRow[]
   snapshots: SnapshotRow[]
+  segments: SegmentRow[]
+  audiences: AudienceRow[]
   summary: Summary
 }
 
@@ -85,6 +113,8 @@ export function GrowthExperimentPanel({
   planId,
   experiments,
   snapshots,
+  segments,
+  audiences,
   summary,
 }: GrowthExperimentPanelProps) {
   const router = useRouter()
@@ -92,7 +122,10 @@ export function GrowthExperimentPanel({
   const [pendingAction, setPendingAction] = useState<string | null>(null)
 
   const defaultExperiment = useMemo(() => experiments[0] || null, [experiments])
+  const defaultSegment = useMemo(() => segments.find((item) => item.status === "ACTIVE") || segments[0] || null, [segments])
+
   const [selectedExperimentId, setSelectedExperimentId] = useState(defaultExperiment?.id || "")
+  const [selectedAudienceExperimentId, setSelectedAudienceExperimentId] = useState(defaultExperiment?.id || "")
 
   const [experimentForm, setExperimentForm] = useState({
     name: "",
@@ -104,6 +137,25 @@ export function GrowthExperimentPanel({
     startAt: toLocalDateTimeInputValue(new Date()),
     endAt: toLocalDateTimeInputValue(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)),
     startNow: true,
+  })
+
+  const [segmentForm, setSegmentForm] = useState({
+    id: defaultSegment?.id || "",
+    name: defaultSegment?.name || "",
+    key: defaultSegment?.key || "",
+    status: defaultSegment?.status || "ACTIVE",
+    matchMode: defaultSegment?.matchMode || "ALL",
+    estimatedUsers: String(defaultSegment?.estimatedUsers || 0),
+    description: "",
+    ruleField: "signupDays",
+    ruleOperator: "lte",
+    ruleValue: "7",
+  })
+
+  const [audienceForm, setAudienceForm] = useState({
+    segmentId: defaultSegment?.id || "",
+    rolloutPercent: "100",
+    excludedSegmentKeys: "",
   })
 
   const [updateForm, setUpdateForm] = useState({
@@ -365,6 +417,193 @@ export function GrowthExperimentPanel({
         </div>
       </div>
 
+      <div className="grid gap-4 xl:grid-cols-2">
+        <div className="space-y-3 rounded-lg border border-border bg-background p-4">
+          <p className="text-sm font-medium">用户分群管理</p>
+          <input
+            aria-label="分群名称"
+            value={segmentForm.name}
+            onChange={(event) => setSegmentForm((prev) => ({ ...prev, name: event.target.value }))}
+            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            placeholder="分群名称"
+          />
+          <div className="grid gap-2 sm:grid-cols-2">
+            <input
+              aria-label="分群Key"
+              value={segmentForm.key}
+              onChange={(event) => setSegmentForm((prev) => ({ ...prev, key: event.target.value }))}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              placeholder="分群Key"
+            />
+            <input
+              aria-label="预估用户数"
+              value={segmentForm.estimatedUsers}
+              onChange={(event) => setSegmentForm((prev) => ({ ...prev, estimatedUsers: event.target.value }))}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              placeholder="预估用户数"
+            />
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <select
+              aria-label="分群状态"
+              value={segmentForm.status}
+              onChange={(event) => setSegmentForm((prev) => ({ ...prev, status: event.target.value }))}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="DRAFT">DRAFT</option>
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="ARCHIVED">ARCHIVED</option>
+            </select>
+            <select
+              aria-label="匹配模式"
+              value={segmentForm.matchMode}
+              onChange={(event) => setSegmentForm((prev) => ({ ...prev, matchMode: event.target.value }))}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="ALL">ALL</option>
+              <option value="ANY">ANY</option>
+            </select>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-3">
+            <input
+              aria-label="规则字段"
+              value={segmentForm.ruleField}
+              onChange={(event) => setSegmentForm((prev) => ({ ...prev, ruleField: event.target.value }))}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              placeholder="规则字段"
+            />
+            <input
+              aria-label="规则操作符"
+              value={segmentForm.ruleOperator}
+              onChange={(event) => setSegmentForm((prev) => ({ ...prev, ruleOperator: event.target.value }))}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              placeholder="规则操作符"
+            />
+            <input
+              aria-label="规则值"
+              value={segmentForm.ruleValue}
+              onChange={(event) => setSegmentForm((prev) => ({ ...prev, ruleValue: event.target.value }))}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              placeholder="规则值"
+            />
+          </div>
+          <textarea
+            aria-label="分群说明"
+            value={segmentForm.description}
+            onChange={(event) => setSegmentForm((prev) => ({ ...prev, description: event.target.value }))}
+            className="min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            placeholder="分群说明"
+          />
+          <Button
+            disabled={pendingAction !== null}
+            onClick={() =>
+              runAction(
+                "save-segment",
+                () =>
+                  requestJson("/api/growth-lab/segments", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      id: segmentForm.id || undefined,
+                      name: segmentForm.name,
+                      key: segmentForm.key,
+                      status: segmentForm.status,
+                      matchMode: segmentForm.matchMode,
+                      estimatedUsers: Number(segmentForm.estimatedUsers),
+                      description: segmentForm.description,
+                      ruleConfig: {
+                        logic: segmentForm.matchMode,
+                        rules: [
+                          {
+                            field: segmentForm.ruleField,
+                            operator: segmentForm.ruleOperator,
+                            value: segmentForm.ruleValue,
+                          },
+                        ],
+                      },
+                    }),
+                  }),
+                "用户分群已保存"
+              )
+            }
+          >
+            {pendingAction === "save-segment" ? "保存中..." : "保存分群规则"}
+          </Button>
+        </div>
+
+        <div className="space-y-3 rounded-lg border border-border bg-background p-4">
+          <p className="text-sm font-medium">用户分群与实验受众编排</p>
+          <select
+            aria-label="编排实验"
+            value={selectedAudienceExperimentId}
+            onChange={(event) => setSelectedAudienceExperimentId(event.target.value)}
+            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="">选择实验</option>
+            {experiments.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name} · {item.status}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="受众分群"
+            value={audienceForm.segmentId}
+            onChange={(event) => setAudienceForm((prev) => ({ ...prev, segmentId: event.target.value }))}
+            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="">选择用户分群</option>
+            {segments.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name} · {item.key} · v{item.version}
+              </option>
+            ))}
+          </select>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <input
+              aria-label="灰度流量比例"
+              value={audienceForm.rolloutPercent}
+              onChange={(event) => setAudienceForm((prev) => ({ ...prev, rolloutPercent: event.target.value }))}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              placeholder="灰度流量比例(1-100)"
+            />
+            <input
+              aria-label="排除分群"
+              value={audienceForm.excludedSegmentKeys}
+              onChange={(event) =>
+                setAudienceForm((prev) => ({ ...prev, excludedSegmentKeys: event.target.value }))
+              }
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              placeholder="排除分群Key(逗号分隔)"
+            />
+          </div>
+          <Button
+            disabled={pendingAction !== null || !selectedAudienceExperimentId || !audienceForm.segmentId}
+            onClick={() =>
+              runAction(
+                "orchestrate-audience",
+                () =>
+                  requestJson(`/api/growth-lab/experiments/${selectedAudienceExperimentId}/audience`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      segmentId: audienceForm.segmentId,
+                      rolloutPercent: Number(audienceForm.rolloutPercent),
+                      excludedSegmentKeys: audienceForm.excludedSegmentKeys
+                        .split(",")
+                        .map((item) => item.trim())
+                        .filter(Boolean),
+                    }),
+                  }),
+                "实验受众编排已更新"
+              )
+            }
+          >
+            {pendingAction === "orchestrate-audience" ? "编排中..." : "保存受众编排"}
+          </Button>
+        </div>
+      </div>
+
       <div className="rounded-lg border border-border bg-background p-4 space-y-3">
         <p className="text-sm font-medium">实验进展总览</p>
         {experiments.length === 0 ? (
@@ -373,6 +612,7 @@ export function GrowthExperimentPanel({
           <div className="space-y-2 text-sm">
             {experiments.slice(0, 5).map((item) => {
               const snapshotCount = snapshots.filter((snapshot) => snapshot.experimentId === item.id).length
+              const audience = audiences.find((current) => current.experimentId === item.id)
               return (
                 <div key={item.id} className="rounded-md border border-border bg-muted/10 px-3 py-2">
                   <p className="font-medium">
@@ -381,6 +621,9 @@ export function GrowthExperimentPanel({
                   <p className="mt-1 text-xs text-muted-foreground">
                     分群 {item.segmentKey} · 基线 {item.baselineMetric}% · 目标 {item.targetMetric}% ·
                     指标快照 {snapshotCount} 条
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    受众编排 {audience ? `${audience.segment.key} / ${audience.rolloutPercent}%` : "未配置"}
                   </p>
                 </div>
               )

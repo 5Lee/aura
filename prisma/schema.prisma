@@ -44,6 +44,8 @@ model User {
   partnerSettlements      PartnerSettlement[]
   growthExperiments       GrowthExperiment[]
   growthMetricSnapshots   GrowthMetricSnapshot[]
+  growthAudienceSegments  GrowthAudienceSegment[]
+  growthExperimentAudiences GrowthExperimentAudience[]
   supportTickets         SupportTicket[]      @relation("SupportTicketRequester")
   assignedSupportTickets SupportTicket[]      @relation("SupportTicketAssignee")
   supportTicketEvents    SupportTicketEvent[]
@@ -249,6 +251,17 @@ enum GrowthMetricType {
   CONVERSION
   RETENTION
   REVENUE
+}
+
+enum GrowthSegmentStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum GrowthSegmentMatchMode {
+  ALL
+  ANY
 }
 
 enum SupportTicketPriority {
@@ -954,6 +967,7 @@ model GrowthExperiment {
   updatedAt           DateTime               @updatedAt
   user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   snapshots           GrowthMetricSnapshot[]
+  audiences           GrowthExperimentAudience[]
 
   @@index([userId])
   @@index([status])
@@ -984,6 +998,49 @@ model GrowthMetricSnapshot {
   @@index([experimentId])
   @@index([metricType])
   @@index([windowEnd])
+}
+
+model GrowthAudienceSegment {
+  id                  String                @id @default(cuid())
+  userId              String
+  name                String
+  key                 String
+  description         String?               @db.Text
+  version             Int                   @default(1)
+  status              GrowthSegmentStatus   @default(DRAFT)
+  matchMode           GrowthSegmentMatchMode @default(ALL)
+  ruleConfig          Json?
+  estimatedUsers      Int                   @default(0)
+  lastMatchedAt       DateTime?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  audiences           GrowthExperimentAudience[]
+
+  @@unique([userId, key])
+  @@index([userId])
+  @@index([status])
+  @@index([version])
+}
+
+model GrowthExperimentAudience {
+  id                  String               @id @default(cuid())
+  userId              String
+  experimentId        String
+  segmentId           String
+  rolloutPercent      Int                  @default(100)
+  excludedSegmentKeys Json?
+  status              String               @default("ACTIVE")
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experiment          GrowthExperiment     @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  segment             GrowthAudienceSegment @relation(fields: [segmentId], references: [id], onDelete: Restrict)
+
+  @@unique([experimentId, segmentId])
+  @@index([userId])
+  @@index([experimentId])
+  @@index([segmentId])
 }
 
 model SupportTicket {
