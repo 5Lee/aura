@@ -99,6 +99,16 @@ test("partners page and panel expose partner dashboard and reconciliation workfl
   assert.match(partnersPanelSource, /验证合作收益对账流程/)
 })
 
+test("partners panel normalizes settlement datetime payload and keeps form controls accessible", () => {
+  assert.match(partnersPanelSource, /toLocalDateTimeInputValue/)
+  assert.match(partnersPanelSource, /toIsoDateTime/)
+  assert.match(partnersPanelSource, /periodStart: toIsoDateTime\(settlementCreateForm\.periodStart\)/)
+  assert.match(partnersPanelSource, /periodEnd: toIsoDateTime\(settlementCreateForm\.periodEnd\)/)
+  assert.match(partnersPanelSource, /aria-label=\"结算开始时间\"/)
+  assert.match(partnersPanelSource, /aria-label=\"结算结束时间\"/)
+  assert.match(partnersPanelSource, /aria-label=\"结算付款流水号\"/)
+})
+
 test("partners route is exposed in navigation and protected by middleware", () => {
   assert.match(navbarSource, /href: "\/partners"/)
   assert.match(mobileHeaderSource, /pathname === "\/partners"/)

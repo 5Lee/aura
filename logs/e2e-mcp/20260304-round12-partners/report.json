@@ -1,0 +1,74 @@
+{
+  "round": "20260304-round12-partners",
+  "date": "2026-03-04",
+  "scope": "Playwright MCP 真实流程测试与修复（/partners + 登录前置校验）",
+  "scenarios": [
+    {
+      "name": "登录预校验",
+      "result": "pass",
+      "notes": "修复后 `/api/auth/validate-credentials` 在 SSO 表缺失时降级处理，不再阻断登录流程"
+    },
+    {
+      "name": "伙伴等级配置",
+      "result": "pass",
+      "notes": "可保存等级名称与分成比例，页面刷新后配置生效"
+    },
+    {
+      "name": "线索归因录入",
+      "result": "pass",
+      "notes": "可录入 QUALIFIED/WON 线索并更新仪表板统计"
+    },
+    {
+      "name": "结算批次创建",
+      "result": "pass",
+      "notes": "修复时间序列化后，UI 创建结算成功；支持实际应付留空自动计算"
+    },
+    {
+      "name": "结算状态更新与对账",
+      "result": "pass",
+      "notes": "可将结算从 PENDING 更新为 PAID，并写入流水号与对账说明"
+    },
+    {
+      "name": "a11y 控制项名称",
+      "result": "pass",
+      "notes": "伙伴页关键输入控件已补齐 `aria-label`，axe serious 噪声消失"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "E2E-20260304-008",
+      "priority": "P1",
+      "title": "伙伴页结算创建默认时间窗口与时区处理导致“无可结算线索”",
+      "status": "fixed",
+      "root_cause": "`datetime-local` 值直接提交，服务端按本地时区解析，和数据库 UTC 时间不一致；默认分钟精度也导致新线索容易落窗外",
+      "fix": "前端提交前将 `periodStart/periodEnd` 统一序列化为 ISO；默认结束时间改为当前+1小时"
+    },
+    {
+      "id": "E2E-20260304-009",
+      "priority": "P2",
+      "title": "伙伴页表单控件缺少可访问名称触发大量 axe serious",
+      "status": "fixed",
+      "root_cause": "输入与下拉控件主要依赖 placeholder，缺少明确可访问名称",
+      "fix": "为伙伴页关键 input/select/textarea 补充 `aria-label`"
+    },
+    {
+      "id": "E2E-20260304-010",
+      "priority": "P1",
+      "title": "登录预校验在 SSO 表缺失时抛错 500",
+      "status": "fixed",
+      "root_cause": "SSO 查询未处理 `P2021` 缺表错误，导致凭证预校验失败",
+      "fix": "在 `lib/sso-server.ts` 对缺失 `ssoprovider` 的场景降级为不启用 SSO 强制拦截"
+    }
+  ],
+  "evidence": {
+    "screenshot": "logs/e2e-mcp/20260304-round12-partners/partners-final.png",
+    "console": "logs/e2e-mcp/20260304-round12-partners/console.log",
+    "network": "logs/e2e-mcp/20260304-round12-partners/network.log"
+  },
+  "verification": {
+    "typecheck": "pass",
+    "lint": "pass_with_known_warnings",
+    "unit_tests": "pass"
+  },
+  "result": "ROUND12_PARTNER_FLOW_FIXED_AND_VERIFIED"
+}

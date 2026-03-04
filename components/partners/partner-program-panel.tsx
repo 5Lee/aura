@@ -82,6 +82,19 @@ function formatCny(cents: number) {
   })
 }
 
+function toLocalDateTimeInputValue(date: Date) {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+  return local.toISOString().slice(0, 16)
+}
+
+function toIsoDateTime(value: string) {
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) {
+    return value
+  }
+  return parsed.toISOString()
+}
+
 export function PartnerProgramPanel({
   hasAccess,
   planId,
@@ -120,15 +133,15 @@ export function PartnerProgramPanel({
 
   const [settlementCreateForm, setSettlementCreateForm] = useState({
     tierId: activeTier?.id || "",
-    periodStart: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
-    periodEnd: new Date().toISOString().slice(0, 16),
-    actualPayoutCents: "0",
+    periodStart: toLocalDateTimeInputValue(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)),
+    periodEnd: toLocalDateTimeInputValue(new Date(Date.now() + 60 * 60 * 1000)),
+    actualPayoutCents: "",
     payoutReference: "",
   })
 
   const [settlementUpdateForm, setSettlementUpdateForm] = useState({
     status: "PROCESSING",
-    actualPayoutCents: "0",
+    actualPayoutCents: "",
     payoutReference: "",
     note: "",
   })
@@ -186,6 +199,7 @@ export function PartnerProgramPanel({
           <input
             value={tierForm.name}
             onChange={(event) => setTierForm((prev) => ({ ...prev, name: event.target.value }))}
+            aria-label="等级名称"
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder="等级名称"
           />
@@ -193,6 +207,7 @@ export function PartnerProgramPanel({
             <select
               value={tierForm.level}
               onChange={(event) => setTierForm((prev) => ({ ...prev, level: event.target.value }))}
+              aria-label="等级级别"
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
             >
               <option value="REGISTERED">REGISTERED</option>
@@ -203,6 +218,7 @@ export function PartnerProgramPanel({
             <input
               value={tierForm.minQualifiedLeads}
               onChange={(event) => setTierForm((prev) => ({ ...prev, minQualifiedLeads: event.target.value }))}
+              aria-label="最低合格线索"
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="最低合格线索"
             />
@@ -211,6 +227,7 @@ export function PartnerProgramPanel({
               onChange={(event) =>
                 setTierForm((prev) => ({ ...prev, revenueShareBasisPoints: event.target.value }))
               }
+              aria-label="分成比例 bps"
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="分成比例 bps"
             />
@@ -218,6 +235,7 @@ export function PartnerProgramPanel({
           <input
             value={tierForm.settlementCycleDays}
             onChange={(event) => setTierForm((prev) => ({ ...prev, settlementCycleDays: event.target.value }))}
+            aria-label="结算周期(天)"
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder="结算周期(天)"
           />
@@ -261,6 +279,7 @@ export function PartnerProgramPanel({
           <select
             value={leadForm.tierId}
             onChange={(event) => setLeadForm((prev) => ({ ...prev, tierId: event.target.value }))}
+            aria-label="线索等级"
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
           >
             <option value="">选择合作伙伴等级</option>
@@ -273,6 +292,7 @@ export function PartnerProgramPanel({
           <input
             value={leadForm.leadName}
             onChange={(event) => setLeadForm((prev) => ({ ...prev, leadName: event.target.value }))}
+            aria-label="线索名称"
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder="线索名称"
           />
@@ -280,12 +300,14 @@ export function PartnerProgramPanel({
             <input
               value={leadForm.company}
               onChange={(event) => setLeadForm((prev) => ({ ...prev, company: event.target.value }))}
+              aria-label="公司名称"
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="公司名称"
             />
             <input
               value={leadForm.sourceChannel}
               onChange={(event) => setLeadForm((prev) => ({ ...prev, sourceChannel: event.target.value }))}
+              aria-label="来源渠道"
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="来源渠道"
             />
@@ -293,6 +315,7 @@ export function PartnerProgramPanel({
           <input
             value={leadForm.attributionCode}
             onChange={(event) => setLeadForm((prev) => ({ ...prev, attributionCode: event.target.value }))}
+            aria-label="归因编码"
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder="归因编码"
           />
@@ -300,6 +323,7 @@ export function PartnerProgramPanel({
             <select
               value={leadForm.status}
               onChange={(event) => setLeadForm((prev) => ({ ...prev, status: event.target.value }))}
+              aria-label="线索状态"
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
             >
               <option value="NEW">NEW</option>
@@ -311,12 +335,14 @@ export function PartnerProgramPanel({
             <input
               value={leadForm.estimatedDealCents}
               onChange={(event) => setLeadForm((prev) => ({ ...prev, estimatedDealCents: event.target.value }))}
+              aria-label="预计金额(分)"
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="预计金额(分)"
             />
             <input
               value={leadForm.closedDealCents}
               onChange={(event) => setLeadForm((prev) => ({ ...prev, closedDealCents: event.target.value }))}
+              aria-label="成交金额(分)"
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="成交金额(分)"
             />
@@ -375,6 +401,7 @@ export function PartnerProgramPanel({
               onChange={(event) =>
                 setSettlementCreateForm((prev) => ({ ...prev, tierId: event.target.value }))
               }
+              aria-label="结算等级"
               className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             >
               <option value="">选择等级</option>
@@ -391,6 +418,7 @@ export function PartnerProgramPanel({
                 onChange={(event) =>
                   setSettlementCreateForm((prev) => ({ ...prev, periodStart: event.target.value }))
                 }
+                aria-label="结算开始时间"
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               />
               <input
@@ -399,6 +427,7 @@ export function PartnerProgramPanel({
                 onChange={(event) =>
                   setSettlementCreateForm((prev) => ({ ...prev, periodEnd: event.target.value }))
                 }
+                aria-label="结算结束时间"
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               />
             </div>
@@ -407,8 +436,18 @@ export function PartnerProgramPanel({
               onChange={(event) =>
                 setSettlementCreateForm((prev) => ({ ...prev, actualPayoutCents: event.target.value }))
               }
+              aria-label="实际应付(分，可留空自动计算)"
               className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
               placeholder="实际应付(分，可留空自动计算)"
+            />
+            <input
+              value={settlementCreateForm.payoutReference}
+              onChange={(event) =>
+                setSettlementCreateForm((prev) => ({ ...prev, payoutReference: event.target.value }))
+              }
+              aria-label="结算付款流水号"
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              placeholder="结算付款流水号(可选)"
             />
             <Button
               disabled={pendingAction !== null || !settlementCreateForm.tierId}
@@ -418,12 +457,14 @@ export function PartnerProgramPanel({
                   () =>
                     requestJson("/api/partners/settlements", {
                       method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        tierId: settlementCreateForm.tierId,
-                        periodStart: settlementCreateForm.periodStart,
-                        periodEnd: settlementCreateForm.periodEnd,
-                        actualPayoutCents: Number(settlementCreateForm.actualPayoutCents),
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      tierId: settlementCreateForm.tierId,
+                      periodStart: toIsoDateTime(settlementCreateForm.periodStart),
+                      periodEnd: toIsoDateTime(settlementCreateForm.periodEnd),
+                      ...(settlementCreateForm.actualPayoutCents.trim()
+                        ? { actualPayoutCents: Number(settlementCreateForm.actualPayoutCents) }
+                        : {}),
                         payoutReference: settlementCreateForm.payoutReference,
                       }),
                     }),
@@ -440,6 +481,7 @@ export function PartnerProgramPanel({
             <select
               value={selectedSettlementId}
               onChange={(event) => setSelectedSettlementId(event.target.value)}
+              aria-label="选择结算批次"
               className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             >
               <option value="">选择结算批次</option>
@@ -455,6 +497,7 @@ export function PartnerProgramPanel({
                 onChange={(event) =>
                   setSettlementUpdateForm((prev) => ({ ...prev, status: event.target.value }))
                 }
+                aria-label="更新结算状态"
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               >
                 <option value="PENDING">PENDING</option>
@@ -467,6 +510,7 @@ export function PartnerProgramPanel({
                 onChange={(event) =>
                   setSettlementUpdateForm((prev) => ({ ...prev, actualPayoutCents: event.target.value }))
                 }
+                aria-label="实际支付(分)"
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm"
                 placeholder="实际支付(分)"
               />
@@ -476,12 +520,14 @@ export function PartnerProgramPanel({
               onChange={(event) =>
                 setSettlementUpdateForm((prev) => ({ ...prev, payoutReference: event.target.value }))
               }
+              aria-label="付款流水号"
               className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
               placeholder="付款流水号"
             />
             <textarea
               value={settlementUpdateForm.note}
               onChange={(event) => setSettlementUpdateForm((prev) => ({ ...prev, note: event.target.value }))}
+              aria-label="对账说明"
               className="min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               placeholder="对账说明"
             />
@@ -496,7 +542,9 @@ export function PartnerProgramPanel({
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({
                         status: settlementUpdateForm.status,
-                        actualPayoutCents: Number(settlementUpdateForm.actualPayoutCents),
+                        ...(settlementUpdateForm.actualPayoutCents.trim()
+                          ? { actualPayoutCents: Number(settlementUpdateForm.actualPayoutCents) }
+                          : {}),
                         payoutReference: settlementUpdateForm.payoutReference,
                         note: settlementUpdateForm.note,
                       }),

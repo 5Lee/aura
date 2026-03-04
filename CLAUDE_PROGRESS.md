@@ -3682,3 +3682,37 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase5-week20-partner-settlement.test.js`
 
 **Status**: ✅ WEEK20-004 COMPLETE（Phase5 商业化与合作伙伴能力全部完成）
+
+### 2026-03-04 - Round 12 Playwright MCP Partner Flow Retest & Bugfix (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 实测驱动修复（边测边修）
+
+**Scope**:
+- `/login` 登录预校验链路
+- `/partners` 伙伴等级、线索归因、结算创建、结算状态更新
+
+**Fixed Bugs**:
+- ✅ `E2E-20260304-008`（P1）伙伴结算 UI 默认参数下出现“当前周期暂无可结算线索”
+  - 根因：`datetime-local` 值直接提交导致时区偏差，且默认窗口边界过窄
+  - 修复：提交前统一序列化为 ISO；默认结算结束时间改为当前 +1 小时
+  - 代码：`components/partners/partner-program-panel.tsx`
+- ✅ `E2E-20260304-009`（P2）伙伴页控件缺少可访问名称导致 axe serious 噪声
+  - 修复：为关键 input/select/textarea 补充 `aria-label`
+  - 代码：`components/partners/partner-program-panel.tsx`
+- ✅ `E2E-20260304-010`（P1）登录预校验在 SSO 表缺失时返回 500
+  - 修复：`lib/sso-server.ts` 捕获 `P2021` 且缺失 `ssoprovider` 时降级处理
+  - 代码：`lib/sso-server.ts`
+
+**Verification**:
+- Playwright MCP 复测 `/partners` 全流程通过：等级配置 → 线索录入 → 结算创建 → 结算更新 ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅（存在 `no-img-element` 既有警告）
+- `npm test -- --runInBand` ✅
+
+**Evidence**:
+- `logs/e2e-mcp/20260304-round12-partners/report.json`
+- `logs/e2e-mcp/20260304-round12-partners/partners-final.png`
+- `logs/e2e-mcp/20260304-round12-partners/console.log`
+- `logs/e2e-mcp/20260304-round12-partners/network.log`
+
+**Status**: ✅ ROUND12 PARTNER FLOW BUGFIX COMPLETE（可继续下一轮全站回归）

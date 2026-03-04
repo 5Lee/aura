@@ -1,7 +1,18 @@
-import { SsoProviderStatus } from "@prisma/client"
+import { Prisma, SsoProviderStatus } from "@prisma/client"
 
 import { extractBrandConfig } from "@/lib/branding"
 import { prisma } from "@/lib/db"
+
+function isMissingSsoProviderTableError(error: unknown) {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError)) {
+    return false
+  }
+  if (error.code !== "P2021") {
+    return false
+  }
+  const table = String(error.meta?.table || "").toLowerCase()
+  return table.includes("ssoprovider")
+}
 
 export async function findTenantOwnerUserId(tenantDomain: string) {
   const normalizedTenant = tenantDomain.trim().toLowerCase()
@@ -33,13 +44,20 @@ export async function findTenantOwnerUserId(tenantDomain: string) {
 }
 
 export async function getActiveSsoProviderForUser(userId: string) {
-  return prisma.ssoProvider.findFirst({
-    where: {
-      userId,
-      status: SsoProviderStatus.ACTIVE,
-    },
-    orderBy: [{ updatedAt: "desc" }],
-  })
+  try {
+    return await prisma.ssoProvider.findFirst({
+      where: {
+        userId,
+        status: SsoProviderStatus.ACTIVE,
+      },
+      orderBy: [{ updatedAt: "desc" }],
+    })
+  } catch (error) {
+    if (isMissingSsoProviderTableError(error)) {
+      return null
+    }
+    throw error
+  }
 }
 
 export async function getSsoRuntimePolicy({
@@ -95,34 +113,45 @@ export async function getCredentialGuardForEmail(email: string) {
     }
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: normalizedEmail },
-    select: {
-      id: true,
-      ssoProviders: {
-        where: {
-          status: SsoProviderStatus.ACTIVE,
-          enforceSso: true,
-          allowLocalFallback: false,
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      select: {
+        id: true,
+        ssoProviders: {
+          where: {
+            status: SsoProviderStatus.ACTIVE,
+            enforceSso: true,
+            allowLocalFallback: false,
+          },
+          orderBy: [{ updatedAt: "desc" }],
+          take: 1,
         },
-        orderBy: [{ updatedAt: "desc" }],
-        take: 1,
       },
-    },
-  })
+    })
 
-  const provider = user?.ssoProviders?.[0]
-  if (!provider) {
-    return {
-      allowed: true,
-      reason: "",
-      providerId: "",
+    const provider = user?.ssoProviders?.[0]
+    if (!provider) {
+      return {
+        allowed: true,
+        reason: "",
+        providerId: "",
+      }
     }
-  }
 
-  return {
-    allowed: false,
-    reason: "当前企业已启用强制 SSO，请使用企业单点登录。",
-    providerId: provider.id,
+    return {
+      allowed: false,
+      reason: "当前企业已启用强制 SSO，请使用企业单点登录。",
+      providerId: provider.id,
+    }
+  } catch (error) {
+    if (isMissingSsoProviderTableError(error)) {
+      return {
+        allowed: true,
+        reason: "",
+        providerId: "",
+      }
+    }
+    throw error
   }
 }
