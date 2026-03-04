@@ -16,6 +16,7 @@ export function Navbar() {
     { href: "/dashboard", label: "仪表板" },
     { href: "/prompts", label: "提示词" },
     { href: "/collections", label: "收藏夹" },
+    { href: "/pricing", label: "定价" },
   ]
 
   return (

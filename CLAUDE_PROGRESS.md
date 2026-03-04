@@ -2970,3 +2970,38 @@ npx prisma db seed    # Seed database with sample data
   - `7 passed, 0 failed, 0 skipped`
 
 **Status**: ✅ WEEK5-004 COMPLETE（Phase4 20/20 全部完成，可进入发布窗口）
+
+### 2026-03-04 - Phase 5 Week 17 Step 1 Subscription Plan Design (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase5-week17-001` 完成套餐设计与权益矩阵落地
+
+**Major Changes**:
+- 新增订阅套餐中心配置：
+  - `lib/subscription-plans.ts`
+  - 定义 `Free / Pro / Team / Enterprise` 计划、年/月价格、试用天数、核心权益与额度上限
+- 新增套餐 API：
+  - `app/api/subscription/plans/route.ts`
+  - 统一输出可机读计划数据，供后续支付与订阅管理复用
+- 新增定价页面：
+  - `app/pricing/page.tsx`
+  - 展示套餐卡片、年付优惠、权益对比矩阵与注册/销售入口
+- 导航链路补齐：
+  - `components/layout/home-header.tsx`
+  - `components/layout/navbar.tsx`
+  - 首页与工作台均新增 `定价` 入口
+- Phase5 任务清单初始化：
+  - `feature_list_phase5_commercialization.json`
+  - 建立 Week17-20 商业化任务池，`phase5-week17-001` 标记通过
+
+**Verification**:
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm test -- --runInBand` ✅
+
+**New Tests**:
+- `__tests__/phase5-week17-subscription-plan.test.js`
+
+**Status**: ✅ WEEK17-001 COMPLETE（继续推进 week17-002 支付抽象与订阅生命周期）

@@ -16,6 +16,12 @@ export function HomeHeader() {
         <nav className="hidden items-center gap-2 md:flex">
           <ThemeToggle />
           <Link
+            href="/pricing"
+            className="rounded-lg px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            定价
+          </Link>
+          <Link
             href="/browse"
             className="rounded-lg px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
@@ -38,6 +44,12 @@ export function HomeHeader() {
         <div className="flex items-center gap-2 md:hidden">
           <ThemeToggle />
           <MobileMenu title="Aura 导航">
+            <Link
+              href="/pricing"
+              className="flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              查看套餐定价
+            </Link>
             <Link
               href="/browse"
               className="flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"

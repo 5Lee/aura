@@ -1,0 +1,236 @@
+{
+  "meta": {
+    "project": "Aura - AI Prompt Management Platform",
+    "phase": "Phase 5: 商业化能力建设",
+    "version": "1.0.0",
+    "last_updated": "2026-03-04",
+    "total_features": 16,
+    "completed_features": 1
+  },
+  "features": [
+    {
+      "id": "phase5-week17-001",
+      "category": "pricing",
+      "priority": 1,
+      "week": 17,
+      "description": "完成订阅套餐设计与权益矩阵",
+      "steps": [
+        "定义 Free/Pro/Team/Enterprise 套餐结构与计费周期",
+        "明确每档套餐的提示词、协作、评测与私有权限额度",
+        "输出套餐展示页面与可机读计划配置",
+        "提供订阅计划 API 供前后端统一读取"
+      ],
+      "passes": true
+    },
+    {
+      "id": "phase5-week17-002",
+      "category": "billing",
+      "priority": 1,
+      "week": 17,
+      "description": "接入支付网关抽象层与订阅生命周期",
+      "steps": [
+        "设计支付提供商抽象接口（创建订阅、取消、续费）",
+        "实现 webhook 签名校验与事件幂等处理",
+        "建立订阅状态机与本地账单状态同步",
+        "补充支付成功/失败/重试的回归测试"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase5-week17-003",
+      "category": "billing",
+      "priority": 2,
+      "week": 17,
+      "description": "构建订阅管理与账单中心",
+      "steps": [
+        "提供套餐切换、续费、取消与恢复入口",
+        "展示当前订阅状态、下次扣费日期与配额使用情况",
+        "增加账单历史查询与下载能力",
+        "验证套餐升降级场景下权限即时生效"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase5-week17-004",
+      "category": "billing",
+      "priority": 2,
+      "week": 17,
+      "description": "发票与税务基础能力",
+      "steps": [
+        "支持发票抬头与税号信息管理",
+        "生成标准化发票数据与导出能力",
+        "对账单和发票编号建立追踪链路",
+        "验证发票数据在退款场景下正确冲销"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase5-week18-001",
+      "category": "value-add",
+      "priority": 2,
+      "week": 18,
+      "description": "高级分析能力与套餐分层",
+      "steps": [
+        "为 Pro/Team 开放高级分析视图",
+        "增加转化漏斗、版本质量趋势与使用留存指标",
+        "限制 Free 套餐查看高级分析内容",
+        "验证套餐切换后分析权限与数据范围正确"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase5-week18-002",
+      "category": "value-add",
+      "priority": 2,
+      "week": 18,
+      "description": "专属支持通道与工单体系",
+      "steps": [
+        "提供套餐分级支持 SLA 策略",
+        "接入工单创建、分配、状态跟踪",
+        "支持用户查看支持记录与响应时间",
+        "验证优先级调度规则符合套餐级别"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase5-week18-003",
+      "category": "branding",
+      "priority": 3,
+      "week": 18,
+      "description": "品牌定制能力",
+      "steps": [
+        "支持企业 Logo、主题色与域名配置",
+        "支持登录页与邮件模板品牌化",
+        "配置变更支持草稿与发布",
+        "验证不同租户品牌隔离"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase5-week18-004",
+      "category": "sla",
+      "priority": 3,
+      "week": 18,
+      "description": "SLA 监控与告警",
+      "steps": [
+        "建立核心服务可用性目标与监控",
+        "实现延迟、错误率、可用性阈值告警",
+        "输出套餐对应 SLA 报表",
+        "验证故障注入下告警触发与恢复流程"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase5-week19-001",
+      "category": "enterprise",
+      "priority": 1,
+      "week": 19,
+      "description": "私有化部署模板化交付",
+      "steps": [
+        "沉淀企业私有化部署模板",
+        "支持环境变量校验与一键预检",
+        "提供升级与回滚操作手册",
+        "验证多环境部署一致性"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase5-week19-002",
+      "category": "enterprise",
+      "priority": 1,
+      "week": 19,
+      "description": "SSO 与企业身份集成",
+      "steps": [
+        "支持 SAML/OIDC 单点登录",
+        "接入企业目录同步与角色映射",
+        "支持强制 SSO 与本地账号回退策略",
+        "验证多身份源冲突处理"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase5-week19-003",
+      "category": "compliance",
+      "priority": 1,
+      "week": 19,
+      "description": "合规审计增强",
+      "steps": [
+        "完善审计字段与敏感操作留痕",
+        "提供审计日志导出与保留策略",
+        "增加访问异常检测规则",
+        "验证审计链路可追溯与不可篡改要求"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase5-week19-004",
+      "category": "support",
+      "priority": 2,
+      "week": 19,
+      "description": "企业支持流程标准化",
+      "steps": [
+        "定义企业支持分级与升级路径",
+        "建立故障响应 Runbook",
+        "沉淀问题复盘模板",
+        "验证跨团队协作效率"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase5-week20-001",
+      "category": "monetization",
+      "priority": 2,
+      "week": 20,
+      "description": "应用市场佣金体系",
+      "steps": [
+        "定义市场分成规则与结算周期",
+        "实现创作者收益统计与账单",
+        "支持结算状态追踪",
+        "验证佣金计算与账务一致性"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase5-week20-002",
+      "category": "monetization",
+      "priority": 2,
+      "week": 20,
+      "description": "API 定价与配额策略",
+      "steps": [
+        "设计按调用量与模型级别计费策略",
+        "实现 API Key 套餐配额与限流联动",
+        "支持超量预警与自动扩容包购买",
+        "验证计费准确性与滥用防护"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase5-week20-003",
+      "category": "monetization",
+      "priority": 3,
+      "week": 20,
+      "description": "广告与推荐位商业策略",
+      "steps": [
+        "建立推荐位投放规则与审核流程",
+        "支持广告数据统计与转化追踪",
+        "实现投放预算与时段控制",
+        "验证广告内容与平台安全策略兼容"
+      ],
+      "passes": false
+    },
+    {
+      "id": "phase5-week20-004",
+      "category": "partner",
+      "priority": 3,
+      "week": 20,
+      "description": "合作伙伴分层与结算",
+      "steps": [
+        "建立合作伙伴等级与权益体系",
+        "支持线索归因与分成规则",
+        "输出合作伙伴仪表板",
+        "验证合作收益对账流程"
+      ],
+      "passes": false
+    }
+  ]
+}
