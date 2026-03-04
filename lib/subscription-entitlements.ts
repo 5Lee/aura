@@ -21,6 +21,7 @@ const ENTERPRISE_SUPPORT_PROCESS_PLANS = new Set<SubscriptionPlanId>(["team", "e
 const MARKETPLACE_COMMISSION_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
 const API_PRICING_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
 const AD_STRATEGY_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
+const PARTNER_PROGRAM_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
 
 function resolveEffectivePlanId(rawPlanId: string | null, status: SubscriptionStatus | null) {
   if (!rawPlanId || !isSubscriptionPlanId(rawPlanId)) {
@@ -131,6 +132,13 @@ export function hasAdStrategyAccess(planId: string) {
     return false
   }
   return AD_STRATEGY_PLANS.has(planId)
+}
+
+export function hasPartnerProgramAccess(planId: string) {
+  if (!isSubscriptionPlanId(planId)) {
+    return false
+  }
+  return PARTNER_PROGRAM_PLANS.has(planId)
 }
 
 export function getPlanLimitHint(plan: SubscriptionPlan, key: keyof SubscriptionPlan["limits"]) {

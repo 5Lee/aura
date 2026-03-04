@@ -39,6 +39,9 @@ model User {
   adPlacementRules        AdPlacementRule[]
   adCampaigns             AdCampaign[]
   adPerformanceSnapshots  AdPerformanceSnapshot[]
+  partnerTiers            PartnerTier[]
+  partnerLeads            PartnerLead[]
+  partnerSettlements      PartnerSettlement[]
   supportTickets         SupportTicket[]      @relation("SupportTicketRequester")
   assignedSupportTickets SupportTicket[]      @relation("SupportTicketAssignee")
   supportTicketEvents    SupportTicketEvent[]
@@ -205,6 +208,29 @@ enum AdCampaignStatus {
   ACTIVE
   PAUSED
   COMPLETED
+}
+
+enum PartnerTierLevel {
+  REGISTERED
+  GROWTH
+  STRATEGIC
+  ELITE
+}
+
+enum PartnerLeadStatus {
+  NEW
+  QUALIFIED
+  WON
+  LOST
+  INVALID
+}
+
+enum PartnerSettlementStatus {
+  DRAFT
+  PENDING
+  PROCESSING
+  PAID
+  DISPUTED
 }
 
 enum SupportTicketPriority {
@@ -811,6 +837,86 @@ model AdPerformanceSnapshot {
   @@index([userId])
   @@index([campaignId])
   @@index([windowEnd])
+}
+
+model PartnerTier {
+  id                       String           @id @default(cuid())
+  userId                   String
+  name                     String
+  level                    PartnerTierLevel @default(REGISTERED)
+  minQualifiedLeads        Int              @default(0)
+  revenueShareBasisPoints  Int
+  settlementCycleDays      Int              @default(30)
+  benefitPolicy            Json?
+  active                   Boolean          @default(true)
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
+  user                     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leads                    PartnerLead[]
+  settlements              PartnerSettlement[]
+
+  @@index([userId])
+  @@index([active])
+  @@index([level])
+}
+
+model PartnerSettlement {
+  id                       String                  @id @default(cuid())
+  userId                   String
+  tierId                   String
+  status                   PartnerSettlementStatus @default(DRAFT)
+  periodStart              DateTime
+  periodEnd                DateTime
+  leadCount                Int                     @default(0)
+  qualifiedLeadCount       Int                     @default(0)
+  wonLeadCount             Int                     @default(0)
+  grossRevenueCents        Int                     @default(0)
+  payoutRateBasisPoints    Int
+  payoutAmountCents        Int                     @default(0)
+  reconciledDeltaCents     Int                     @default(0)
+  payoutReference          String?
+  summary                  Json?
+  processedAt              DateTime?
+  createdAt                DateTime                @default(now())
+  updatedAt                DateTime                @updatedAt
+  user                     User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tier                     PartnerTier             @relation(fields: [tierId], references: [id], onDelete: Restrict)
+  leads                    PartnerLead[]
+
+  @@index([userId])
+  @@index([tierId])
+  @@index([status])
+  @@index([periodEnd])
+}
+
+model PartnerLead {
+  id                       String            @id @default(cuid())
+  userId                   String
+  tierId                   String
+  settlementId             String?
+  leadName                 String
+  company                  String?
+  contactEmail             String?
+  sourceChannel            String
+  attributionCode          String
+  status                   PartnerLeadStatus @default(NEW)
+  estimatedDealCents       Int               @default(0)
+  closedDealCents          Int               @default(0)
+  commissionBasisPoints    Int               @default(0)
+  qualifiedAt              DateTime?
+  convertedAt              DateTime?
+  metadata                 Json?
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
+  user                     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tier                     PartnerTier       @relation(fields: [tierId], references: [id], onDelete: Restrict)
+  settlement               PartnerSettlement? @relation(fields: [settlementId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([tierId])
+  @@index([settlementId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model SupportTicket {

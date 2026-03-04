@@ -3635,3 +3635,50 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase5-week20-ads-recommendation.test.js`
 
 **Status**: ✅ WEEK20-003 COMPLETE（继续推进 week20-004 合作伙伴分层与结算）
+
+### 2026-03-04 - Phase 5 Week 20 Step 4 Partner Tiering & Settlement (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase5-week20-004` 完成合作伙伴分层与结算（等级权益体系、线索归因与分成规则、合作伙伴仪表板、收益对账流程）
+
+**Major Changes**:
+- 合作伙伴商业化数据模型扩展：
+  - `prisma/schema.prisma`
+  - 新增 `PartnerTier`、`PartnerLead`、`PartnerSettlement`，并补充 `PartnerTierLevel` / `PartnerLeadStatus` / `PartnerSettlementStatus` 枚举
+- 合作伙伴分层与结算核心能力：
+  - `lib/partner-program.ts`
+  - 提供合作等级预设、等级/线索输入清洗、线索归因规则、分成计算、结算汇总与对账校验
+  - `lib/subscription-entitlements.ts`
+  - 新增合作伙伴商业化门禁 `hasPartnerProgramAccess`
+- 合作伙伴 API 能力：
+  - `app/api/partners/tiers/route.ts`
+  - `app/api/partners/leads/route.ts`
+  - `app/api/partners/settlements/route.ts`
+  - `app/api/partners/settlements/[id]/route.ts`
+  - 支持等级配置、线索归因录入、结算批次创建、状态流转与收益对账
+- 合作伙伴工作台：
+  - `app/(dashboard)/partners/page.tsx`
+  - `components/partners/partner-program-panel.tsx`
+  - 提供合作伙伴分层配置、线索归因管理、仪表板统计与结算对账操作
+- 导航与路由保护：
+  - `components/layout/navbar.tsx`
+  - `components/layout/mobile-page-header.tsx`
+  - `middleware.ts`
+  - 新增 `/partners` 导航入口，并纳入登录保护
+- Phase5 任务推进：
+  - `feature_list_phase5_commercialization.json`
+  - 标记 `phase5-week20-004` 完成，`completed_features` 更新为 `16`
+
+**Verification**:
+- `npm run db:generate` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅（存在 `no-img-element` 警告，不影响通过）
+- `npm test -- --runInBand` ✅
+- `npm run feature:meta:check -- feature_list_phase5_commercialization.json` ✅
+
+**New Tests**:
+- `__tests__/phase5-week20-partner-settlement.test.js`
+
+**Status**: ✅ WEEK20-004 COMPLETE（Phase5 商业化与合作伙伴能力全部完成）
