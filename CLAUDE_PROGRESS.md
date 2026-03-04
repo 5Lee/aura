@@ -2941,3 +2941,32 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase4-week5-performance-optimization.test.js`
 
 **Status**: ✅ WEEK5-003 COMPLETE（继续推进 week5-004 Phase4 总体验收与上线清单）
+
+### 2026-03-04 - Phase 4 Week 5 Step 4 Release Acceptance & Go-Live Checklist (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase4-week5-004` 完成 Phase4 总体验收、上线检查清单与回滚预案归档
+
+**Major Changes**:
+- 新增上线验收文档：
+  - `docs/phase4-release-readiness.md`
+  - 包含验收矩阵（功能/权限/安全/性能/移动端）、bug 台账闭环、上线检查清单与回滚预案
+- 新增 Phase4 Week5-004 阶段日志：
+  - `logs/phase4/20260304-week5-release-acceptance/report.json`
+  - 记录验收范围、验证结果、交付物索引与阶段完成标识
+- 阶段元数据收口：
+  - `feature_list_phase4_product_optimization.json`
+  - 标记 `phase4-week5-004` 为通过，`completed_features` 更新为 `20`
+- 进度文档归档：
+  - `CLAUDE_PROGRESS.md`
+  - 完成 Week5-004 记录，形成 Phase4 全量闭环
+
+**Verification**:
+- `npm run preflight:full` ✅
+  - `total=8 pass=8 fail=0 skip=0`
+- `npm run test:e2e -- --reporter=line` ✅
+  - `7 passed, 0 failed, 0 skipped`
+
+**Status**: ✅ WEEK5-004 COMPLETE（Phase4 20/20 全部完成，可进入发布窗口）
