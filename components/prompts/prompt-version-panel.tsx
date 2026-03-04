@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { AlertTriangle, History, RefreshCcw } from "lucide-react"
 import { useRouter } from "next/navigation"
 
@@ -56,6 +56,39 @@ export function PromptVersionPanel({ promptId, canManage }: PromptVersionPanelPr
   const [baseVersionId, setBaseVersionId] = useState("")
   const [targetVersionId, setTargetVersionId] = useState("")
   const [rollbackLoadingVersionId, setRollbackLoadingVersionId] = useState<string | null>(null)
+  const [panelError, setPanelError] = useState("")
+
+  const fetchVersions = useCallback(async () => {
+    setIsLoading(true)
+    setPanelError("")
+    try {
+      const response = await fetch(`/api/prompts/${promptId}/versions?take=50`)
+      const payload = await response.json()
+      if (!response.ok) {
+        throw new Error(payload?.error || "获取版本历史失败")
+      }
+
+      const items = payload as PromptVersionItem[]
+      setVersions(items)
+      if (items.length > 0) {
+        setTargetVersionId(items[0].id)
+        setBaseVersionId(items[1]?.id ?? items[0].id)
+      } else {
+        setTargetVersionId("")
+        setBaseVersionId("")
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "请稍后重试。"
+      setPanelError(message)
+      toast({
+        type: "error",
+        title: "加载版本历史失败",
+        description: message,
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }, [promptId, toast])
 
   useEffect(() => {
     if (!canManage) {
@@ -63,34 +96,8 @@ export function PromptVersionPanel({ promptId, canManage }: PromptVersionPanelPr
       return
     }
 
-    const fetchVersions = async () => {
-      setIsLoading(true)
-      try {
-        const response = await fetch(`/api/prompts/${promptId}/versions?take=50`)
-        const payload = await response.json()
-        if (!response.ok) {
-          throw new Error(payload?.error || "获取版本历史失败")
-        }
-
-        const items = payload as PromptVersionItem[]
-        setVersions(items)
-        if (items.length > 0) {
-          setTargetVersionId(items[0].id)
-          setBaseVersionId(items[1]?.id ?? items[0].id)
-        }
-      } catch (error) {
-        toast({
-          type: "error",
-          title: "加载版本历史失败",
-          description: error instanceof Error ? error.message : "请稍后重试。",
-        })
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
     void fetchVersions()
-  }, [canManage, promptId, toast])
+  }, [canManage, fetchVersions])
 
   const visibleVersions = useMemo(() => {
     if (sourceFilter === "ALL") {
@@ -144,6 +151,7 @@ export function PromptVersionPanel({ promptId, canManage }: PromptVersionPanelPr
     }
 
     setRollbackLoadingVersionId(version.id)
+    setPanelError("")
     try {
       const response = await fetch(`/api/prompts/${promptId}/rollback`, {
         method: "POST",
@@ -165,21 +173,14 @@ export function PromptVersionPanel({ promptId, canManage }: PromptVersionPanelPr
         description: `已回滚到版本 v${version.version}，并生成新版本快照。`,
       })
       router.refresh()
-      const refreshResponse = await fetch(`/api/prompts/${promptId}/versions?take=50`)
-      const refreshPayload = await refreshResponse.json()
-      if (refreshResponse.ok) {
-        const refreshedVersions = refreshPayload as PromptVersionItem[]
-        setVersions(refreshedVersions)
-        if (refreshedVersions.length > 0) {
-          setTargetVersionId(refreshedVersions[0].id)
-          setBaseVersionId(refreshedVersions[1]?.id ?? refreshedVersions[0].id)
-        }
-      }
+      await fetchVersions()
     } catch (error) {
+      const message = error instanceof Error ? error.message : "请稍后重试。"
+      setPanelError(message)
       toast({
         type: "error",
         title: "回滚失败",
-        description: error instanceof Error ? error.message : "请稍后重试。",
+        description: message,
       })
     } finally {
       setRollbackLoadingVersionId(null)
@@ -218,6 +219,14 @@ export function PromptVersionPanel({ promptId, canManage }: PromptVersionPanelPr
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {panelError ? (
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-900/70 dark:bg-amber-900/20 dark:text-amber-300">
+            <p>{panelError}</p>
+            <Button type="button" size="sm" variant="outline" className="mt-2 h-7" onClick={() => void fetchVersions()}>
+              重试加载
+            </Button>
+          </div>
+        ) : null}
         {isLoading ? (
           <p className="text-sm text-muted-foreground">正在加载版本历史...</p>
         ) : visibleVersions.length === 0 ? (

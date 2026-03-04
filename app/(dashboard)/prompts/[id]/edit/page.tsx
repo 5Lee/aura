@@ -4,6 +4,7 @@ import dynamic from "next/dynamic"
 
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { resolvePromptPermission } from "@/lib/prompt-permissions"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { PromptFormLoading } from "@/components/prompts/prompt-form-loading"
 import Link from "next/link"
@@ -46,8 +47,17 @@ export default async function EditPromptPage({
     notFound()
   }
 
-  // Check ownership
-  if (prompt.authorId !== session.user.id) {
+  const permission = await resolvePromptPermission(
+    {
+      promptId: prompt.id,
+      isPublic: prompt.isPublic,
+      publishStatus: prompt.publishStatus,
+      authorId: prompt.authorId,
+    },
+    session.user.id
+  )
+
+  if (!permission.canEdit) {
     redirect("/prompts")
   }
 
@@ -91,7 +101,7 @@ export default async function EditPromptPage({
         </Link>
         <h1 className="text-3xl font-bold">编辑提示词</h1>
         <p className="text-gray-600 dark:text-gray-400">
-          修改你的 AI 提示词信息
+          修改你的 AI 提示词信息（支持本地草稿恢复与快速回退）
         </p>
       </div>
 

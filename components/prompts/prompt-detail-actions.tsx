@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { FavoriteButton } from "@/components/prompts/favorite-button"
@@ -22,8 +23,13 @@ export function PromptDetailActions({
 }: PromptDetailActionsProps) {
   const router = useRouter()
   const { toast } = useToast()
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async () => {
+    if (isDeleting) {
+      return
+    }
+
     if (!confirm("确定要删除这个提示词吗？")) {
       toast({
         type: "info",
@@ -33,6 +39,7 @@ export function PromptDetailActions({
       return
     }
 
+    setIsDeleting(true)
     try {
       const response = await fetch(`/api/prompts/${promptId}`, {
         method: "DELETE",
@@ -61,6 +68,8 @@ export function PromptDetailActions({
         title: "删除失败",
         description: "网络异常，请稍后重试。",
       })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -74,10 +83,10 @@ export function PromptDetailActions({
       {canEdit ? (
         <>
           <Link href={`/prompts/${promptId}/edit`}>
-            <Button variant="outline">编辑</Button>
+            <Button variant="outline" disabled={isDeleting}>编辑</Button>
           </Link>
-          <Button variant="destructive" onClick={handleDelete}>
-            删除
+          <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+            {isDeleting ? "删除中..." : "删除"}
           </Button>
         </>
       ) : null}

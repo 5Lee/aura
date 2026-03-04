@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { GitBranch, SendToBack } from "lucide-react"
+import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -133,6 +134,14 @@ export function PromptWorkflowPanel({ promptId, canManage }: PromptWorkflowPanel
               <p>当前状态：{STATUS_LABELS[payload.publishStatus] || payload.publishStatus}</p>
               <p className="text-muted-foreground">最后更新时间：{new Date(payload.updatedAt).toLocaleString("zh-CN")}</p>
             </div>
+            {!payload.isPublic ? (
+              <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-900/70 dark:bg-amber-900/20 dark:text-amber-300">
+                <p>当前为私有提示词，无法流转到“已发布”。</p>
+                <Link className="mt-2 inline-block underline" href={`/prompts/${promptId}/edit`}>
+                  前往编辑页开启公开可见
+                </Link>
+              </div>
+            ) : null}
             <div className="flex flex-wrap gap-2">
               {payload.transitions.map((status) => (
                 <Button

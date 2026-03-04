@@ -30,7 +30,7 @@ export default async function NewPromptPage() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold">创建新提示词</h1>
         <p className="text-gray-600 dark:text-gray-400">
-          添加一个新的 AI 提示词到你的库中
+          添加一个新的 AI 提示词到你的库中（编辑内容会自动保存本地草稿）
         </p>
       </div>
 

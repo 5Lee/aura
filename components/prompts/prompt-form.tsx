@@ -38,6 +38,16 @@ interface PromptFormProps {
   }
 }
 
+interface PromptFormDraftSnapshot {
+  title: string
+  content: string
+  description: string
+  categoryId: string
+  isPublic: boolean
+  tags: string
+  templateVariables: PromptTemplateVariableForm[]
+}
+
 const TEMPLATE_VARIABLE_PATTERN = /{{\s*([a-zA-Z0-9_.-]+)\s*}}/g
 
 function extractVariableNamesFromContent(content: string) {
@@ -60,6 +70,31 @@ function parseSampleInput(text: string) {
     return {}
   }
   return JSON.parse(trimmed)
+}
+
+function normalizeDraftTemplateVariables(input: unknown): PromptTemplateVariableForm[] {
+  if (!Array.isArray(input)) {
+    return []
+  }
+
+  return input
+    .map((item) => {
+      if (!item || typeof item !== "object") {
+        return null
+      }
+
+      const raw = item as Partial<PromptTemplateVariableForm>
+      return {
+        name: String(raw.name || ""),
+        type:
+          raw.type === "number" || raw.type === "boolean" || raw.type === "json"
+            ? raw.type
+            : "string",
+        required: Boolean(raw.required),
+        defaultValue: String(raw.defaultValue || ""),
+      } satisfies PromptTemplateVariableForm
+    })
+    .filter((item): item is PromptTemplateVariableForm => item !== null)
 }
 
 export function PromptForm({ categories, initialData }: PromptFormProps) {
@@ -88,9 +123,16 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [restorableDraft, setRestorableDraft] = useState<PromptFormDraftSnapshot | null>(null)
+  const [draftReady, setDraftReady] = useState(false)
+  const [hasAutoSaved, setHasAutoSaved] = useState(false)
 
   const sampleInputStorageKey = useMemo(
     () => `aura:prompt-template-sample:${initialData?.id || "new"}`,
+    [initialData?.id]
+  )
+  const formDraftStorageKey = useMemo(
+    () => `aura:prompt-form-draft:${initialData?.id || "new"}`,
     [initialData?.id]
   )
 
@@ -126,6 +168,59 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
   const shouldShowTitleError = (touched.title || hasSubmitted) && Boolean(titleError)
   const shouldShowCategoryError = (touched.categoryId || hasSubmitted) && Boolean(categoryError)
   const shouldShowContentError = (touched.content || hasSubmitted) && Boolean(contentError)
+  const currentDraftSnapshot = useMemo(
+    () => ({
+      title,
+      content,
+      description,
+      categoryId,
+      isPublic,
+      tags,
+      templateVariables,
+    }),
+    [categoryId, content, description, isPublic, tags, templateVariables, title]
+  )
+
+  const clearLocalDraft = useCallback(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    window.localStorage.removeItem(formDraftStorageKey)
+    setHasAutoSaved(false)
+  }, [formDraftStorageKey])
+
+  const restoreLocalDraft = useCallback(() => {
+    if (!restorableDraft) {
+      return
+    }
+
+    setTitle(restorableDraft.title)
+    setContent(restorableDraft.content)
+    setDescription(restorableDraft.description)
+    setCategoryId(restorableDraft.categoryId)
+    setIsPublic(restorableDraft.isPublic)
+    setTags(restorableDraft.tags)
+    setTemplateVariables(restorableDraft.templateVariables)
+    setRestorableDraft(null)
+
+    toast({
+      type: "info",
+      title: "已恢复本地草稿",
+      description: "你可以继续编辑并提交。",
+    })
+  }, [restorableDraft, toast])
+
+  const discardLocalDraft = useCallback(() => {
+    clearLocalDraft()
+    setRestorableDraft(null)
+
+    toast({
+      type: "info",
+      title: "已忽略本地草稿",
+      description: "当前页面保留服务端最新内容。",
+    })
+  }, [clearLocalDraft, toast])
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -148,6 +243,62 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
 
     window.localStorage.setItem(sampleInputStorageKey, sampleInputText)
   }, [sampleInputStorageKey, sampleInputText])
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    const raw = window.localStorage.getItem(formDraftStorageKey)
+    if (!raw) {
+      setDraftReady(true)
+      return
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as Partial<PromptFormDraftSnapshot>
+      const nextDraft: PromptFormDraftSnapshot = {
+        title: String(parsed.title || ""),
+        content: String(parsed.content || ""),
+        description: String(parsed.description || ""),
+        categoryId: String(parsed.categoryId || ""),
+        isPublic: Boolean(parsed.isPublic),
+        tags: String(parsed.tags || ""),
+        templateVariables: normalizeDraftTemplateVariables(parsed.templateVariables),
+      }
+
+      const initialSnapshot = {
+        title: initialData?.title || "",
+        content: initialData?.content || "",
+        description: initialData?.description || "",
+        categoryId: initialData?.categoryId || "",
+        isPublic: initialData?.isPublic || false,
+        tags: initialData?.tags || "",
+        templateVariables: initialData?.templateVariables || [],
+      }
+
+      if (JSON.stringify(nextDraft) !== JSON.stringify(initialSnapshot)) {
+        setRestorableDraft(nextDraft)
+      }
+    } catch {
+      window.localStorage.removeItem(formDraftStorageKey)
+    } finally {
+      setDraftReady(true)
+    }
+  }, [formDraftStorageKey, initialData])
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !draftReady || restorableDraft) {
+      return
+    }
+
+    const timer = window.setTimeout(() => {
+      window.localStorage.setItem(formDraftStorageKey, JSON.stringify(currentDraftSnapshot))
+      setHasAutoSaved(true)
+    }, 500)
+
+    return () => window.clearTimeout(timer)
+  }, [currentDraftSnapshot, draftReady, formDraftStorageKey, restorableDraft])
 
   const handleTemplateVariableChange = <K extends keyof PromptTemplateVariableForm>(
     index: number,
@@ -329,6 +480,11 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
         return
       }
 
+      clearLocalDraft()
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem(sampleInputStorageKey)
+      }
+
       toast({
         type: "success",
         title: isEditMode ? "更新成功" : "创建成功",
@@ -356,6 +512,21 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
           {error}
         </div>
       )}
+
+      {restorableDraft ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900/70 dark:bg-amber-900/20 dark:text-amber-300">
+          <p className="font-medium">检测到本地草稿</p>
+          <p className="mt-1">你上次的编辑还未提交，可选择恢复继续。</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button type="button" size="sm" variant="secondary" onClick={restoreLocalDraft}>
+              恢复草稿
+            </Button>
+            <Button type="button" size="sm" variant="outline" onClick={discardLocalDraft}>
+              使用当前内容
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       <div className="space-y-4">
         <div>
@@ -620,8 +791,8 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Button type="submit" className="w-full sm:w-auto" disabled={isLoading}>
+      <div className="sticky bottom-2 z-20 -mx-2 flex flex-col gap-3 rounded-xl border border-border/70 bg-background/95 p-3 shadow-lg backdrop-blur-sm sm:static sm:-mx-0 sm:flex-row sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
+        <Button type="submit" className="w-full sm:w-auto" disabled={isLoading || Boolean(restorableDraft)}>
           {isLoading ? "保存中..." : isEditMode ? "更新" : "创建"}
         </Button>
         <Button
@@ -633,6 +804,12 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
         >
           取消
         </Button>
+        <Button type="button" variant="ghost" className="w-full sm:w-auto" onClick={clearLocalDraft} disabled={isLoading}>
+          清除本地草稿
+        </Button>
+        {hasAutoSaved ? (
+          <p className="text-xs text-muted-foreground sm:ml-auto sm:self-center">草稿已自动保存到本地</p>
+        ) : null}
       </div>
     </form>
   )

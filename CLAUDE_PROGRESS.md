@@ -2828,3 +2828,36 @@ npx prisma db seed    # Seed database with sample data
 - `logs/phase4/20260304-week4-workflow-permission/report.json`
 
 **Status**: ✅ WEEK4 COMPLETE（进入 week5 体验、安全与性能收敛）
+
+### 2026-03-04 - Phase 4 Week 5 Step 1 UX Critical Path Optimization (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase4-week5-001` 优化关键操作路径（创建/编辑/发布/回滚）
+
+**Major Changes**:
+- 创建/编辑流程体验优化：
+  - `components/prompts/prompt-form.tsx`
+  - 新增本地草稿自动保存、草稿恢复/忽略、移动端底部吸附操作栏
+- 编辑权限链路优化：
+  - `app/(dashboard)/prompts/[id]/edit/page.tsx`
+  - 由“仅作者可编辑”升级为基于角色权限矩阵 `canEdit`
+- 发布与回滚错误恢复优化：
+  - `components/prompts/prompt-workflow-panel.tsx`（私有提示词发布前引导）
+  - `components/prompts/prompt-version-panel.tsx`（失败后面板内重试路径）
+- 详情动作反馈一致化：
+  - `components/prompts/prompt-detail-actions.tsx`（删除进行中防重复提交）
+- 新建/编辑页面提示文案同步：
+  - `app/(dashboard)/prompts/new/page.tsx`
+  - `app/(dashboard)/prompts/[id]/edit/page.tsx`
+
+**Verification**:
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm test -- --runInBand` ✅
+
+**New Tests**:
+- `__tests__/phase4-week5-ux-paths.test.js`
+
+**Status**: ✅ WEEK5-001 COMPLETE（继续推进 week5-002 安全加固）
