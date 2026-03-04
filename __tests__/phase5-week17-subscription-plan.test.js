@@ -49,7 +49,7 @@ test("public and dashboard navigation both include pricing entry", () => {
 
 test("phase5 tracker starts with week17-001 completed", () => {
   assert.equal(phase5FeatureList.meta.total_features, 16)
-  assert.equal(phase5FeatureList.meta.completed_features, 1)
+  assert.ok(phase5FeatureList.meta.completed_features >= 1)
 
   const firstFeature = phase5FeatureList.features.find((feature) => feature.id === "phase5-week17-001")
   assert.ok(firstFeature)

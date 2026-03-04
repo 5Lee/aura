@@ -88,6 +88,10 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   },
 ]
 
+export function isSubscriptionPlanId(value: unknown): value is SubscriptionPlanId {
+  return value === "free" || value === "pro" || value === "team" || value === "enterprise"
+}
+
 export function getSubscriptionPlanById(planId: SubscriptionPlanId) {
   return subscriptionPlans.find((plan) => plan.id === planId) ?? subscriptionPlans[0]
 }

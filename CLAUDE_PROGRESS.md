@@ -3005,3 +3005,42 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase5-week17-subscription-plan.test.js`
 
 **Status**: ✅ WEEK17-001 COMPLETE（继续推进 week17-002 支付抽象与订阅生命周期）
+
+### 2026-03-04 - Phase 5 Week 17 Step 2 Billing Abstraction & Subscription Lifecycle (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase5-week17-002` 接入支付网关抽象、Webhook 幂等处理与订阅生命周期同步
+
+**Major Changes**:
+- 商业化数据模型扩展：
+  - `prisma/schema.prisma`
+  - 新增 `Subscription`、`BillingEvent` 模型与订阅/计费状态枚举（`TRIALING/ACTIVE/PAST_DUE/CANCELED/EXPIRED`）
+- 支付网关抽象层：
+  - `lib/subscription-billing.ts`
+  - 定义统一 Provider 接口（创建订阅/取消/续费/签名校验/事件解析），内置 `MOCKPAY` 适配器
+- 生命周期状态机：
+  - `lib/subscription-lifecycle.ts`
+  - 实现外部事件到本地订阅状态映射与补丁更新构建
+- 订阅 API 能力落地：
+  - `app/api/subscription/current/route.ts`
+  - `app/api/subscription/checkout/route.ts`
+  - `app/api/subscription/cancel/route.ts`
+  - `app/api/subscription/renew/route.ts`
+  - `app/api/subscription/webhook/route.ts`
+  - 覆盖订阅创建、取消、续费、Webhook 签名校验、事件幂等（`provider + eventId`）与失败落库
+- Phase5 清单推进：
+  - `feature_list_phase5_commercialization.json`
+  - 标记 `phase5-week17-002` 完成，`completed_features` 更新为 `2`
+
+**Verification**:
+- `npm run db:generate` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+- `npm test -- --runInBand` ✅
+
+**New Tests**:
+- `__tests__/phase5-week17-billing-lifecycle.test.js`
+
+**Status**: ✅ WEEK17-002 COMPLETE（继续推进 week17-003 订阅管理与账单中心）
