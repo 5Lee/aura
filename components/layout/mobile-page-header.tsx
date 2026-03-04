@@ -33,6 +33,10 @@ export function resolveMobileRouteMeta(pathname: string): MobileRouteMeta {
     return { title: "品牌中心", showBackButton: false }
   }
 
+  if (pathname === "/sla") {
+    return { title: "SLA 监控", showBackButton: false }
+  }
+
   if (pathname === "/prompts/new") {
     return { title: "新建提示词", showBackButton: true, backHref: "/prompts" }
   }

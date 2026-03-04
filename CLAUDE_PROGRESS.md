@@ -3256,3 +3256,46 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase5-week18-brand-customization.test.js`
 
 **Status**: ✅ WEEK18-003 COMPLETE（继续推进 week18-004 SLA 监控与告警）
+
+### 2026-03-04 - Phase 5 Week 18 Step 4 SLA Monitoring & Alerting (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase5-week18-004` 完成 SLA 监控与告警（可用性/错误率/延迟阈值、告警触发与恢复、故障注入验证）
+
+**Major Changes**:
+- SLA 数据模型扩展：
+  - `prisma/schema.prisma`
+  - 新增 `SlaSnapshot`、`SlaAlert`，补充 `SlaMetricType` / `SlaAlertStatus` 枚举
+- SLA 策略与评估引擎：
+  - `lib/sla-monitoring.ts`
+  - 定义按套餐分层 SLA 目标、窗口评估、告警增量对账、故障注入场景与恢复样本
+- SLA API 能力落地：
+  - `app/api/sla/report/route.ts`
+  - `app/api/sla/fault-injection/route.ts`
+  - 支持基于真实评测窗口生成报表、自动触发/恢复告警、故障注入与恢复演练
+- SLA 工作台页面：
+  - `app/(dashboard)/sla/page.tsx`
+  - `components/sla/sla-monitoring-panel.tsx`
+  - 提供 SLA 刷新、窗口切换、故障注入、恢复检查与历史快照/告警查看
+- 导航与访问控制：
+  - `components/layout/navbar.tsx`
+  - `components/layout/mobile-page-header.tsx`
+  - `middleware.ts`
+  - 新增 `/sla` 入口，并将 `/sla/:path*` 纳入登录保护
+- Phase5 任务推进：
+  - `feature_list_phase5_commercialization.json`
+  - 标记 `phase5-week18-004` 完成，`completed_features` 更新为 `8`
+
+**Verification**:
+- `npm run db:generate` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅（存在 `no-img-element` 警告，不影响通过）
+- `npm test -- --runInBand` ✅
+- `npm run feature:meta:check -- feature_list_phase5_commercialization.json` ✅
+
+**New Tests**:
+- `__tests__/phase5-week18-sla-monitoring.test.js`
+
+**Status**: ✅ WEEK18-004 COMPLETE（继续推进 week19-001 私有化部署模板化交付）

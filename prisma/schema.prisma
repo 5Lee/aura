@@ -33,6 +33,8 @@ model User {
   assignedSupportTickets SupportTicket[]      @relation("SupportTicketAssignee")
   supportTicketEvents    SupportTicketEvent[]
   brandProfile           BrandProfile?
+  slaSnapshots           SlaSnapshot[]
+  slaAlerts              SlaAlert[]
 }
 
 model Prompt {
@@ -168,6 +170,17 @@ enum SupportTicketTier {
 enum BrandConfigStatus {
   DRAFT
   PUBLISHED
+}
+
+enum SlaMetricType {
+  LATENCY
+  ERROR_RATE
+  AVAILABILITY
+}
+
+enum SlaAlertStatus {
+  OPEN
+  RECOVERED
 }
 
 model PromptVersion {
@@ -478,6 +491,47 @@ model BrandProfile {
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([status])
+}
+
+model SlaSnapshot {
+  id               String   @id @default(cuid())
+  userId           String
+  planId           String   @default("free")
+  windowStart      DateTime
+  windowEnd        DateTime
+  availabilityRate Float    @default(100)
+  errorRate        Float    @default(0)
+  latencyP95Ms     Int      @default(0)
+  totalChecks      Int      @default(0)
+  failedChecks     Int      @default(0)
+  metadata         Json?
+  createdAt        DateTime @default(now())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([windowEnd])
+  @@index([planId])
+}
+
+model SlaAlert {
+  id         String         @id @default(cuid())
+  userId     String
+  metric     SlaMetricType
+  status     SlaAlertStatus @default(OPEN)
+  threshold  Float
+  observed   Float
+  summary    String         @db.Text
+  triggeredAt DateTime      @default(now())
+  recoveredAt DateTime?
+  metadata   Json?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([metric])
+  @@index([status])
+  @@index([triggeredAt])
 }
 
 model Category {
