@@ -59,6 +59,54 @@ type AudienceRow = {
   }
 }
 
+type AttributionRow = {
+  id: string
+  experimentId: string
+  channel: string
+  windowStart: string
+  windowEnd: string
+  exposures: number
+  clicks: number
+  conversions: number
+  costCents: number
+  revenueCents: number
+  ctr: number
+  conversionRate: number
+  anomalyReason: string
+  status: string
+  correctionTag: string
+  experiment?: {
+    id: string
+    name: string
+    status: string
+  }
+}
+
+type AttributionAggregateRow = {
+  experimentId: string
+  channel: string
+  exposures: number
+  clicks: number
+  conversions: number
+  costCents: number
+  revenueCents: number
+  ctr: number
+  conversionRate: number
+  costPerAcquisition: number
+  roiPercent: number
+}
+
+type AttributionConsistency = {
+  attributionExposure: number
+  attributionConversion: number
+  metricExposure: number
+  metricConversion: number
+  exposureGap: number
+  conversionGap: number
+  gapPercent: number
+  consistent: boolean
+}
+
 type Summary = {
   totalExposures: number
   totalConversions: number
@@ -76,6 +124,9 @@ type GrowthExperimentPanelProps = {
   snapshots: SnapshotRow[]
   segments: SegmentRow[]
   audiences: AudienceRow[]
+  attributionSnapshots: AttributionRow[]
+  attributionAggregate: AttributionAggregateRow[]
+  attributionConsistency: AttributionConsistency
   summary: Summary
 }
 
@@ -115,6 +166,9 @@ export function GrowthExperimentPanel({
   snapshots,
   segments,
   audiences,
+  attributionSnapshots,
+  attributionAggregate,
+  attributionConsistency,
   summary,
 }: GrowthExperimentPanelProps) {
   const router = useRouter()
@@ -122,7 +176,10 @@ export function GrowthExperimentPanel({
   const [pendingAction, setPendingAction] = useState<string | null>(null)
 
   const defaultExperiment = useMemo(() => experiments[0] || null, [experiments])
-  const defaultSegment = useMemo(() => segments.find((item) => item.status === "ACTIVE") || segments[0] || null, [segments])
+  const defaultSegment = useMemo(
+    () => segments.find((item) => item.status === "ACTIVE") || segments[0] || null,
+    [segments]
+  )
 
   const [selectedExperimentId, setSelectedExperimentId] = useState(defaultExperiment?.id || "")
   const [selectedAudienceExperimentId, setSelectedAudienceExperimentId] = useState(defaultExperiment?.id || "")
@@ -158,6 +215,24 @@ export function GrowthExperimentPanel({
     excludedSegmentKeys: "",
   })
 
+  const [attributionForm, setAttributionForm] = useState({
+    experimentId: defaultExperiment?.id || "",
+    channel: "ORGANIC",
+    windowStart: toLocalDateTimeInputValue(new Date(Date.now() - 24 * 60 * 60 * 1000)),
+    windowEnd: toLocalDateTimeInputValue(new Date()),
+    exposures: "0",
+    clicks: "0",
+    conversions: "0",
+    costCents: "0",
+    revenueCents: "0",
+    correctionTag: "",
+  })
+
+  const [correctionForm, setCorrectionForm] = useState({
+    status: "CORRECTED",
+    correctionTag: "manual-review",
+  })
+
   const [updateForm, setUpdateForm] = useState({
     status: "RUNNING",
     metricType: "CONVERSION",
@@ -166,6 +241,11 @@ export function GrowthExperimentPanel({
     retainedUsers: "0",
     revenueCents: "0",
   })
+
+  const anomalies = useMemo(
+    () => attributionSnapshots.filter((item) => item.status === "ANOMALY").slice(0, 8),
+    [attributionSnapshots]
+  )
 
   async function runAction(actionKey: string, fn: () => Promise<unknown>, success: string) {
     setPendingAction(actionKey)
@@ -251,9 +331,7 @@ export function GrowthExperimentPanel({
             <input
               aria-label="目标指标"
               value={experimentForm.targetMetric}
-              onChange={(event) =>
-                setExperimentForm((prev) => ({ ...prev, targetMetric: event.target.value }))
-              }
+              onChange={(event) => setExperimentForm((prev) => ({ ...prev, targetMetric: event.target.value }))}
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="目标指标"
             />
@@ -602,6 +680,233 @@ export function GrowthExperimentPanel({
             {pendingAction === "orchestrate-audience" ? "编排中..." : "保存受众编排"}
           </Button>
         </div>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-2">
+        <div className="space-y-3 rounded-lg border border-border bg-background p-4">
+          <p className="text-sm font-medium">增长归因看板与渠道效果分析</p>
+          <select
+            aria-label="归因实验"
+            value={attributionForm.experimentId}
+            onChange={(event) => setAttributionForm((prev) => ({ ...prev, experimentId: event.target.value }))}
+            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="">选择实验</option>
+            {experiments.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name} · {item.status}
+              </option>
+            ))}
+          </select>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <input
+              aria-label="渠道"
+              value={attributionForm.channel}
+              onChange={(event) => setAttributionForm((prev) => ({ ...prev, channel: event.target.value }))}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              placeholder="渠道"
+            />
+            <input
+              aria-label="纠偏标签"
+              value={attributionForm.correctionTag}
+              onChange={(event) =>
+                setAttributionForm((prev) => ({ ...prev, correctionTag: event.target.value }))
+              }
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              placeholder="纠偏标签(可选)"
+            />
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <input
+              aria-label="归因窗口开始"
+              type="datetime-local"
+              value={attributionForm.windowStart}
+              onChange={(event) =>
+                setAttributionForm((prev) => ({ ...prev, windowStart: event.target.value }))
+              }
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            />
+            <input
+              aria-label="归因窗口结束"
+              type="datetime-local"
+              value={attributionForm.windowEnd}
+              onChange={(event) => setAttributionForm((prev) => ({ ...prev, windowEnd: event.target.value }))}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            />
+          </div>
+          <div className="grid gap-2 sm:grid-cols-3">
+            <input
+              aria-label="归因曝光"
+              value={attributionForm.exposures}
+              onChange={(event) => setAttributionForm((prev) => ({ ...prev, exposures: event.target.value }))}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              placeholder="曝光"
+            />
+            <input
+              aria-label="归因点击"
+              value={attributionForm.clicks}
+              onChange={(event) => setAttributionForm((prev) => ({ ...prev, clicks: event.target.value }))}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              placeholder="点击"
+            />
+            <input
+              aria-label="归因转化"
+              value={attributionForm.conversions}
+              onChange={(event) => setAttributionForm((prev) => ({ ...prev, conversions: event.target.value }))}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              placeholder="转化"
+            />
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <input
+              aria-label="渠道成本(分)"
+              value={attributionForm.costCents}
+              onChange={(event) => setAttributionForm((prev) => ({ ...prev, costCents: event.target.value }))}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              placeholder="渠道成本(分)"
+            />
+            <input
+              aria-label="渠道收入(分)"
+              value={attributionForm.revenueCents}
+              onChange={(event) =>
+                setAttributionForm((prev) => ({ ...prev, revenueCents: event.target.value }))
+              }
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              placeholder="渠道收入(分)"
+            />
+          </div>
+          <Button
+            disabled={pendingAction !== null || !attributionForm.experimentId}
+            onClick={() =>
+              runAction(
+                "save-attribution",
+                () =>
+                  requestJson("/api/growth-lab/attribution", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      experimentId: attributionForm.experimentId,
+                      channel: attributionForm.channel,
+                      windowStart: toIsoDateTime(attributionForm.windowStart),
+                      windowEnd: toIsoDateTime(attributionForm.windowEnd),
+                      exposures: Number(attributionForm.exposures),
+                      clicks: Number(attributionForm.clicks),
+                      conversions: Number(attributionForm.conversions),
+                      costCents: Number(attributionForm.costCents),
+                      revenueCents: Number(attributionForm.revenueCents),
+                      correctionTag: attributionForm.correctionTag,
+                    }),
+                  }),
+                "归因快照已保存"
+              )
+            }
+          >
+            {pendingAction === "save-attribution" ? "保存中..." : "保存归因快照"}
+          </Button>
+        </div>
+
+        <div className="space-y-3 rounded-lg border border-border bg-background p-4">
+          <p className="text-sm font-medium">异常归因规则与纠偏标记</p>
+          <p className="text-xs text-muted-foreground">
+            归因曝光 {attributionConsistency.attributionExposure}，指标曝光 {attributionConsistency.metricExposure}
+            ，差异 {attributionConsistency.exposureGap}（{attributionConsistency.gapPercent}%）
+          </p>
+          <p className="text-xs text-muted-foreground">
+            归因转化 {attributionConsistency.attributionConversion}，指标转化 {attributionConsistency.metricConversion}
+            ，差异 {attributionConsistency.conversionGap} · 链路
+            {attributionConsistency.consistent ? "一致" : "需要复核"}
+          </p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <select
+              aria-label="纠偏状态"
+              value={correctionForm.status}
+              onChange={(event) => setCorrectionForm((prev) => ({ ...prev, status: event.target.value }))}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="CORRECTED">CORRECTED</option>
+              <option value="NORMAL">NORMAL</option>
+              <option value="ANOMALY">ANOMALY</option>
+            </select>
+            <input
+              aria-label="纠偏说明"
+              value={correctionForm.correctionTag}
+              onChange={(event) =>
+                setCorrectionForm((prev) => ({ ...prev, correctionTag: event.target.value }))
+              }
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              placeholder="纠偏说明"
+            />
+          </div>
+          {anomalies.length === 0 ? (
+            <p className="text-sm text-muted-foreground">当前未命中异常归因规则。</p>
+          ) : (
+            <div className="space-y-2 text-sm">
+              {anomalies.map((item) => (
+                <div key={item.id} className="rounded-md border border-border bg-muted/10 px-3 py-2">
+                  <p className="font-medium">
+                    {(item.experiment?.name || "未知实验")} · {item.channel}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    原因 {item.anomalyReason || "unknown"} · 曝光 {item.exposures} · 点击 {item.clicks} ·
+                    转化 {item.conversions}
+                  </p>
+                  <div className="mt-2">
+                    <Button
+                      disabled={pendingAction !== null}
+                      onClick={() =>
+                        runAction(
+                          `mark-attribution-${item.id}`,
+                          () =>
+                            requestJson("/api/growth-lab/attribution", {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                id: item.id,
+                                status: correctionForm.status,
+                                correctionTag: correctionForm.correctionTag,
+                              }),
+                            }),
+                          "异常归因已更新"
+                        )
+                      }
+                    >
+                      {pendingAction === `mark-attribution-${item.id}` ? "处理中..." : "标记纠偏"}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-border bg-background p-4 space-y-3">
+        <p className="text-sm font-medium">渠道归因对比（实验 / 渠道 / 时间窗口）</p>
+        {attributionAggregate.length === 0 ? (
+          <p className="text-sm text-muted-foreground">暂无归因快照。</p>
+        ) : (
+          <div className="space-y-2 text-sm">
+            {attributionAggregate.slice(0, 8).map((item) => {
+              const experimentName =
+                experiments.find((experiment) => experiment.id === item.experimentId)?.name || "未知实验"
+              return (
+                <div key={`${item.experimentId}-${item.channel}`} className="rounded-md border border-border bg-muted/10 px-3 py-2">
+                  <p className="font-medium">
+                    {experimentName} · {item.channel}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    曝光 {item.exposures} · 点击 {item.clicks} · 转化 {item.conversions} · CTR {item.ctr}% ·
+                    CVR {item.conversionRate}%
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    成本 {formatCny(item.costCents)} · 收入 {formatCny(item.revenueCents)} · CPA
+                    {item.costPerAcquisition.toFixed(2)} · ROI {item.roiPercent}%
+                  </p>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       <div className="rounded-lg border border-border bg-background p-4 space-y-3">

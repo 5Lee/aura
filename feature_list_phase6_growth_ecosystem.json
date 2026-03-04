@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "last_updated": "2026-03-05",
     "total_features": 16,
-    "completed_features": 2
+    "completed_features": 3
   },
   "features": [
     {
@@ -48,7 +48,7 @@
         "提供异常归因规则与纠偏标记",
         "验证归因链路与指标看板一致"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase6-week21-004",

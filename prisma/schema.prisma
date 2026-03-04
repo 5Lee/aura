@@ -46,6 +46,7 @@ model User {
   growthMetricSnapshots   GrowthMetricSnapshot[]
   growthAudienceSegments  GrowthAudienceSegment[]
   growthExperimentAudiences GrowthExperimentAudience[]
+  growthAttributionSnapshots GrowthAttributionSnapshot[]
   supportTickets         SupportTicket[]      @relation("SupportTicketRequester")
   assignedSupportTickets SupportTicket[]      @relation("SupportTicketAssignee")
   supportTicketEvents    SupportTicketEvent[]
@@ -262,6 +263,12 @@ enum GrowthSegmentStatus {
 enum GrowthSegmentMatchMode {
   ALL
   ANY
+}
+
+enum GrowthAttributionStatus {
+  NORMAL
+  ANOMALY
+  CORRECTED
 }
 
 enum SupportTicketPriority {
@@ -968,6 +975,7 @@ model GrowthExperiment {
   user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   snapshots           GrowthMetricSnapshot[]
   audiences           GrowthExperimentAudience[]
+  attributionSnapshots GrowthAttributionSnapshot[]
 
   @@index([userId])
   @@index([status])
@@ -1041,6 +1049,39 @@ model GrowthExperimentAudience {
   @@index([userId])
   @@index([experimentId])
   @@index([segmentId])
+}
+
+model GrowthAttributionSnapshot {
+  id                  String                 @id @default(cuid())
+  userId              String
+  experimentId        String
+  channel             String
+  windowStart         DateTime
+  windowEnd           DateTime
+  exposures           Int                    @default(0)
+  clicks              Int                    @default(0)
+  conversions         Int                    @default(0)
+  costCents           Int                    @default(0)
+  revenueCents        Int                    @default(0)
+  ctr                 Float                  @default(0)
+  conversionRate      Float                  @default(0)
+  anomalyReason       String?
+  anomalyScore        Float                  @default(0)
+  status              GrowthAttributionStatus @default(NORMAL)
+  correctionTag       String?
+  correctedAt         DateTime?
+  metadata            Json?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experiment          GrowthExperiment       @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+
+  @@unique([experimentId, channel, windowStart, windowEnd])
+  @@index([userId])
+  @@index([experimentId])
+  @@index([channel])
+  @@index([status])
+  @@index([windowEnd])
 }
 
 model SupportTicket {

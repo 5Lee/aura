@@ -6,6 +6,10 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import {
+  buildGrowthAttributionAggregate,
+  resolveGrowthAttributionConsistency,
+} from "@/lib/growth-attribution"
 import { buildGrowthExperimentSeed, resolveGrowthSnapshotMetrics } from "@/lib/growth-lab"
 import { getUserEntitlementSnapshot, hasGrowthLabAccess } from "@/lib/subscription-entitlements"
 
@@ -18,7 +22,7 @@ export default async function GrowthLabPage() {
   const snapshot = await getUserEntitlementSnapshot(session.user.id)
   const hasAccess = hasGrowthLabAccess(snapshot.plan.id)
 
-  const [count, experiments, snapshots, segments, audiences] = await Promise.all([
+  const [count, experiments, snapshots, segments, audiences, attributionSnapshots] = await Promise.all([
     hasAccess
       ? prisma.growthExperiment.count({
           where: {
@@ -73,6 +77,24 @@ export default async function GrowthLabPage() {
           take: 160,
         })
       : Promise.resolve([]),
+    hasAccess
+      ? prisma.growthAttributionSnapshot.findMany({
+          where: {
+            userId: session.user.id,
+          },
+          include: {
+            experiment: {
+              select: {
+                id: true,
+                name: true,
+                status: true,
+              },
+            },
+          },
+          orderBy: [{ windowEnd: "desc" }],
+          take: 240,
+        })
+      : Promise.resolve([]),
   ])
 
   if (hasAccess && count === 0) {
@@ -116,6 +138,12 @@ export default async function GrowthLabPage() {
     conversions: summaryCore.totalConversions,
   })
 
+  const attributionAggregate = buildGrowthAttributionAggregate(attributionSnapshots)
+  const attributionConsistency = resolveGrowthAttributionConsistency({
+    attributionRows: attributionSnapshots,
+    metricRows: snapshots,
+  })
+
   return (
     <div className="space-y-6">
       <Card>
@@ -123,10 +151,11 @@ export default async function GrowthLabPage() {
           <div className="flex flex-wrap items-center gap-3">
             <CardTitle>增长实验中心</CardTitle>
             <Badge variant="secondary">Week21-001</Badge>
+            <Badge variant="secondary">Week21-003</Badge>
             <Badge>{snapshot.plan.name}</Badge>
           </div>
           <CardDescription>
-            建立实验定义、指标采集与状态流转能力，帮助运营团队持续迭代增长策略并追踪实验效果。
+            建立实验定义、受众编排、渠道归因与异常纠偏能力，帮助运营团队持续迭代增长策略并追踪实验效果。
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -179,6 +208,38 @@ export default async function GrowthLabPage() {
               status: item.status,
               segment: item.segment,
             }))}
+            attributionSnapshots={attributionSnapshots.map((item) => ({
+              id: item.id,
+              experimentId: item.experimentId,
+              channel: item.channel,
+              windowStart: item.windowStart.toISOString(),
+              windowEnd: item.windowEnd.toISOString(),
+              exposures: item.exposures,
+              clicks: item.clicks,
+              conversions: item.conversions,
+              costCents: item.costCents,
+              revenueCents: item.revenueCents,
+              ctr: item.ctr,
+              conversionRate: item.conversionRate,
+              anomalyReason: item.anomalyReason || "",
+              status: item.status,
+              correctionTag: item.correctionTag || "",
+              experiment: item.experiment,
+            }))}
+            attributionAggregate={attributionAggregate.map((item) => ({
+              experimentId: item.experimentId,
+              channel: item.channel,
+              exposures: item.exposures,
+              clicks: item.clicks,
+              conversions: item.conversions,
+              costCents: item.costCents,
+              revenueCents: item.revenueCents,
+              ctr: item.ctr,
+              conversionRate: item.conversionRate,
+              costPerAcquisition: item.costPerAcquisition,
+              roiPercent: item.roiPercent,
+            }))}
+            attributionConsistency={attributionConsistency}
             summary={{
               ...summaryCore,
               ...conversion,

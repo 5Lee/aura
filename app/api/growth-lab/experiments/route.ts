@@ -5,6 +5,10 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import {
+  buildGrowthAttributionAggregate,
+  resolveGrowthAttributionConsistency,
+} from "@/lib/growth-attribution"
+import {
   buildGrowthExperimentSeed,
   resolveGrowthScheduleWindow,
   resolveGrowthSnapshotMetrics,
@@ -42,7 +46,7 @@ export async function GET() {
     })
   }
 
-  const [experiments, snapshots, segments, audiences] = await Promise.all([
+  const [experiments, snapshots, segments, audiences, attributionSnapshots] = await Promise.all([
     prisma.growthExperiment.findMany({
       where: {
         userId: session.user.id,
@@ -82,6 +86,22 @@ export async function GET() {
       orderBy: [{ updatedAt: "desc" }],
       take: 160,
     }),
+    prisma.growthAttributionSnapshot.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      include: {
+        experiment: {
+          select: {
+            id: true,
+            name: true,
+            status: true,
+          },
+        },
+      },
+      orderBy: [{ windowEnd: "desc" }],
+      take: 240,
+    }),
   ])
 
   const summary = snapshots.reduce(
@@ -119,11 +139,20 @@ export async function GET() {
     conversions: summary.totalConversions,
   })
 
+  const attributionAggregate = buildGrowthAttributionAggregate(attributionSnapshots)
+  const attributionConsistency = resolveGrowthAttributionConsistency({
+    attributionRows: attributionSnapshots,
+    metricRows: snapshots,
+  })
+
   return NextResponse.json({
     experiments,
     snapshots,
     segments,
     audiences,
+    attributionSnapshots,
+    attributionAggregate,
+    attributionConsistency,
     summary: {
       ...summary,
       ...conversion,

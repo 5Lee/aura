@@ -3804,3 +3804,43 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase6-week21-segmentation-audience.test.js`
 
 **Status**: ✅ WEEK21-002 COMPLETE（继续推进 week21-003 增长归因看板与渠道效果分析）
+
+### 2026-03-05 - Phase 6 Week 21 Step 3 Attribution Dashboard & Channel Analysis (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase6-week21-003` 完成增长归因看板与渠道效果分析
+
+**Major Changes**:
+- 增长归因模型扩展：
+  - `prisma/schema.prisma`
+  - 新增 `GrowthAttributionStatus` 枚举与 `GrowthAttributionSnapshot` 模型，并建立 User/Experiment 关联
+- 归因核心能力：
+  - `lib/growth-attribution.ts`
+  - 提供渠道归一化、输入清洗、CTR/CVR/CPA 计算、异常归因检测、聚合对比与链路一致性校验
+- 归因 API：
+  - `app/api/growth-lab/attribution/route.ts`
+  - 支持按实验/渠道/时间窗口聚合查询、归因快照写入、异常纠偏状态标记
+- 增长实验 API 聚合增强：
+  - `app/api/growth-lab/experiments/route.ts`
+  - 返回 `attributionSnapshots`、`attributionAggregate`、`attributionConsistency`
+- 工作台归因看板增强：
+  - `app/(dashboard)/growth-lab/page.tsx`
+  - `components/growth/growth-experiment-panel.tsx`
+  - 新增渠道归因录入、实验/渠道对比看板、异常归因纠偏与链路一致性展示
+- Phase6 任务推进：
+  - `feature_list_phase6_growth_ecosystem.json`
+  - 标记 `phase6-week21-003` 完成，`completed_features` 更新为 `3`
+
+**Verification**:
+- `npm run db:generate` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅（存在 `no-img-element` 警告，不影响通过）
+- `npm test -- --runInBand __tests__/phase6-week21-growth-lab.test.js __tests__/phase6-week21-segmentation-audience.test.js __tests__/phase6-week21-attribution-dashboard.test.js` ✅
+- `npm run feature:meta:check -- feature_list_phase6_growth_ecosystem.json` ✅
+
+**New Tests**:
+- `__tests__/phase6-week21-attribution-dashboard.test.js`
+
+**Status**: ✅ WEEK21-003 COMPLETE（继续推进 week21-004 实验异常告警与自动熔断策略）
