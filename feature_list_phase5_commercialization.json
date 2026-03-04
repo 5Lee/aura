@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "last_updated": "2026-03-04",
     "total_features": 16,
-    "completed_features": 14
+    "completed_features": 15
   },
   "features": [
     {
@@ -216,7 +216,7 @@
         "实现投放预算与时段控制",
         "验证广告内容与平台安全策略兼容"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase5-week20-004",

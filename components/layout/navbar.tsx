@@ -21,6 +21,7 @@ export function Navbar() {
     { href: "/compliance", label: "合规" },
     { href: "/support", label: "支持" },
     { href: "/sla", label: "SLA" },
+    { href: "/ads", label: "广告" },
     { href: "/marketplace", label: "市场" },
     { href: "/developer-api", label: "API" },
     { href: "/billing", label: "账单" },

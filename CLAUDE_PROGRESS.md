@@ -3589,3 +3589,49 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase5-week20-api-pricing-quota.test.js`
 
 **Status**: ✅ WEEK20-002 COMPLETE（继续推进 week20-003 广告与推荐位商业策略）
+
+### 2026-03-04 - Phase 5 Week 20 Step 3 Ads & Recommendation Monetization Strategy (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase5-week20-003` 完成广告与推荐位商业策略（投放规则与审核流、广告统计与转化追踪、预算与时段控制、内容安全兼容）
+
+**Major Changes**:
+- 广告商业化数据模型扩展：
+  - `prisma/schema.prisma`
+  - 新增 `AdPlacementRule`、`AdCampaign`、`AdPerformanceSnapshot`，并补充 `AdCampaignStatus` 状态枚举
+- 广告策略核心能力：
+  - `lib/ad-strategy.ts`
+  - 提供投放规则预设、规则/广告输入清洗、内容安全策略评估、预算守卫、时段校验与转化指标计算
+  - `lib/subscription-entitlements.ts`
+  - 新增广告商业化门禁 `hasAdStrategyAccess`
+- 广告策略 API 能力：
+  - `app/api/ads/rules/route.ts`
+  - `app/api/ads/campaigns/route.ts`
+  - `app/api/ads/campaigns/[id]/route.ts`
+  - 支持规则初始化与更新、广告创建与审核态流转、预算校验、投放时段校验与数据快照上报
+- 广告策略工作台：
+  - `app/(dashboard)/ads/page.tsx`
+  - `components/ads/ad-strategy-panel.tsx`
+  - 提供推荐位规则编辑、投放创建、审核状态更新、数据上报与转化概览
+- 导航与路由保护：
+  - `components/layout/navbar.tsx`
+  - `components/layout/mobile-page-header.tsx`
+  - `middleware.ts`
+  - 新增 `/ads` 导航入口，并纳入登录保护
+- Phase5 任务推进：
+  - `feature_list_phase5_commercialization.json`
+  - 标记 `phase5-week20-003` 完成，`completed_features` 更新为 `15`
+
+**Verification**:
+- `npm run db:generate` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅（存在 `no-img-element` 警告，不影响通过）
+- `npm test -- --runInBand` ✅
+- `npm run feature:meta:check -- feature_list_phase5_commercialization.json` ✅
+
+**New Tests**:
+- `__tests__/phase5-week20-ads-recommendation.test.js`
+
+**Status**: ✅ WEEK20-003 COMPLETE（继续推进 week20-004 合作伙伴分层与结算）

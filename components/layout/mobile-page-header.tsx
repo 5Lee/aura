@@ -49,6 +49,10 @@ export function resolveMobileRouteMeta(pathname: string): MobileRouteMeta {
     return { title: "市场佣金", showBackButton: false }
   }
 
+  if (pathname === "/ads") {
+    return { title: "广告投放", showBackButton: false }
+  }
+
   if (pathname === "/developer-api") {
     return { title: "API 策略", showBackButton: false }
   }
