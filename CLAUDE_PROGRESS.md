@@ -3492,3 +3492,50 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase5-week19-enterprise-support-process.test.js`
 
 **Status**: ✅ WEEK19-004 COMPLETE（继续推进 week20-001 应用市场佣金体系）
+
+### 2026-03-04 - Phase 5 Week 20 Step 1 Marketplace Commission System (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase5-week20-001` 完成应用市场佣金体系（分成规则与结算周期、创作者收益台账、结算状态追踪、佣金账务一致性校验）
+
+**Major Changes**:
+- 应用市场佣金数据模型：
+  - `prisma/schema.prisma`
+  - 新增 `MarketplaceCommissionRule`、`MarketplaceCommissionLedger`、`MarketplaceSettlementBatch`，补充 `MarketplaceLedgerStatus` / `MarketplaceSettlementStatus` 枚举，并关联 `User` / `BillingInvoice`
+- 佣金核心能力与门禁：
+  - `lib/marketplace-commission.ts`
+  - 提供默认分成规则、规则清洗、佣金计算、结算窗口与汇总函数
+  - `lib/subscription-entitlements.ts`
+  - 新增 `hasMarketplaceCommissionAccess`（Pro/Team/Enterprise）
+- 佣金 API 能力：
+  - `app/api/marketplace/commission/rules/route.ts`
+  - `app/api/marketplace/commission/ledger/route.ts`
+  - `app/api/marketplace/commission/settlements/route.ts`
+  - `app/api/marketplace/commission/settlements/[id]/route.ts`
+  - 支持分成规则管理、收益台账同步、结算批次执行与结算状态追踪，并写入审计日志/账务事件
+- 市场工作台页面：
+  - `app/(dashboard)/marketplace/page.tsx`
+  - `components/marketplace/commission-management-panel.tsx`
+  - 实现分成规则编辑、创作者收益统计、结算执行与状态更新可视化
+- 导航与路由保护：
+  - `components/layout/navbar.tsx`
+  - `components/layout/mobile-page-header.tsx`
+  - `middleware.ts`
+  - 新增 `/marketplace` 导航入口，并纳入登录保护
+- Phase5 任务推进：
+  - `feature_list_phase5_commercialization.json`
+  - 标记 `phase5-week20-001` 完成，`completed_features` 更新为 `13`
+
+**Verification**:
+- `npm run db:generate` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅（存在 `no-img-element` 警告，不影响通过）
+- `npm test -- --runInBand` ✅
+- `npm run feature:meta:check -- feature_list_phase5_commercialization.json` ✅
+
+**New Tests**:
+- `__tests__/phase5-week20-marketplace-commission.test.js`
+
+**Status**: ✅ WEEK20-001 COMPLETE（继续推进 week20-002 API 定价与配额策略）

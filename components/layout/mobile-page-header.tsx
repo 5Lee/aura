@@ -45,6 +45,10 @@ export function resolveMobileRouteMeta(pathname: string): MobileRouteMeta {
     return { title: "合规审计", showBackButton: false }
   }
 
+  if (pathname === "/marketplace") {
+    return { title: "市场佣金", showBackButton: false }
+  }
+
   if (pathname === "/prompts/new") {
     return { title: "新建提示词", showBackButton: true, backHref: "/prompts" }
   }

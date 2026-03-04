@@ -29,6 +29,9 @@ model User {
   billingEvents          BillingEvent[]
   invoiceProfile         InvoiceProfile?
   invoices               BillingInvoice[]
+  marketplaceCommissionRules MarketplaceCommissionRule[]
+  marketplaceCommissionLedgers MarketplaceCommissionLedger[]
+  marketplaceSettlementBatches MarketplaceSettlementBatch[]
   supportTickets         SupportTicket[]      @relation("SupportTicketRequester")
   assignedSupportTickets SupportTicket[]      @relation("SupportTicketAssignee")
   supportTicketEvents    SupportTicketEvent[]
@@ -155,6 +158,19 @@ enum InvoiceStatus {
   PAID
   REFUNDED
   VOID
+}
+
+enum MarketplaceLedgerStatus {
+  ACCRUED
+  SETTLED
+  REVERSED
+}
+
+enum MarketplaceSettlementStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
 }
 
 enum SupportTicketPriority {
@@ -499,6 +515,7 @@ model BillingInvoice {
   profile            InvoiceProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
   subscription       Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
   billingEvent       BillingEvent? @relation(fields: [billingEventId], references: [id], onDelete: SetNull)
+  marketplaceLedger  MarketplaceCommissionLedger?
 
   @@index([userId])
   @@index([profileId])
@@ -506,6 +523,83 @@ model BillingInvoice {
   @@index([billingEventId])
   @@index([status])
   @@index([type])
+}
+
+model MarketplaceCommissionRule {
+  id                  String   @id @default(cuid())
+  userId              String
+  name                String
+  category            String   @default("prompt-template")
+  creatorRateBasisPoints Int
+  platformRateBasisPoints Int
+  settlementCycleDays Int      @default(30)
+  minimumPayoutCents  Int      @default(10000)
+  currency            String   @default("CNY")
+  active              Boolean  @default(true)
+  metadata            Json?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ledgers             MarketplaceCommissionLedger[]
+
+  @@index([userId])
+  @@index([active])
+  @@index([category])
+}
+
+model MarketplaceCommissionLedger {
+  id                     String                @id @default(cuid())
+  userId                 String
+  ruleId                 String
+  sourceInvoiceId        String?               @unique
+  status                 MarketplaceLedgerStatus @default(ACCRUED)
+  currency               String                @default("CNY")
+  grossAmountCents       Int
+  creatorCommissionCents Int
+  platformCommissionCents Int
+  settlementBatchId      String?
+  settlementPeriodStart  DateTime
+  settlementPeriodEnd    DateTime
+  settledAt              DateTime?
+  metadata               Json?
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  user                   User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rule                   MarketplaceCommissionRule @relation(fields: [ruleId], references: [id], onDelete: Restrict)
+  sourceInvoice          BillingInvoice?       @relation(fields: [sourceInvoiceId], references: [id], onDelete: SetNull)
+  settlementBatch        MarketplaceSettlementBatch? @relation(fields: [settlementBatchId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([ruleId])
+  @@index([status])
+  @@index([settlementBatchId])
+  @@index([settlementPeriodEnd])
+}
+
+model MarketplaceSettlementBatch {
+  id                     String                    @id @default(cuid())
+  userId                 String
+  status                 MarketplaceSettlementStatus @default(PENDING)
+  currency               String                    @default("CNY")
+  periodStart            DateTime
+  periodEnd              DateTime
+  ledgerCount            Int                       @default(0)
+  grossAmountCents       Int
+  creatorCommissionCents Int
+  platformCommissionCents Int
+  payoutAmountCents      Int
+  payoutReference        String?
+  summary                String?                   @db.Text
+  processedAt            DateTime?
+  metadata               Json?
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
+  user                   User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ledgers                MarketplaceCommissionLedger[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([periodEnd])
 }
 
 model SupportTicket {
