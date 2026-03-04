@@ -2683,3 +2683,48 @@ npx prisma db seed    # Seed database with sample data
 - `logs/phase4/20260304-week1-foundation/report.json`
 
 **Status**: ✅ WEEK1 FOUNDATION COMPLETE（继续进入 week2 版本 UI 与回滚交互）
+
+---
+
+### 2026-03-04 - Phase 4 Week 2 Version UI & Advanced Retrieval (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，分步推进）
+
+**Completed Features**:
+- ✅ `phase4-week2-001` 版本历史面板与差异对比
+- ✅ `phase4-week2-002` 一键回滚与高风险二次确认保护
+- ✅ `phase4-week2-003` 编辑器变量输入、渲染预览与样例保存
+- ✅ `phase4-week2-004` 高级检索与 Saved Views
+
+**Major Changes**:
+- 版本面板落地与详情页集成：
+  - `components/prompts/prompt-version-panel.tsx`
+  - `app/(dashboard)/prompts/[id]/page.tsx`
+- 回滚保护升级（高风险回滚确认参数 + 后端校验）：
+  - `app/api/prompts/[id]/rollback/route.ts`
+- 模板变量持久化统一到创建/更新流程：
+  - `lib/prompt-template-variable-utils.ts`
+  - `app/api/prompts/route.ts`
+  - `app/api/prompts/[id]/route.ts`
+  - `app/api/prompts/[id]/template-variables/route.ts`
+- 编辑页模板变量回填与编辑器增强：
+  - `app/(dashboard)/prompts/[id]/edit/page.tsx`
+  - `components/prompts/prompt-form.tsx`
+- 高级检索 + 已保存筛选视图：
+  - `components/prompts/prompt-advanced-filters.tsx`
+  - `app/(dashboard)/prompts/page.tsx`
+- Week2 自动化验证：
+  - `__tests__/phase4-week2-capabilities.test.js`
+  - `e2e/helpers/prompt-versioning-fixture.js`
+  - `e2e/prompt-versioning-workflow.spec.js`
+
+**Verification**:
+- `npm test -- --runInBand` ✅
+- `npm run test:e2e -- e2e/prompt-versioning-workflow.spec.js` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅
+
+**Log Artifact**:
+- `logs/phase4/20260304-week2-version-ui/report.json`
+
+**Status**: ✅ WEEK2 COMPLETE（进入 week3 评测体系与 CI 门禁）

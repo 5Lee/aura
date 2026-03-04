@@ -19,8 +19,8 @@ test("empty state component provides reusable icon and action slots", () => {
 })
 
 test("prompts page supports no-data and no-search-result empty states", () => {
-  assert.match(promptsPageSource, /const query = searchParams\.q\?\.trim\(\) \?\? ""/)
-  assert.match(promptsPageSource, /where\.OR = \[/)
+  assert.match(promptsPageSource, /PromptAdvancedFilters/)
+  assert.match(promptsPageSource, /hasActiveFilters/)
   assert.match(promptsPageSource, /title="没有找到匹配的提示词"/)
   assert.match(promptsPageSource, /title="还没有提示词"/)
   assert.match(promptsPageSource, /href="\/prompts\/new"/)

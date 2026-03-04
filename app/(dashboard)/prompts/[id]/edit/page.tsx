@@ -34,6 +34,11 @@ export default async function EditPromptPage({
           tag: true,
         },
       },
+      templateVariables: {
+        orderBy: {
+          name: "asc",
+        },
+      },
     },
   })
 
@@ -58,6 +63,22 @@ export default async function EditPromptPage({
     categoryId: prompt.categoryId,
     isPublic: prompt.isPublic,
     tags: prompt.tags.map((promptTag) => promptTag.tag.name).join(", "),
+    templateVariables: prompt.templateVariables.map((item) => ({
+      name: item.name,
+      type: (["string", "number", "boolean", "json"].includes(item.type) ? item.type : "string") as
+        | "string"
+        | "number"
+        | "boolean"
+        | "json",
+      required: item.required,
+      defaultValue: item.defaultValue || "",
+      description: item.description || "",
+      options: Array.isArray(item.options)
+        ? item.options.filter((option): option is string => typeof option === "string")
+        : [],
+      minLength: item.minLength ?? undefined,
+      maxLength: item.maxLength ?? undefined,
+    })),
   }
 
   return (

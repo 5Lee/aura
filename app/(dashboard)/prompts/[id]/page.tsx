@@ -30,6 +30,23 @@ const PromptDetailActions = dynamic(
   }
 )
 
+const PromptVersionPanel = dynamic(
+  () =>
+    import("@/components/prompts/prompt-version-panel").then(
+      (module) => module.PromptVersionPanel
+    ),
+  {
+    loading: () => (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">版本历史</CardTitle>
+          <CardDescription>正在加载版本面板...</CardDescription>
+        </CardHeader>
+      </Card>
+    ),
+  }
+)
+
 export default async function PromptDetailPage({
   params,
 }: {
@@ -146,6 +163,8 @@ export default async function PromptDetailPage({
           </div>
         </CardContent>
       </Card>
+
+      <PromptVersionPanel promptId={prompt.id} canManage={canEdit} />
     </div>
   )
 }

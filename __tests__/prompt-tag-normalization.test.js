@@ -17,7 +17,7 @@ test("normalizeTagNames trims, deduplicates and removes empty values", () => {
 
 test("prompt routes resolve tags by name to avoid duplicate-name write failures", () => {
   assert.match(createPromptRouteSource, /normalizeTagNames\(tags\)/)
-  assert.match(createPromptRouteSource, /findOrCreateTagByName\(tagName\)/)
+  assert.match(createPromptRouteSource, /findOrCreateTagByNameWithClient\(tx, tagName\)/)
   assert.match(updatePromptRouteSource, /normalizeTagNames\(tags\)/)
-  assert.match(updatePromptRouteSource, /findOrCreateTagByName\(tagName\)/)
+  assert.match(updatePromptRouteSource, /findOrCreateTagByNameWithClient\(tx, tagName\)/)
 })

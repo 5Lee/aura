@@ -4,17 +4,10 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { recordPromptAuditLog } from "@/lib/prompt-audit-log"
-
-interface TemplateVariablePayload {
-  name: string
-  type?: string
-  required?: boolean
-  defaultValue?: string
-  description?: string
-  options?: string[]
-  minLength?: number
-  maxLength?: number
-}
+import {
+  replacePromptTemplateVariablesWithClient,
+  sanitizeTemplateVariables,
+} from "@/lib/prompt-template-variable-utils"
 
 async function ensurePromptOwner(promptId: string, userId: string) {
   const prompt = await prisma.prompt.findUnique({
@@ -65,38 +58,10 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ error: "变量格式不正确" }, { status: 400 })
     }
 
-    const sanitizedVariables = (variables as TemplateVariablePayload[])
-      .map((item) => ({
-        name: String(item.name || "").trim(),
-        type: String(item.type || "string"),
-        required: Boolean(item.required),
-        defaultValue: item.defaultValue?.toString() || null,
-        description: item.description?.toString() || null,
-        options: Array.isArray(item.options) ? item.options : undefined,
-        minLength:
-          typeof item.minLength === "number" && Number.isInteger(item.minLength)
-            ? item.minLength
-            : null,
-        maxLength:
-          typeof item.maxLength === "number" && Number.isInteger(item.maxLength)
-            ? item.maxLength
-            : null,
-      }))
-      .filter((item) => item.name)
+    const sanitizedVariables = sanitizeTemplateVariables(variables)
 
     await prisma.$transaction(async (tx) => {
-      await tx.promptTemplateVariable.deleteMany({
-        where: { promptId: params.id },
-      })
-
-      for (const variable of sanitizedVariables) {
-        await tx.promptTemplateVariable.create({
-          data: {
-            promptId: params.id,
-            ...variable,
-          },
-        })
-      }
+      await replacePromptTemplateVariablesWithClient(tx, params.id, sanitizedVariables)
     })
 
     await recordPromptAuditLog({

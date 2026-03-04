@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/toaster"
@@ -10,6 +11,17 @@ import { cn } from "@/lib/utils"
 interface Category {
   id: string
   name: string
+}
+
+interface PromptTemplateVariableForm {
+  name: string
+  type: "string" | "number" | "boolean" | "json"
+  required: boolean
+  defaultValue: string
+  description?: string
+  options?: string[]
+  minLength?: number
+  maxLength?: number
 }
 
 interface PromptFormProps {
@@ -22,19 +34,52 @@ interface PromptFormProps {
     categoryId: string
     isPublic: boolean
     tags: string
+    templateVariables?: PromptTemplateVariableForm[]
   }
+}
+
+const TEMPLATE_VARIABLE_PATTERN = /{{\s*([a-zA-Z0-9_.-]+)\s*}}/g
+
+function extractVariableNamesFromContent(content: string) {
+  const names = new Set<string>()
+  let match: RegExpExecArray | null
+
+  while ((match = TEMPLATE_VARIABLE_PATTERN.exec(content)) !== null) {
+    const name = match[1]?.trim()
+    if (name) {
+      names.add(name)
+    }
+  }
+
+  return Array.from(names)
+}
+
+function parseSampleInput(text: string) {
+  const trimmed = text.trim()
+  if (!trimmed) {
+    return {}
+  }
+  return JSON.parse(trimmed)
 }
 
 export function PromptForm({ categories, initialData }: PromptFormProps) {
   const router = useRouter()
   const { toast } = useToast()
   const isEditMode = Boolean(initialData)
+
   const [title, setTitle] = useState(initialData?.title || "")
   const [content, setContent] = useState(initialData?.content || "")
   const [description, setDescription] = useState(initialData?.description || "")
   const [categoryId, setCategoryId] = useState(initialData?.categoryId || "")
   const [isPublic, setIsPublic] = useState(initialData?.isPublic || false)
   const [tags, setTags] = useState(initialData?.tags || "")
+  const [templateVariables, setTemplateVariables] = useState<PromptTemplateVariableForm[]>(
+    initialData?.templateVariables || []
+  )
+  const [sampleInputText, setSampleInputText] = useState("{}")
+  const [renderPreview, setRenderPreview] = useState("")
+  const [previewError, setPreviewError] = useState("")
+  const [isRenderingPreview, setIsRenderingPreview] = useState(false)
   const [touched, setTouched] = useState({
     title: false,
     categoryId: false,
@@ -44,6 +89,35 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
+  const sampleInputStorageKey = useMemo(
+    () => `aura:prompt-template-sample:${initialData?.id || "new"}`,
+    [initialData?.id]
+  )
+
+  const normalizedTemplateVariables = useMemo(() => {
+    const seen = new Set<string>()
+
+    return templateVariables
+      .map((item) => ({
+        ...item,
+        name: item.name.trim(),
+        defaultValue: item.defaultValue || "",
+      }))
+      .filter((item) => {
+        if (!item.name) {
+          return false
+        }
+
+        const key = item.name.toLowerCase()
+        if (seen.has(key)) {
+          return false
+        }
+
+        seen.add(key)
+        return true
+      })
+  }, [templateVariables])
+
   const titleError = !title.trim() ? "请输入标题" : ""
   const categoryError = !categoryId ? "请选择分类" : ""
   const contentError = !content.trim() ? "请输入提示词内容" : ""
@@ -52,6 +126,163 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
   const shouldShowTitleError = (touched.title || hasSubmitted) && Boolean(titleError)
   const shouldShowCategoryError = (touched.categoryId || hasSubmitted) && Boolean(categoryError)
   const shouldShowContentError = (touched.content || hasSubmitted) && Boolean(contentError)
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    const cached = window.localStorage.getItem(sampleInputStorageKey)
+    if (cached) {
+      setSampleInputText(cached)
+      return
+    }
+
+    setSampleInputText("{}")
+  }, [sampleInputStorageKey])
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    window.localStorage.setItem(sampleInputStorageKey, sampleInputText)
+  }, [sampleInputStorageKey, sampleInputText])
+
+  const handleTemplateVariableChange = <K extends keyof PromptTemplateVariableForm>(
+    index: number,
+    key: K,
+    value: PromptTemplateVariableForm[K]
+  ) => {
+    setTemplateVariables((prev) => {
+      const next = [...prev]
+      next[index] = {
+        ...next[index],
+        [key]: value,
+      }
+      return next
+    })
+  }
+
+  const removeTemplateVariable = (index: number) => {
+    setTemplateVariables((prev) => prev.filter((_, itemIndex) => itemIndex !== index))
+  }
+
+  const handleRenderPreview = useCallback(async (silent = false) => {
+    setIsRenderingPreview(true)
+    setPreviewError("")
+
+    try {
+      const parsedInput = parseSampleInput(sampleInputText)
+      const response = await fetch("/api/prompts/render", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          template: content,
+          input: parsedInput,
+          variables: normalizedTemplateVariables,
+        }),
+      })
+
+      const payload = await response.json()
+      if (!response.ok) {
+        const message = payload?.details?.join("；") || payload?.error || "模板渲染失败"
+        setPreviewError(message)
+        if (!silent) {
+          toast({
+            type: "error",
+            title: "渲染失败",
+            description: message,
+          })
+        }
+        return
+      }
+
+      setRenderPreview(payload.rendered || "")
+      if (!silent) {
+        toast({
+          type: "success",
+          title: "渲染成功",
+          description: "已更新模板预览结果。",
+        })
+      }
+    } catch (previewError) {
+      const message = previewError instanceof Error ? previewError.message : "模板渲染失败"
+      setPreviewError(message)
+      if (!silent) {
+        toast({
+          type: "error",
+          title: "渲染失败",
+          description: message,
+        })
+      }
+    } finally {
+      setIsRenderingPreview(false)
+    }
+  }, [content, normalizedTemplateVariables, sampleInputText, toast])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      if (!content.includes("{{")) {
+        setRenderPreview(content)
+        setPreviewError("")
+        return
+      }
+
+      void handleRenderPreview(true)
+    }, 500)
+
+    return () => window.clearTimeout(timer)
+  }, [content, handleRenderPreview])
+
+  const addTemplateVariable = () => {
+    setTemplateVariables((prev) => [
+      ...prev,
+      {
+        name: "",
+        type: "string",
+        required: false,
+        defaultValue: "",
+      },
+    ])
+  }
+
+  const syncVariablesFromContent = () => {
+    const detected = extractVariableNamesFromContent(content)
+    if (detected.length === 0) {
+      toast({
+        type: "info",
+        title: "未检测到变量",
+        description: "当前内容中没有 {{variable}} 占位符。",
+      })
+      return
+    }
+
+    setTemplateVariables((prev) => {
+      const map = new Map(prev.map((item) => [item.name.trim().toLowerCase(), item]))
+      const next = [...prev]
+
+      for (const variableName of detected) {
+        const key = variableName.toLowerCase()
+        if (!map.has(key)) {
+          next.push({
+            name: variableName,
+            type: "string",
+            required: true,
+            defaultValue: "",
+          })
+        }
+      }
+
+      return next
+    })
+
+    toast({
+      type: "success",
+      title: "变量已同步",
+      description: `已从模板内容同步 ${detected.length} 个变量。`,
+    })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,10 +297,7 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
     setIsLoading(true)
 
     try {
-      const url = isEditMode
-        ? `/api/prompts/${initialData!.id}`
-        : "/api/prompts"
-
+      const url = isEditMode ? `/api/prompts/${initialData!.id}` : "/api/prompts"
       const method = isEditMode ? "PATCH" : "POST"
 
       const response = await fetch(url, {
@@ -81,7 +309,11 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
           description: description.trim(),
           categoryId,
           isPublic,
-          tags: tags.split(",").map(t => t.trim()).filter(Boolean),
+          tags: tags
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean),
+          templateVariables: normalizedTemplateVariables,
         }),
       })
 
@@ -102,9 +334,10 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
         title: isEditMode ? "更新成功" : "创建成功",
         description: isEditMode ? "提示词已更新。" : "提示词已添加到你的列表。",
       })
-      router.push("/prompts")
+
+      router.push(`/prompts${data.id ? `/${data.id}` : ""}`)
       router.refresh()
-    } catch (error) {
+    } catch (submitError) {
       setError("保存失败，请重试")
       toast({
         type: "error",
@@ -119,21 +352,21 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
   return (
     <form onSubmit={handleSubmit} className="w-full space-y-6">
       {error && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {error}
         </div>
       )}
 
       <div className="space-y-4">
         <div>
-          <label htmlFor="title" className="block text-sm font-medium mb-2">
+          <label htmlFor="title" className="mb-2 block text-sm font-medium">
             标题 <span className="text-red-500">*</span>
           </label>
           <Input
             id="title"
             value={title}
-            onChange={(e) => {
-              setTitle(e.target.value)
+            onChange={(event) => {
+              setTitle(event.target.value)
               setTouched((prev) => ({ ...prev, title: true }))
               setError("")
             }}
@@ -153,14 +386,14 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
         </div>
 
         <div>
-          <label htmlFor="category" className="block text-sm font-medium mb-2">
+          <label htmlFor="category" className="mb-2 block text-sm font-medium">
             分类 <span className="text-red-500">*</span>
           </label>
           <select
             id="category"
             value={categoryId}
-            onChange={(e) => {
-              setCategoryId(e.target.value)
+            onChange={(event) => {
+              setCategoryId(event.target.value)
               setTouched((prev) => ({ ...prev, categoryId: true }))
               setError("")
             }}
@@ -175,9 +408,9 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
             disabled={isLoading}
           >
             <option value="">选择分类</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
               </option>
             ))}
           </select>
@@ -189,27 +422,27 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium mb-2">
+          <label htmlFor="description" className="mb-2 block text-sm font-medium">
             描述
           </label>
           <Input
             id="description"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(event) => setDescription(event.target.value)}
             placeholder="简要描述这个提示词的用途"
             disabled={isLoading}
           />
         </div>
 
         <div>
-          <label htmlFor="content" className="block text-sm font-medium mb-2">
+          <label htmlFor="content" className="mb-2 block text-sm font-medium">
             提示词内容 <span className="text-red-500">*</span>
           </label>
           <textarea
             id="content"
             value={content}
-            onChange={(e) => {
-              setContent(e.target.value)
+            onChange={(event) => {
+              setContent(event.target.value)
               setTouched((prev) => ({ ...prev, content: true }))
               setError("")
             }}
@@ -233,16 +466,143 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
         </div>
 
         <div>
-          <label htmlFor="tags" className="block text-sm font-medium mb-2">
+          <label htmlFor="tags" className="mb-2 block text-sm font-medium">
             标签
           </label>
           <Input
             id="tags"
             value={tags}
-            onChange={(e) => setTags(e.target.value)}
+            onChange={(event) => setTags(event.target.value)}
             placeholder="用逗号分隔，如: GPT-4, 创意写作, 助手"
             disabled={isLoading}
           />
+        </div>
+
+        <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold">模板变量</h3>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={syncVariablesFromContent}>
+                从内容提取变量
+              </Button>
+              <Button type="button" variant="outline" size="sm" onClick={addTemplateVariable}>
+                添加变量
+              </Button>
+            </div>
+          </div>
+
+          {templateVariables.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              暂无模板变量。你可以在内容中使用 <code>{"{{variable}}"}</code> 后点击“从内容提取变量”。
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {templateVariables.map((item, index) => (
+                <div
+                  key={`${item.name || "var"}-${index}`}
+                  className="grid gap-2 rounded-md border border-border bg-background p-2 sm:grid-cols-[1.3fr_0.9fr_0.9fr_0.9fr_auto]"
+                >
+                  <Input
+                    aria-label={`变量名-${index}`}
+                    value={item.name}
+                    onChange={(event) =>
+                      handleTemplateVariableChange(index, "name", event.target.value)
+                    }
+                    placeholder="变量名"
+                    disabled={isLoading}
+                  />
+                  <select
+                    aria-label={`变量类型-${index}`}
+                    value={item.type}
+                    onChange={(event) =>
+                      handleTemplateVariableChange(
+                        index,
+                        "type",
+                        event.target.value as PromptTemplateVariableForm["type"]
+                      )
+                    }
+                    className="h-10 rounded-md border border-input bg-background px-2 text-sm"
+                    disabled={isLoading}
+                  >
+                    <option value="string">string</option>
+                    <option value="number">number</option>
+                    <option value="boolean">boolean</option>
+                    <option value="json">json</option>
+                  </select>
+                  <Input
+                    aria-label={`默认值-${index}`}
+                    value={item.defaultValue}
+                    onChange={(event) =>
+                      handleTemplateVariableChange(index, "defaultValue", event.target.value)
+                    }
+                    placeholder="默认值"
+                    disabled={isLoading}
+                  />
+                  <label className="flex h-10 items-center gap-2 rounded-md border border-input px-2 text-xs sm:text-sm">
+                    <input
+                      type="checkbox"
+                      checked={item.required}
+                      onChange={(event) =>
+                        handleTemplateVariableChange(index, "required", event.target.checked)
+                      }
+                      disabled={isLoading}
+                    />
+                    必填
+                  </label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeTemplateVariable(index)}
+                    disabled={isLoading}
+                  >
+                    删除
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold">模板渲染预览</h3>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => void handleRenderPreview(false)}
+              disabled={isLoading || isRenderingPreview}
+            >
+              {isRenderingPreview ? "渲染中..." : "立即预览"}
+            </Button>
+          </div>
+
+          <div>
+            <label htmlFor="template-sample-input" className="mb-2 block text-sm font-medium">
+              变量样例输入（JSON，自动保存）
+            </label>
+            <textarea
+              id="template-sample-input"
+              value={sampleInputText}
+              onChange={(event) => setSampleInputText(event.target.value)}
+              rows={5}
+              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              placeholder='{"topic":"代码审查","tone":"专业"}'
+              disabled={isLoading}
+            />
+          </div>
+
+          {previewError ? (
+            <p className="text-sm text-red-600 dark:text-red-400">{previewError}</p>
+          ) : null}
+
+          <div>
+            <p className="mb-2 text-sm font-medium">渲染结果</p>
+            <div className="max-h-56 overflow-auto whitespace-pre-wrap rounded-md border border-border bg-background p-3 text-sm text-foreground">
+              {renderPreview || "暂无渲染结果"}
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -250,7 +610,7 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
             type="checkbox"
             id="isPublic"
             checked={isPublic}
-            onChange={(e) => setIsPublic(e.target.checked)}
+            onChange={(event) => setIsPublic(event.target.checked)}
             className="h-4 w-4 rounded border-input"
             disabled={isLoading}
           />

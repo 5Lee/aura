@@ -28,7 +28,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
       return NextResponse.json({ error: "无权限回滚此提示词" }, { status: 403 })
     }
 
-    const { version, versionId, reason } = await request.json()
+    const { version, versionId, reason, confirmHighRisk } = await request.json()
     const versionWhere =
       typeof versionId === "string" && versionId
         ? { id: versionId, promptId: params.id }
@@ -39,6 +39,20 @@ export async function POST(request: Request, { params }: { params: { id: string 
     })
     if (!targetVersion) {
       return NextResponse.json({ error: "目标版本不存在" }, { status: 404 })
+    }
+
+    const latestVersion = await prisma.promptVersion.findFirst({
+      where: { promptId: params.id },
+      orderBy: { version: "desc" },
+      select: { version: true },
+    })
+    const rollbackDistance = Math.max(0, (latestVersion?.version ?? targetVersion.version) - targetVersion.version)
+    const isHighRiskRollback = rollbackDistance >= 3
+    if (isHighRiskRollback && confirmHighRisk !== true) {
+      return NextResponse.json(
+        { error: "高风险回滚需要二次确认" },
+        { status: 400 }
+      )
     }
 
     const tags = normalizeTagNames(Array.isArray(targetVersion.tags) ? targetVersion.tags : [])
@@ -86,6 +100,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
       action: "prompt.rollback",
       metadata: {
         toVersion: targetVersion.version,
+        highRiskRollback: isHighRiskRollback,
         reason: reason || null,
       },
     })

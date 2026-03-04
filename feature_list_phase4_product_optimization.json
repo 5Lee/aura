@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "last_updated": "2026-03-04",
     "total_features": 20,
-    "completed_features": 4
+    "completed_features": 8
   },
   "features": [
     {
@@ -76,7 +76,7 @@
         "提供版本注释与关键变更高亮",
         "使用 Playwright 验证历史浏览与差异展示可用性"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase4-week2-002",
@@ -90,7 +90,7 @@
         "为高风险回滚增加二次确认与权限校验",
         "覆盖回滚成功、回滚冲突、权限拒绝等测试场景"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase4-week2-003",
@@ -104,7 +104,7 @@
         "增加渲染错误提示与可定位字段反馈",
         "验证桌面与移动端编辑体验一致性"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase4-week2-004",
@@ -118,7 +118,7 @@
         "优化空结果态、加载态与筛选重置交互",
         "通过 E2E 验证复杂筛选条件组合结果准确性"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase4-week3-001",
