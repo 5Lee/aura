@@ -12,6 +12,17 @@ import { cn } from "@/lib/utils"
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+type SsoRuntimeState = {
+  enabled: boolean
+  enforceSso: boolean
+  allowLocalFallback: boolean
+  provider: {
+    id: string
+    type: string
+    name: string
+  } | null
+}
+
 export default function RegisterPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -30,6 +41,12 @@ export default function RegisterPage() {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [brandConfig, setBrandConfig] = useState<BrandConfig>(DEFAULT_BRAND_CONFIG)
+  const [ssoRuntime, setSsoRuntime] = useState<SsoRuntimeState>({
+    enabled: false,
+    enforceSso: false,
+    allowLocalFallback: true,
+    provider: null,
+  })
   const tenant = searchParams.get("tenant")?.trim() || ""
 
   const normalizedName = name.trim()
@@ -92,6 +109,32 @@ export default function RegisterPage() {
     void loadBranding()
   }, [tenant])
 
+  useEffect(() => {
+    const loadSsoRuntime = async () => {
+      try {
+        const query = tenant ? `?tenant=${encodeURIComponent(tenant)}` : ""
+        const response = await fetch(`/api/sso/runtime${query}`)
+        if (!response.ok) {
+          return
+        }
+        const payload = await response.json()
+        setSsoRuntime({
+          enabled: Boolean(payload?.enabled),
+          enforceSso: Boolean(payload?.enforceSso),
+          allowLocalFallback:
+            typeof payload?.allowLocalFallback === "boolean"
+              ? payload.allowLocalFallback
+              : true,
+          provider: payload?.provider || null,
+        })
+      } catch (error) {
+        console.error("Load sso runtime failed:", error)
+      }
+    }
+
+    void loadSsoRuntime()
+  }, [tenant])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -107,6 +150,17 @@ export default function RegisterPage() {
       return
     }
 
+    if (ssoRuntime.enabled && ssoRuntime.enforceSso && !ssoRuntime.allowLocalFallback) {
+      const message = "当前企业已启用强制 SSO，请使用企业单点登录完成注册。"
+      setError(message)
+      toast({
+        type: "info",
+        title: "请使用 SSO 注册",
+        description: message,
+      })
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -117,6 +171,7 @@ export default function RegisterPage() {
           name: normalizedName,
           email: normalizedEmail,
           password,
+          tenant,
         }),
       })
 
@@ -178,6 +233,26 @@ export default function RegisterPage() {
         </CardHeader>
         <form onSubmit={handleSubmit} className="w-full">
           <CardContent className="space-y-4">
+            {ssoRuntime.enabled ? (
+              <div className="rounded-lg border border-blue-200 bg-blue-50/60 p-3 text-sm text-blue-700">
+                <p className="font-medium">企业单点登录已启用：{ssoRuntime.provider?.name || "SSO"}</p>
+                <p className="mt-1 text-xs">
+                  {ssoRuntime.enforceSso && !ssoRuntime.allowLocalFallback
+                    ? "当前租户强制 SSO 注册，本地账号注册已禁用。"
+                    : "你可以先完成本地注册，也可以使用企业 SSO。"}
+                </p>
+                <Button asChild variant="outline" size="sm" className="mt-2">
+                  <a
+                    href={`/api/sso/login?${new URLSearchParams({
+                      ...(tenant ? { tenant } : {}),
+                      callbackUrl: "/dashboard",
+                    }).toString()}`}
+                  >
+                    使用企业 SSO
+                  </a>
+                </Button>
+              </div>
+            ) : null}
             {error && (
               <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
                 {error}

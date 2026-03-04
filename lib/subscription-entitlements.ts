@@ -16,6 +16,7 @@ const PAID_ACCESS_STATUSES = new Set<SubscriptionStatus>([
 ])
 
 const ADVANCED_ANALYTICS_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
+const ENTERPRISE_SSO_PLANS = new Set<SubscriptionPlanId>(["enterprise"])
 
 function resolveEffectivePlanId(rawPlanId: string | null, status: SubscriptionStatus | null) {
   if (!rawPlanId || !isSubscriptionPlanId(rawPlanId)) {
@@ -91,6 +92,13 @@ export function hasAdvancedAnalyticsAccess(planId: string) {
     return false
   }
   return ADVANCED_ANALYTICS_PLANS.has(planId)
+}
+
+export function hasEnterpriseSsoAccess(planId: string) {
+  if (!isSubscriptionPlanId(planId)) {
+    return false
+  }
+  return ENTERPRISE_SSO_PLANS.has(planId)
 }
 
 export function getPlanLimitHint(plan: SubscriptionPlan, key: keyof SubscriptionPlan["limits"]) {

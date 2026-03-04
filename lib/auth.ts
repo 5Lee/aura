@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "./db"
 import { verifyUserCredentials } from "./auth-credentials"
+import { getCredentialGuardForEmail } from "./sso-server"
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
@@ -22,6 +23,11 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("请输入邮箱和密码")
+        }
+
+        const credentialGuard = await getCredentialGuardForEmail(credentials.email)
+        if (!credentialGuard.allowed) {
+          throw new Error(credentialGuard.reason || "当前企业已启用强制 SSO，请使用企业单点登录。")
         }
 
         const user = await verifyUserCredentials(credentials.email, credentials.password)

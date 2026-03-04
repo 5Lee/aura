@@ -1,10 +1,16 @@
 import * as bcrypt from "bcryptjs"
 
 import { prisma } from "@/lib/db"
+import { getCredentialGuardForEmail } from "@/lib/sso-server"
 
 export async function verifyUserCredentials(email: string, password: string) {
   const normalizedEmail = email.trim()
   if (!normalizedEmail || !password) {
+    return null
+  }
+
+  const guard = await getCredentialGuardForEmail(normalizedEmail)
+  if (!guard.allowed) {
     return null
   }
 

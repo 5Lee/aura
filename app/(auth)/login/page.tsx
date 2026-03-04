@@ -13,6 +13,17 @@ import { cn } from "@/lib/utils"
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+type SsoRuntimeState = {
+  enabled: boolean
+  enforceSso: boolean
+  allowLocalFallback: boolean
+  provider: {
+    id: string
+    type: string
+    name: string
+  } | null
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -25,6 +36,12 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [brandConfig, setBrandConfig] = useState<BrandConfig>(DEFAULT_BRAND_CONFIG)
+  const [ssoRuntime, setSsoRuntime] = useState<SsoRuntimeState>({
+    enabled: false,
+    enforceSso: false,
+    allowLocalFallback: true,
+    provider: null,
+  })
   const callbackUrl = searchParams.get("callbackUrl")
   const tenant = searchParams.get("tenant")?.trim() || ""
   const safeCallbackUrl = callbackUrl?.startsWith("/") ? callbackUrl : "/dashboard"
@@ -85,11 +102,48 @@ export default function LoginPage() {
     void loadBranding()
   }, [tenant])
 
+  useEffect(() => {
+    const loadSsoRuntime = async () => {
+      try {
+        const query = tenant ? `?tenant=${encodeURIComponent(tenant)}` : ""
+        const response = await fetch(`/api/sso/runtime${query}`)
+        if (!response.ok) {
+          return
+        }
+        const payload = await response.json()
+        setSsoRuntime({
+          enabled: Boolean(payload?.enabled),
+          enforceSso: Boolean(payload?.enforceSso),
+          allowLocalFallback:
+            typeof payload?.allowLocalFallback === "boolean"
+              ? payload.allowLocalFallback
+              : true,
+          provider: payload?.provider || null,
+        })
+      } catch (error) {
+        console.error("Load sso runtime failed:", error)
+      }
+    }
+
+    void loadSsoRuntime()
+  }, [tenant])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setHasSubmitted(true)
     setTouched({ email: true, password: true })
+
+    if (ssoRuntime.enabled && ssoRuntime.enforceSso && !ssoRuntime.allowLocalFallback) {
+      const message = "当前企业已启用强制 SSO，请使用企业单点登录。"
+      setError(message)
+      toast({
+        type: "info",
+        title: "请使用 SSO 登录",
+        description: message,
+      })
+      return
+    }
 
     if (emailError || passwordError) {
       return
@@ -104,6 +158,7 @@ export default function LoginPage() {
         body: JSON.stringify({
           email: normalizedEmail,
           password,
+          tenant,
         }),
       })
 
@@ -190,6 +245,31 @@ export default function LoginPage() {
         </CardHeader>
         <form onSubmit={handleSubmit} noValidate className="w-full">
           <CardContent className="space-y-4">
+            {ssoRuntime.enabled ? (
+              <div className="rounded-lg border border-blue-200 bg-blue-50/60 p-3 text-sm text-blue-700">
+                <p className="font-medium">企业单点登录已启用：{ssoRuntime.provider?.name || "SSO"}</p>
+                <p className="mt-1 text-xs">
+                  {ssoRuntime.enforceSso && !ssoRuntime.allowLocalFallback
+                    ? "当前租户强制 SSO 登录，密码登录已禁用。"
+                    : "你可以使用企业 SSO 登录，也可继续使用本地账号。"}
+                </p>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                >
+                  <a
+                    href={`/api/sso/login?${new URLSearchParams({
+                      ...(tenant ? { tenant } : {}),
+                      callbackUrl: safeCallbackUrl,
+                    }).toString()}`}
+                  >
+                    使用企业 SSO 登录
+                  </a>
+                </Button>
+              </div>
+            ) : null}
             {error && (
               <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
                 {error}
@@ -253,6 +333,7 @@ export default function LoginPage() {
               type="submit"
               className="w-full"
               style={{ backgroundColor: brandConfig.primaryColor }}
+              aria-disabled={isLoading || (ssoRuntime.enabled && ssoRuntime.enforceSso && !ssoRuntime.allowLocalFallback)}
               disabled={isLoading}
             >
               {isLoading ? "登录中..." : "登录"}

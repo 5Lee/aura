@@ -35,6 +35,10 @@ model User {
   brandProfile           BrandProfile?
   slaSnapshots           SlaSnapshot[]
   slaAlerts              SlaAlert[]
+  ssoProviders           SsoProvider[]
+  userIdentities         UserIdentity[]
+  directorySyncRuns      DirectorySyncRun[]
+  identityConflicts      IdentityConflict[]   @relation("IdentityConflictExistingUser")
 }
 
 model Prompt {
@@ -181,6 +185,33 @@ enum SlaMetricType {
 enum SlaAlertStatus {
   OPEN
   RECOVERED
+}
+
+enum SsoProviderType {
+  OIDC
+  SAML
+}
+
+enum SsoProviderStatus {
+  DISABLED
+  ACTIVE
+}
+
+enum IdentitySource {
+  LOCAL
+  OIDC
+  SAML
+}
+
+enum DirectorySyncStatus {
+  SUCCESS
+  PARTIAL
+  FAILED
+}
+
+enum IdentityConflictStatus {
+  OPEN
+  RESOLVED
 }
 
 model PromptVersion {
@@ -532,6 +563,105 @@ model SlaAlert {
   @@index([metric])
   @@index([status])
   @@index([triggeredAt])
+}
+
+model SsoProvider {
+  id                 String            @id @default(cuid())
+  userId             String
+  type               SsoProviderType   @default(OIDC)
+  status             SsoProviderStatus @default(DISABLED)
+  name               String
+  issuerUrl          String
+  ssoUrl             String?
+  clientId           String?
+  clientSecret       String?
+  domains            Json?
+  roleMapping        Json?
+  defaultRole        String            @default("VIEWER")
+  enforceSso         Boolean           @default(false)
+  allowLocalFallback Boolean           @default(true)
+  metadata           Json?
+  lastSyncedAt       DateTime?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  identities         UserIdentity[]
+  syncRuns           DirectorySyncRun[]
+  conflicts          IdentityConflict[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+}
+
+model UserIdentity {
+  id             String         @id @default(cuid())
+  userId         String
+  providerId     String?
+  source         IdentitySource @default(LOCAL)
+  externalUserId String
+  email          String
+  displayName    String?
+  role           String         @default("VIEWER")
+  metadata       Json?
+  lastLoginAt    DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider       SsoProvider?   @relation(fields: [providerId], references: [id], onDelete: SetNull)
+
+  @@unique([source, externalUserId])
+  @@index([userId])
+  @@index([providerId])
+  @@index([email])
+}
+
+model DirectorySyncRun {
+  id           String              @id @default(cuid())
+  providerId   String
+  actorId      String
+  status       DirectorySyncStatus @default(SUCCESS)
+  summary      String?             @db.Text
+  totalUsers   Int                 @default(0)
+  createdUsers Int                 @default(0)
+  linkedUsers  Int                 @default(0)
+  conflictCount Int                @default(0)
+  startedAt    DateTime            @default(now())
+  finishedAt   DateTime?
+  metadata     Json?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  provider     SsoProvider         @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  actor        User                @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  conflicts    IdentityConflict[]
+
+  @@index([providerId])
+  @@index([actorId])
+  @@index([status])
+  @@index([startedAt])
+}
+
+model IdentityConflict {
+  id             String                 @id @default(cuid())
+  providerId     String
+  syncRunId      String?
+  externalUserId String
+  incomingEmail  String
+  incomingName   String?
+  existingUserId String
+  reason         String                 @db.Text
+  status         IdentityConflictStatus @default(OPEN)
+  metadata       Json?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  provider       SsoProvider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  syncRun        DirectorySyncRun?      @relation(fields: [syncRunId], references: [id], onDelete: SetNull)
+  existingUser   User                   @relation("IdentityConflictExistingUser", fields: [existingUserId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@index([syncRunId])
+  @@index([existingUserId])
+  @@index([status])
 }
 
 model Category {

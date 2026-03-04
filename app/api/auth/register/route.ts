@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import * as bcrypt from "bcryptjs"
+import { getSsoRuntimePolicy } from "@/lib/sso-server"
+import { sanitizeTextInput } from "@/lib/security"
 
 export async function POST(request: Request) {
   try {
-    const { name, email, password } = await request.json()
+    const { name, email, password, tenant } = await request.json()
+    const normalizedEmail = sanitizeTextInput(email, 160).toLowerCase()
+    const tenantDomain = sanitizeTextInput(tenant, 120).toLowerCase()
 
     // Validate input
-    if (!email || !password) {
+    if (!normalizedEmail || !password) {
       return NextResponse.json(
         { error: "邮箱和密码不能为空" },
         { status: 400 }
@@ -21,9 +25,19 @@ export async function POST(request: Request) {
       )
     }
 
+    if (tenantDomain) {
+      const runtime = await getSsoRuntimePolicy({ tenantDomain })
+      if (runtime.enabled && runtime.enforceSso && !runtime.allowLocalFallback) {
+        return NextResponse.json(
+          { error: "当前企业已启用强制 SSO，请使用企业单点登录完成注册。" },
+          { status: 403 }
+        )
+      }
+    }
+
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     })
 
     if (existingUser) {
@@ -39,8 +53,8 @@ export async function POST(request: Request) {
     // Create user
     const user = await prisma.user.create({
       data: {
-        name: name || null,
-        email,
+        name: sanitizeTextInput(name, 80) || null,
+        email: normalizedEmail,
         password: hashedPassword,
       },
     })
