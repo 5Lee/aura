@@ -3207,3 +3207,52 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase5-week18-support-tickets.test.js`
 
 **Status**: ✅ WEEK18-002 COMPLETE（继续推进 week18-003 品牌定制能力）
+
+### 2026-03-04 - Phase 5 Week 18 Step 3 Brand Customization (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase5-week18-003` 完成品牌定制能力（品牌草稿/发布、登录页品牌化、邮件模板品牌化、租户域名隔离）
+
+**Major Changes**:
+- 品牌配置数据模型扩展：
+  - `prisma/schema.prisma`
+  - 新增 `BrandProfile` 模型与 `BrandConfigStatus` 枚举，支持草稿与发布配置共存
+- 品牌核心能力封装：
+  - `lib/branding.ts`
+  - 实现品牌配置清洗/合并、运行态提取、主题变量构建与品牌化邮件模板渲染
+- 品牌 API 落地：
+  - `app/api/branding/route.ts`
+  - `app/api/branding/publish/route.ts`
+  - `app/api/branding/runtime/route.ts`
+  - `app/api/branding/email-template/route.ts`
+  - 支持草稿保存、发布生效、租户域名冲突校验、登录/注册运行时配置拉取与邮件 HTML 预览
+- 品牌中心页面与交互：
+  - `app/(dashboard)/branding/page.tsx`
+  - `components/branding/brand-customization-panel.tsx`
+  - 提供 Logo/主题色/域名/副标题/签名编辑，支持保存草稿、发布、登录页预览与邮件模板生成
+- 认证页面品牌化：
+  - `app/(auth)/login/page.tsx`
+  - `app/(auth)/register/page.tsx`
+  - 登录与注册页面支持按 `tenant` 查询参数加载品牌运行态配置并应用视觉样式
+- 导航与访问保护补齐：
+  - `components/layout/navbar.tsx`
+  - `components/layout/mobile-page-header.tsx`
+  - `middleware.ts`
+  - 新增 `/branding` 入口，并将 `/branding/:path*` 纳入登录保护
+- Phase5 任务推进：
+  - `feature_list_phase5_commercialization.json`
+  - 标记 `phase5-week18-003` 完成，`completed_features` 更新为 `7`
+
+**Verification**:
+- `npm run db:generate` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅（存在 `no-img-element` 警告，不影响通过）
+- `npm test -- --runInBand` ✅
+- `npm run feature:meta:check -- feature_list_phase5_commercialization.json` ✅
+
+**New Tests**:
+- `__tests__/phase5-week18-brand-customization.test.js`
+
+**Status**: ✅ WEEK18-003 COMPLETE（继续推进 week18-004 SLA 监控与告警）

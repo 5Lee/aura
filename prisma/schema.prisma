@@ -32,6 +32,7 @@ model User {
   supportTickets         SupportTicket[]      @relation("SupportTicketRequester")
   assignedSupportTickets SupportTicket[]      @relation("SupportTicketAssignee")
   supportTicketEvents    SupportTicketEvent[]
+  brandProfile           BrandProfile?
 }
 
 model Prompt {
@@ -162,6 +163,11 @@ enum SupportTicketTier {
   STANDARD
   PRIORITY
   DEDICATED
+}
+
+enum BrandConfigStatus {
+  DRAFT
+  PUBLISHED
 }
 
 model PromptVersion {
@@ -458,6 +464,20 @@ model SupportTicketEvent {
   @@index([actorId])
   @@index([action])
   @@index([createdAt])
+}
+
+model BrandProfile {
+  id              String           @id @default(cuid())
+  userId          String           @unique
+  status          BrandConfigStatus @default(DRAFT)
+  draftConfig     Json?
+  publishedConfig Json?
+  publishedAt     DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
 }
 
 model Category {

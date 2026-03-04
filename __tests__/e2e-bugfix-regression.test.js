@@ -29,6 +29,7 @@ test("protected pages redirect from middleware before dashboard shell renders", 
   assert.match(middlewareSource, /"\/collections\/:path\*"/)
   assert.match(middlewareSource, /"\/billing\/:path\*"/)
   assert.match(middlewareSource, /"\/support\/:path\*"/)
+  assert.match(middlewareSource, /"\/branding\/:path\*"/)
   assert.match(middlewareSource, /loginUrl\.searchParams\.set\("callbackUrl", callbackUrl\)/)
 })
 

@@ -1,18 +1,20 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/components/ui/toaster"
+import { DEFAULT_BRAND_CONFIG, type BrandConfig } from "@/lib/branding"
 import { cn } from "@/lib/utils"
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function RegisterPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -27,6 +29,8 @@ export default function RegisterPage() {
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [brandConfig, setBrandConfig] = useState<BrandConfig>(DEFAULT_BRAND_CONFIG)
+  const tenant = searchParams.get("tenant")?.trim() || ""
 
   const normalizedName = name.trim()
   const normalizedEmail = email.trim()
@@ -64,6 +68,29 @@ export default function RegisterPage() {
   const shouldShowPasswordError = (touched.password || hasSubmitted) && Boolean(passwordError)
   const shouldShowConfirmPasswordError =
     (touched.confirmPassword || hasSubmitted) && Boolean(confirmPasswordError)
+
+  useEffect(() => {
+    const loadBranding = async () => {
+      try {
+        const query = tenant ? `?tenant=${encodeURIComponent(tenant)}` : ""
+        const response = await fetch(`/api/branding/runtime${query}`)
+        if (!response.ok) {
+          return
+        }
+        const payload = await response.json()
+        if (payload?.config) {
+          setBrandConfig({
+            ...DEFAULT_BRAND_CONFIG,
+            ...payload.config,
+          })
+        }
+      } catch (error) {
+        console.error("Load branding runtime failed:", error)
+      }
+    }
+
+    void loadBranding()
+  }, [tenant])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -124,12 +151,29 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen overflow-y-auto bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 py-6 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 sm:flex sm:items-center sm:justify-center sm:p-4">
-      <Card className="w-full max-w-md">
+    <div
+      className="min-h-screen overflow-y-auto px-4 py-6 sm:flex sm:items-center sm:justify-center sm:p-4"
+      style={{
+        background: `linear-gradient(135deg, ${brandConfig.primaryColor}18, #ffffff, ${brandConfig.secondaryColor}18)`,
+      }}
+    >
+      <Card className="w-full max-w-md border-white/60 bg-white/90 backdrop-blur">
         <CardHeader className="space-y-1">
+          <div className="flex flex-col items-center gap-2">
+            {brandConfig.logoUrl ? (
+              <img
+                src={brandConfig.logoUrl}
+                alt={`${brandConfig.brandName} logo`}
+                className="h-10 w-auto rounded-md object-contain"
+              />
+            ) : null}
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              {brandConfig.brandName}
+            </p>
+          </div>
           <CardTitle className="text-2xl font-bold text-center">创建账号</CardTitle>
           <CardDescription className="text-center">
-            注册你的 Aura 账号
+            {brandConfig.loginSubtitle}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit} className="w-full">
@@ -259,6 +303,7 @@ export default function RegisterPage() {
             <Button
               type="submit"
               className="w-full"
+              style={{ backgroundColor: brandConfig.primaryColor }}
               disabled={isLoading}
             >
               {isLoading ? "注册中..." : "注册"}

@@ -29,6 +29,10 @@ export function resolveMobileRouteMeta(pathname: string): MobileRouteMeta {
     return { title: "支持工单", showBackButton: false }
   }
 
+  if (pathname === "/branding") {
+    return { title: "品牌中心", showBackButton: false }
+  }
+
   if (pathname === "/prompts/new") {
     return { title: "新建提示词", showBackButton: true, backHref: "/prompts" }
   }

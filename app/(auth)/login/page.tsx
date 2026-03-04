@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/components/ui/toaster"
+import { DEFAULT_BRAND_CONFIG, type BrandConfig } from "@/lib/branding"
 import { cn } from "@/lib/utils"
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -23,7 +24,9 @@ export default function LoginPage() {
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [brandConfig, setBrandConfig] = useState<BrandConfig>(DEFAULT_BRAND_CONFIG)
   const callbackUrl = searchParams.get("callbackUrl")
+  const tenant = searchParams.get("tenant")?.trim() || ""
   const safeCallbackUrl = callbackUrl?.startsWith("/") ? callbackUrl : "/dashboard"
 
   const normalizedEmail = email.trim()
@@ -58,6 +61,29 @@ export default function LoginPage() {
     const nextUrl = nextParams.size > 0 ? `/login?${nextParams.toString()}` : "/login"
     router.replace(nextUrl)
   }, [router, searchParams, toast])
+
+  useEffect(() => {
+    const loadBranding = async () => {
+      try {
+        const query = tenant ? `?tenant=${encodeURIComponent(tenant)}` : ""
+        const response = await fetch(`/api/branding/runtime${query}`)
+        if (!response.ok) {
+          return
+        }
+        const payload = await response.json()
+        if (payload?.config) {
+          setBrandConfig({
+            ...DEFAULT_BRAND_CONFIG,
+            ...payload.config,
+          })
+        }
+      } catch (error) {
+        console.error("Load branding runtime failed:", error)
+      }
+    }
+
+    void loadBranding()
+  }, [tenant])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -137,12 +163,29 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen overflow-y-auto bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 py-6 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 sm:flex sm:items-center sm:justify-center sm:p-4">
-      <Card className="w-full max-w-md">
+    <div
+      className="min-h-screen overflow-y-auto px-4 py-6 sm:flex sm:items-center sm:justify-center sm:p-4"
+      style={{
+        background: `linear-gradient(135deg, ${brandConfig.primaryColor}18, #ffffff, ${brandConfig.secondaryColor}18)`,
+      }}
+    >
+      <Card className="w-full max-w-md border-white/60 bg-white/90 backdrop-blur">
         <CardHeader className="space-y-1">
+          <div className="flex flex-col items-center gap-2">
+            {brandConfig.logoUrl ? (
+              <img
+                src={brandConfig.logoUrl}
+                alt={`${brandConfig.brandName} logo`}
+                className="h-10 w-auto rounded-md object-contain"
+              />
+            ) : null}
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              {brandConfig.brandName}
+            </p>
+          </div>
           <CardTitle className="text-2xl font-bold text-center">欢迎回来</CardTitle>
           <CardDescription className="text-center">
-            登录你的 Aura 账号
+            {brandConfig.loginSubtitle}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit} noValidate className="w-full">
@@ -209,6 +252,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               className="w-full"
+              style={{ backgroundColor: brandConfig.primaryColor }}
               disabled={isLoading}
             >
               {isLoading ? "登录中..." : "登录"}
