@@ -3931,3 +3931,49 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase6-week22-connectors-catalog.test.js`
 
 **Status**: ✅ WEEK22-001 COMPLETE（继续推进 week22-002 工作流节点化编排）
+
+### 2026-03-05 - Phase 6 Week 22 Step 2 Prompt Flow Orchestration (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase6-week22-002` 完成工作流节点化编排（Prompt Flow）
+
+**Major Changes**:
+- Prompt Flow 数据模型扩展：
+  - `prisma/schema.prisma`
+  - 新增 `PromptFlowDefinition`、`PromptFlowRun` 及执行模式/运行状态枚举
+- Prompt Flow 核心能力：
+  - `lib/prompt-flow.ts`
+  - 提供节点/边/上下文变量清洗、串并行执行顺序解析、失败重试模拟、重放 Token 与幂等执行辅助
+- Prompt Flow API：
+  - `app/api/prompt-flow/route.ts`
+  - 支持工作流初始化与配置管理、执行日志记录、replayToken 幂等重放
+- 订阅门禁扩展：
+  - `lib/subscription-entitlements.ts`
+  - 新增 `hasPromptFlowAccess`
+- Prompt Flow 工作台：
+  - `app/(dashboard)/prompt-flow/page.tsx`
+  - `components/workflow/prompt-flow-panel.tsx`
+  - 支持节点/边结构编辑、串并行执行模式设置、失败重试策略配置、可视化草图与运行日志展示
+- 路由与导航：
+  - `components/layout/navbar.tsx`
+  - `components/layout/mobile-page-header.tsx`
+  - `middleware.ts`
+  - 新增 `/prompt-flow` 导航入口并纳入登录保护
+- Phase6 任务推进：
+  - `feature_list_phase6_growth_ecosystem.json`
+  - 标记 `phase6-week22-002` 完成，`completed_features` 更新为 `6`
+
+**Verification**:
+- `npm run db:generate` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅（存在 `no-img-element` 警告，不影响通过）
+- `npm test -- --runInBand __tests__/phase6-week22-prompt-flow.test.js` ✅
+- `npm test -- --runInBand` ✅
+- `npm run feature:meta:check -- feature_list_phase6_growth_ecosystem.json` ✅
+
+**New Tests**:
+- `__tests__/phase6-week22-prompt-flow.test.js`
+
+**Status**: ✅ WEEK22-002 COMPLETE（继续推进 week22-003 跨平台导入导出适配）

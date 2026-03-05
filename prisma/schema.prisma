@@ -50,6 +50,8 @@ model User {
   growthExperimentAlerts  GrowthExperimentAlert[]
   integrationConnectors   IntegrationConnector[]
   integrationHealthChecks IntegrationConnectorHealthCheck[]
+  promptFlows            PromptFlowDefinition[]
+  promptFlowRuns         PromptFlowRun[]
   supportTickets         SupportTicket[]      @relation("SupportTicketRequester")
   assignedSupportTickets SupportTicket[]      @relation("SupportTicketAssignee")
   supportTicketEvents    SupportTicketEvent[]
@@ -305,6 +307,24 @@ enum ConnectorCheckStatus {
   PASS
   WARN
   FAIL
+}
+
+enum PromptFlowStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum PromptFlowExecutionMode {
+  SERIAL
+  PARALLEL
+}
+
+enum PromptFlowRunStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
 }
 
 enum SupportTicketPriority {
@@ -1192,6 +1212,54 @@ model IntegrationConnectorHealthCheck {
   @@index([connectorId])
   @@index([status])
   @@index([checkAt])
+}
+
+model PromptFlowDefinition {
+  id                  String                   @id @default(cuid())
+  userId              String
+  name                String
+  description         String?                  @db.Text
+  status              PromptFlowStatus         @default(DRAFT)
+  executionMode       PromptFlowExecutionMode  @default(SERIAL)
+  nodes               Json
+  edges               Json
+  contextVariables    Json?
+  retryPolicy         Json?
+  version             Int                      @default(1)
+  lastPublishedAt     DateTime?
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+  user                User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  runs                PromptFlowRun[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([executionMode])
+}
+
+model PromptFlowRun {
+  id                  String                  @id @default(cuid())
+  userId              String
+  flowId              String
+  replayToken         String
+  status              PromptFlowRunStatus     @default(PENDING)
+  executionMode       PromptFlowExecutionMode
+  attempts            Int                     @default(0)
+  runLog              Json?
+  metrics             Json?
+  errorMessage        String?
+  startedAt           DateTime?
+  endedAt             DateTime?
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+  user                User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  flow                PromptFlowDefinition    @relation(fields: [flowId], references: [id], onDelete: Cascade)
+
+  @@unique([flowId, replayToken])
+  @@index([userId])
+  @@index([flowId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model SupportTicket {
