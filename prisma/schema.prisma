@@ -52,6 +52,8 @@ model User {
   integrationHealthChecks IntegrationConnectorHealthCheck[]
   promptFlows            PromptFlowDefinition[]
   promptFlowRuns         PromptFlowRun[]
+  promptInteropProfiles  PromptInteropProfile[]
+  promptInteropJobs      PromptInteropJob[]
   supportTickets         SupportTicket[]      @relation("SupportTicketRequester")
   assignedSupportTickets SupportTicket[]      @relation("SupportTicketAssignee")
   supportTicketEvents    SupportTicketEvent[]
@@ -324,6 +326,24 @@ enum PromptFlowRunStatus {
   PENDING
   RUNNING
   SUCCEEDED
+  FAILED
+}
+
+enum PromptInteropPlatform {
+  LANGFUSE
+  PROMPTFOO
+  OPENWEBUI
+}
+
+enum PromptInteropMode {
+  IMPORT
+  EXPORT
+}
+
+enum PromptInteropJobStatus {
+  PREVIEW
+  APPLIED
+  EXPORTED
   FAILED
 }
 
@@ -1258,6 +1278,52 @@ model PromptFlowRun {
   @@unique([flowId, replayToken])
   @@index([userId])
   @@index([flowId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PromptInteropProfile {
+  id                  String                @id @default(cuid())
+  userId              String
+  name                String
+  platform            PromptInteropPlatform
+  mode                PromptInteropMode
+  fieldMapping        Json
+  conflictPolicy      String                @default("skip")
+  compatibilityMode   String                @default("strict")
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobs                PromptInteropJob[]
+
+  @@unique([userId, platform, mode, name])
+  @@index([userId])
+  @@index([platform])
+  @@index([mode])
+}
+
+model PromptInteropJob {
+  id                  String                @id @default(cuid())
+  userId              String
+  profileId           String
+  platform            PromptInteropPlatform
+  mode                PromptInteropMode
+  status              PromptInteropJobStatus @default(PREVIEW)
+  payload             Json?
+  previewSummary      Json?
+  exportedPayload     Json?
+  appliedCount        Int                   @default(0)
+  skippedCount        Int                   @default(0)
+  conflictCount       Int                   @default(0)
+  errorMessage        String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile             PromptInteropProfile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([profileId])
+  @@index([platform])
   @@index([status])
   @@index([createdAt])
 }

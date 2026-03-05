@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "last_updated": "2026-03-05",
     "total_features": 16,
-    "completed_features": 6
+    "completed_features": 7
   },
   "features": [
     {
@@ -104,7 +104,7 @@
         "支持导出模板与兼容模式切换",
         "验证 round-trip 导入导出不丢字段"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase6-week22-004",

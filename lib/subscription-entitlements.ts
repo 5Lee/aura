@@ -25,6 +25,7 @@ const PARTNER_PROGRAM_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enter
 const GROWTH_LAB_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
 const CONNECTOR_CATALOG_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
 const PROMPT_FLOW_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
+const PROMPT_INTEROP_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
 
 function resolveEffectivePlanId(rawPlanId: string | null, status: SubscriptionStatus | null) {
   if (!rawPlanId || !isSubscriptionPlanId(rawPlanId)) {
@@ -163,6 +164,13 @@ export function hasPromptFlowAccess(planId: string) {
     return false
   }
   return PROMPT_FLOW_PLANS.has(planId)
+}
+
+export function hasPromptInteropAccess(planId: string) {
+  if (!isSubscriptionPlanId(planId)) {
+    return false
+  }
+  return PROMPT_INTEROP_PLANS.has(planId)
 }
 
 export function getPlanLimitHint(plan: SubscriptionPlan, key: keyof SubscriptionPlan["limits"]) {

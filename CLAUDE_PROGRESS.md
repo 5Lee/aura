@@ -3977,3 +3977,49 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase6-week22-prompt-flow.test.js`
 
 **Status**: ✅ WEEK22-002 COMPLETE（继续推进 week22-003 跨平台导入导出适配）
+
+### 2026-03-05 - Phase 6 Week 22 Step 3 Interoperability Adapters (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase6-week22-003` 完成跨平台导入导出适配（Langfuse / Promptfoo / OpenWebUI）
+
+**Major Changes**:
+- 互操作数据模型扩展：
+  - `prisma/schema.prisma`
+  - 新增 `PromptInteropProfile`、`PromptInteropJob` 与平台/模式/任务状态枚举
+- 互操作核心能力：
+  - `lib/prompt-interoperability.ts`
+  - 提供多源字段映射清洗、冲突策略归一化、导入预览、导出模板转换与 round-trip 一致性校验
+- 互操作 API：
+  - `app/api/interoperability/route.ts`
+  - 支持适配配置管理、批量导入预览、导入应用确认、导出任务与一致性检查
+- 订阅门禁扩展：
+  - `lib/subscription-entitlements.ts`
+  - 新增 `hasPromptInteropAccess`
+- 互操作工作台：
+  - `app/(dashboard)/interoperability/page.tsx`
+  - `components/interoperability/interoperability-panel.tsx`
+  - 支持字段映射配置、批量预览与差异确认、导出兼容模式切换与 round-trip 结果展示
+- 路由与导航：
+  - `components/layout/navbar.tsx`
+  - `components/layout/mobile-page-header.tsx`
+  - `middleware.ts`
+  - 新增 `/interoperability` 导航入口并纳入登录保护
+- Phase6 任务推进：
+  - `feature_list_phase6_growth_ecosystem.json`
+  - 标记 `phase6-week22-003` 完成，`completed_features` 更新为 `7`
+
+**Verification**:
+- `npm run db:generate` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅（存在 `no-img-element` 警告，不影响通过）
+- `npm test -- --runInBand __tests__/phase6-week22-interoperability.test.js` ✅
+- `npm test -- --runInBand` ✅
+- `npm run feature:meta:check -- feature_list_phase6_growth_ecosystem.json` ✅
+
+**New Tests**:
+- `__tests__/phase6-week22-interoperability.test.js`
+
+**Status**: ✅ WEEK22-003 COMPLETE（继续推进 week22-004 连接器与工作流审计治理）
