@@ -138,6 +138,7 @@ export function SlaMonitoringPanel({ planId, policy, snapshots, alerts }: SlaMon
           </Button>
 
           <select
+            aria-label="报表时间窗口"
             value={windowHours}
             onChange={(event) => setWindowHours(Number(event.target.value) || policy.reportWindowHours)}
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
@@ -150,6 +151,7 @@ export function SlaMonitoringPanel({ planId, policy, snapshots, alerts }: SlaMon
           </select>
 
           <select
+            aria-label="故障注入场景"
             value={scenario}
             onChange={(event) => setScenario(event.target.value)}
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"

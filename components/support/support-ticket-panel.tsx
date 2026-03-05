@@ -127,12 +127,14 @@ export function SupportTicketPanel({ policy, tickets }: SupportTicketPanelProps)
 
       <div className="grid gap-3">
         <input
+          aria-label="工单标题"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
           placeholder="工单标题（例如：发布流阻塞）"
         />
         <textarea
+          aria-label="工单描述"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           className="min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
@@ -140,6 +142,7 @@ export function SupportTicketPanel({ policy, tickets }: SupportTicketPanelProps)
         />
         <div className="grid gap-2 sm:grid-cols-3">
           <select
+            aria-label="工单分类"
             value={category}
             onChange={(event) => setCategory(event.target.value)}
             className="h-10 rounded-md border border-input bg-background px-3 text-sm"
@@ -151,6 +154,7 @@ export function SupportTicketPanel({ policy, tickets }: SupportTicketPanelProps)
           </select>
 
           <select
+            aria-label="工单优先级"
             value={priority}
             onChange={(event) => setPriority(event.target.value as SupportTicketPriority)}
             className="h-10 rounded-md border border-input bg-background px-3 text-sm"

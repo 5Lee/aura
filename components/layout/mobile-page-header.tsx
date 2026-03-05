@@ -45,6 +45,10 @@ export function resolveMobileRouteMeta(pathname: string): MobileRouteMeta {
     return { title: "合规审计", showBackButton: false }
   }
 
+  if (pathname === "/admin") {
+    return { title: "后台中心", showBackButton: false }
+  }
+
   if (pathname === "/marketplace") {
     return { title: "市场佣金", showBackButton: false }
   }
@@ -63,6 +67,10 @@ export function resolveMobileRouteMeta(pathname: string): MobileRouteMeta {
 
   if (pathname === "/prompt-flow") {
     return { title: "流程编排", showBackButton: false }
+  }
+
+  if (pathname === "/interoperability") {
+    return { title: "跨平台互通", showBackButton: false }
   }
 
   if (pathname === "/partners") {

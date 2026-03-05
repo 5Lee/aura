@@ -337,19 +337,24 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
       where: { id: params.id },
     })
 
-    await recordPromptAuditLog({
-      promptId: params.id,
-      actorId: session.user.id,
-      action: "prompt.delete",
-      metadata: {
-        title: prompt.title,
-        categoryId: prompt.categoryId,
-      },
-    })
+    try {
+      await recordPromptAuditLog({
+        promptId: null,
+        actorId: session.user.id,
+        action: "prompt.delete",
+        metadata: {
+          deletedPromptId: params.id,
+          title: prompt.title,
+          categoryId: prompt.categoryId,
+        },
+      })
+    } catch (auditError) {
+      console.error("Failed to record prompt delete audit log:", auditError)
+    }
 
     invalidateAdvancedAnalyticsCache(session.user.id)
 
-    return NextResponse.json({ message: "删除成功" })
+    return NextResponse.json({ message: "提示词删除成功" })
   } catch (error) {
     console.error("Error deleting prompt:", error)
     return NextResponse.json({ error: "删除提示词失败" }, { status: 500 })

@@ -8,29 +8,46 @@ import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/theme/theme-toggle"
 import { MobileMenu } from "@/components/layout/mobile-nav-sheet"
 
+const WORKSPACE_NAV_ITEMS = [
+  { href: "/dashboard", label: "仪表板" },
+  { href: "/prompts", label: "提示词" },
+  { href: "/collections", label: "收藏夹" },
+  { href: "/browse", label: "浏览" },
+  { href: "/support", label: "支持" },
+  { href: "/billing", label: "账单" },
+]
+
+const BACKOFFICE_PATH_PREFIXES = [
+  "/admin",
+  "/branding",
+  "/sso",
+  "/compliance",
+  "/sla",
+  "/ads",
+  "/growth-lab",
+  "/connectors",
+  "/prompt-flow",
+  "/interoperability",
+  "/partners",
+  "/marketplace",
+  "/developer-api",
+]
+
+function isActivePath(pathname: string, href: string) {
+  if (href === "/dashboard") {
+    return pathname === href
+  }
+  return pathname === href || pathname.startsWith(`${href}/`)
+}
+
+function isBackofficePath(pathname: string) {
+  return BACKOFFICE_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
+}
+
 export function Navbar() {
   const pathname = usePathname()
   const { data: session, status } = useSession()
-
-  const navItems = [
-    { href: "/dashboard", label: "仪表板" },
-    { href: "/prompts", label: "提示词" },
-    { href: "/collections", label: "收藏夹" },
-    { href: "/branding", label: "品牌" },
-    { href: "/sso", label: "SSO" },
-    { href: "/compliance", label: "合规" },
-    { href: "/support", label: "支持" },
-    { href: "/sla", label: "SLA" },
-    { href: "/ads", label: "广告" },
-    { href: "/growth-lab", label: "增长" },
-    { href: "/connectors", label: "连接器" },
-    { href: "/prompt-flow", label: "流程" },
-    { href: "/partners", label: "伙伴" },
-    { href: "/marketplace", label: "市场" },
-    { href: "/developer-api", label: "API" },
-    { href: "/billing", label: "账单" },
-    { href: "/pricing", label: "定价" },
-  ]
+  const backofficeActive = isBackofficePath(pathname)
 
   return (
     <nav className="border-b glass sticky top-0 z-50">
@@ -41,14 +58,14 @@ export function Navbar() {
 
         <div className="hidden items-center gap-6 md:flex">
           <div className="flex items-center gap-1">
-            {navItems.map((item) => (
+            {WORKSPACE_NAV_ITEMS.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                aria-current={pathname === item.href ? "page" : undefined}
+                aria-current={isActivePath(pathname, item.href) ? "page" : undefined}
                 className={cn(
                   "rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                  pathname === item.href
+                  isActivePath(pathname, item.href)
                     ? "bg-primary/10 text-primary dark:bg-primary/20"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 )}
@@ -56,6 +73,19 @@ export function Navbar() {
                 {item.label}
               </Link>
             ))}
+            <span aria-hidden="true" className="mx-1 h-5 w-px bg-border" />
+            <Link
+              href="/admin"
+              aria-current={backofficeActive ? "page" : undefined}
+              className={cn(
+                "rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                backofficeActive
+                  ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+            >
+              后台
+            </Link>
           </div>
 
           <div className="flex items-center gap-3">
@@ -98,13 +128,14 @@ export function Navbar() {
             ) : null}
 
             <div className="space-y-2">
-              {navItems.map((item) => (
+              <p className="px-1 text-xs font-medium text-muted-foreground">工作台</p>
+              {WORKSPACE_NAV_ITEMS.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={cn(
                     "flex min-h-11 items-center rounded-lg border px-4 text-sm font-medium transition-colors touch-manipulation",
-                    pathname === item.href
+                    isActivePath(pathname, item.href)
                       ? "border-primary/40 bg-primary/10 text-primary"
                       : "border-border text-foreground hover:bg-muted"
                   )}
@@ -112,6 +143,21 @@ export function Navbar() {
                   {item.label}
                 </Link>
               ))}
+            </div>
+
+            <div className="space-y-2">
+              <p className="px-1 text-xs font-medium text-muted-foreground">后台</p>
+              <Link
+                href="/admin"
+                className={cn(
+                  "flex min-h-11 items-center rounded-lg border px-4 text-sm font-medium transition-colors touch-manipulation",
+                  backofficeActive
+                    ? "border-amber-400/50 bg-amber-100/80 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+                    : "border-border text-foreground hover:bg-muted"
+                )}
+              >
+                后台中心
+              </Link>
             </div>
 
             {session?.user ? (

@@ -94,6 +94,7 @@ export function PromptCodePanel({ promptId, canManage }: PromptCodePanelProps) {
 
       <div className="grid gap-2 sm:grid-cols-3">
         <select
+          aria-label="导入格式"
           value={importFormat}
           onChange={(event) => setImportFormat(event.target.value as "json" | "yaml")}
           className="h-10 rounded-md border border-input bg-background px-3 text-sm"
@@ -103,6 +104,7 @@ export function PromptCodePanel({ promptId, canManage }: PromptCodePanelProps) {
         </select>
 
         <select
+          aria-label="导入冲突策略"
           value={importMode}
           onChange={(event) => setImportMode(event.target.value as "skip" | "overwrite" | "create-new")}
           className="h-10 rounded-md border border-input bg-background px-3 text-sm"
@@ -119,6 +121,7 @@ export function PromptCodePanel({ promptId, canManage }: PromptCodePanelProps) {
       </div>
 
       <textarea
+        aria-label="Prompt-as-Code 导入内容"
         value={importContent}
         onChange={(event) => setImportContent(event.target.value)}
         placeholder="粘贴 Prompt-as-Code 内容"

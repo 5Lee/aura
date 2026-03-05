@@ -380,11 +380,53 @@ export function PromptForm({ categories, initialData }: PromptFormProps) {
         return
       }
 
+      const detectedVariables = extractVariableNamesFromContent(content)
+      const declaredVariables = new Set(normalizedTemplateVariables.map((item) => item.name))
+      const missingDefinitions = detectedVariables.filter((name) => !declaredVariables.has(name))
+
+      if (missingDefinitions.length > 0) {
+        setRenderPreview("")
+        setPreviewError(`缺少变量定义: ${missingDefinitions.join(", ")}`)
+        return
+      }
+
+      let parsedInput: Record<string, unknown> = {}
+      try {
+        const parsed = parseSampleInput(sampleInputText)
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          parsedInput = parsed as Record<string, unknown>
+        }
+      } catch {
+        setRenderPreview("")
+        setPreviewError("变量样例输入 JSON 格式错误")
+        return
+      }
+
+      const missingRequiredVariables = normalizedTemplateVariables
+        .filter((item) => item.required && !item.defaultValue.trim())
+        .filter((item) => {
+          const value = parsedInput[item.name]
+          if (value === undefined || value === null) {
+            return true
+          }
+          if (typeof value === "string") {
+            return value.trim().length === 0
+          }
+          return false
+        })
+        .map((item) => item.name)
+
+      if (missingRequiredVariables.length > 0) {
+        setRenderPreview("")
+        setPreviewError(`缺少变量: ${missingRequiredVariables.join(", ")}`)
+        return
+      }
+
       void handleRenderPreview(true)
     }, 500)
 
     return () => window.clearTimeout(timer)
-  }, [content, handleRenderPreview])
+  }, [content, handleRenderPreview, normalizedTemplateVariables, sampleInputText])
 
   const addTemplateVariable = () => {
     setTemplateVariables((prev) => [

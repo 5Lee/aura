@@ -163,6 +163,7 @@ export function PromptBatchToolbar({ prompts }: PromptBatchToolbarProps) {
 
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
         <select
+          aria-label="批量操作类型"
           value={action}
           onChange={(event) => setAction(event.target.value as BatchAction)}
           className="h-10 rounded-md border border-input bg-background px-3 text-sm"
@@ -176,6 +177,7 @@ export function PromptBatchToolbar({ prompts }: PromptBatchToolbarProps) {
         {action === "update-tags" ? (
           <>
             <select
+              aria-label="标签更新模式"
               value={tagMode}
               onChange={(event) => setTagMode(event.target.value as "replace" | "add" | "remove")}
               className="h-10 rounded-md border border-input bg-background px-3 text-sm"
@@ -185,6 +187,7 @@ export function PromptBatchToolbar({ prompts }: PromptBatchToolbarProps) {
               <option value="remove">移除标签</option>
             </select>
             <Input
+              aria-label="批量标签输入"
               value={tagsText}
               onChange={(event) => setTagsText(event.target.value)}
               placeholder="输入标签，逗号分隔"
@@ -195,6 +198,7 @@ export function PromptBatchToolbar({ prompts }: PromptBatchToolbarProps) {
 
         {action === "set-visibility" ? (
           <select
+            aria-label="批量可见性设置"
             value={targetVisibility}
             onChange={(event) => setTargetVisibility(event.target.value as "public" | "private")}
             className="h-10 rounded-md border border-input bg-background px-3 text-sm"
