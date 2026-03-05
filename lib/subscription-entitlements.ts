@@ -23,6 +23,7 @@ const API_PRICING_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterpris
 const AD_STRATEGY_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
 const PARTNER_PROGRAM_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
 const GROWTH_LAB_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
+const CONNECTOR_CATALOG_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
 
 function resolveEffectivePlanId(rawPlanId: string | null, status: SubscriptionStatus | null) {
   if (!rawPlanId || !isSubscriptionPlanId(rawPlanId)) {
@@ -147,6 +148,13 @@ export function hasGrowthLabAccess(planId: string) {
     return false
   }
   return GROWTH_LAB_PLANS.has(planId)
+}
+
+export function hasConnectorCatalogAccess(planId: string) {
+  if (!isSubscriptionPlanId(planId)) {
+    return false
+  }
+  return CONNECTOR_CATALOG_PLANS.has(planId)
 }
 
 export function getPlanLimitHint(plan: SubscriptionPlan, key: keyof SubscriptionPlan["limits"]) {

@@ -57,6 +57,10 @@ export function resolveMobileRouteMeta(pathname: string): MobileRouteMeta {
     return { title: "增长实验", showBackButton: false }
   }
 
+  if (pathname === "/connectors") {
+    return { title: "连接器目录", showBackButton: false }
+  }
+
   if (pathname === "/partners") {
     return { title: "伙伴结算", showBackButton: false }
   }

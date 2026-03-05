@@ -3885,3 +3885,49 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase6-week21-alerting-circuit-break.test.js`
 
 **Status**: ✅ WEEK21-004 COMPLETE（继续推进 week22-001 第三方模型与工具连接器目录）
+
+### 2026-03-05 - Phase 6 Week 22 Step 1 Connector Catalog (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase6-week22-001` 完成第三方模型与工具连接器目录
+
+**Major Changes**:
+- 连接器数据模型扩展：
+  - `prisma/schema.prisma`
+  - 新增 `IntegrationConnector`、`IntegrationConnectorHealthCheck` 与连接状态相关枚举
+- 连接器核心能力：
+  - `lib/integration-connectors.ts`
+  - 支持连接器输入清洗、凭据加密/解密、凭据掩码与指纹、健康检查诊断逻辑
+- 连接器 API：
+  - `app/api/connectors/route.ts`
+  - 支持目录初始化、连接器配置管理、API Key/Secret 轮换、健康检查与最小暴露返回
+- 订阅门禁扩展：
+  - `lib/subscription-entitlements.ts`
+  - 新增 `hasConnectorCatalogAccess`
+- 连接器工作台：
+  - `app/(dashboard)/connectors/page.tsx`
+  - `components/integrations/connector-catalog-panel.tsx`
+  - 支持连接器清单、状态管理、安全轮换、健康检查与诊断记录展示
+- 路由与导航：
+  - `components/layout/navbar.tsx`
+  - `components/layout/mobile-page-header.tsx`
+  - `middleware.ts`
+  - 新增 `/connectors` 导航入口并纳入登录保护
+- Phase6 任务推进：
+  - `feature_list_phase6_growth_ecosystem.json`
+  - 标记 `phase6-week22-001` 完成，`completed_features` 更新为 `5`
+
+**Verification**:
+- `npm run db:generate` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅（存在 `no-img-element` 警告，不影响通过）
+- `npm test -- --runInBand __tests__/phase6-week22-connectors-catalog.test.js` ✅
+- `npm test -- --runInBand` ✅
+- `npm run feature:meta:check -- feature_list_phase6_growth_ecosystem.json` ✅
+
+**New Tests**:
+- `__tests__/phase6-week22-connectors-catalog.test.js`
+
+**Status**: ✅ WEEK22-001 COMPLETE（继续推进 week22-002 工作流节点化编排）

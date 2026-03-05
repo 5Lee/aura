@@ -48,6 +48,8 @@ model User {
   growthExperimentAudiences GrowthExperimentAudience[]
   growthAttributionSnapshots GrowthAttributionSnapshot[]
   growthExperimentAlerts  GrowthExperimentAlert[]
+  integrationConnectors   IntegrationConnector[]
+  integrationHealthChecks IntegrationConnectorHealthCheck[]
   supportTickets         SupportTicket[]      @relation("SupportTicketRequester")
   assignedSupportTickets SupportTicket[]      @relation("SupportTicketAssignee")
   supportTicketEvents    SupportTicketEvent[]
@@ -282,6 +284,27 @@ enum GrowthAlertStatus {
   OPEN
   ACKNOWLEDGED
   RESOLVED
+}
+
+enum ConnectorProvider {
+  OPENAI
+  ANTHROPIC
+  LANGFUSE
+  PROMPTFOO
+  OPENWEBUI
+  CUSTOM
+}
+
+enum ConnectorStatus {
+  ACTIVE
+  DEGRADED
+  DISABLED
+}
+
+enum ConnectorCheckStatus {
+  PASS
+  WARN
+  FAIL
 }
 
 enum SupportTicketPriority {
@@ -1122,6 +1145,53 @@ model GrowthExperimentAlert {
   @@index([type])
   @@index([status])
   @@index([triggeredAt])
+}
+
+model IntegrationConnector {
+  id                  String               @id @default(cuid())
+  userId              String
+  name                String
+  provider            ConnectorProvider
+  status              ConnectorStatus      @default(DISABLED)
+  apiBaseUrl          String?
+  credentialCipher    String?              @db.Text
+  credentialPreview   String?
+  credentialFingerprint String?
+  secretVersion       Int                  @default(1)
+  lastRotatedAt       DateTime?
+  lastCheckedAt       DateTime?
+  lastCheckStatus     ConnectorCheckStatus?
+  lastCheckMessage    String?
+  metadata            Json?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  healthChecks        IntegrationConnectorHealthCheck[]
+
+  @@unique([userId, provider, name])
+  @@index([userId])
+  @@index([provider])
+  @@index([status])
+  @@index([lastCheckedAt])
+}
+
+model IntegrationConnectorHealthCheck {
+  id                  String               @id @default(cuid())
+  userId              String
+  connectorId         String
+  status              ConnectorCheckStatus
+  message             String
+  latencyMs           Int                  @default(0)
+  checkAt             DateTime             @default(now())
+  diagnostics         Json?
+  createdAt           DateTime             @default(now())
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  connector           IntegrationConnector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([connectorId])
+  @@index([status])
+  @@index([checkAt])
 }
 
 model SupportTicket {
