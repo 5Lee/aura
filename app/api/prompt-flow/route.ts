@@ -9,6 +9,10 @@ import {
   sanitizePromptFlowInput,
   simulatePromptFlowExecution,
 } from "@/lib/prompt-flow"
+import {
+  normalizeFlowGovernanceAction,
+  resolveFlowGovernanceAuditAction,
+} from "@/lib/integration-governance"
 import { recordPromptAuditLog } from "@/lib/prompt-audit-log"
 import { sanitizeTextInput } from "@/lib/security"
 import { getUserEntitlementSnapshot, hasPromptFlowAccess } from "@/lib/subscription-entitlements"
@@ -92,6 +96,7 @@ export async function PUT(request: Request) {
   try {
     const body = await request.json().catch(() => ({}))
     const sanitized = sanitizePromptFlowInput(body)
+    const governanceAction = normalizeFlowGovernanceAction(body.governanceAction)
 
     if (!sanitized.name) {
       return NextResponse.json({ error: "工作流名称不能为空" }, { status: 400 })
@@ -106,6 +111,15 @@ export async function PUT(request: Request) {
         })
       : null
 
+    const nextStatus =
+      governanceAction === "publish"
+        ? "ACTIVE"
+        : governanceAction === "disable"
+          ? "ARCHIVED"
+          : sanitized.status
+
+    const rollbackVersionHint = sanitizeTextInput(body.rollbackVersion, 20)
+
     const flow = await prisma.promptFlowDefinition.upsert({
       where: {
         id: current?.id || "__create_prompt_flow__",
@@ -114,41 +128,46 @@ export async function PUT(request: Request) {
         userId: session.user.id,
         name: sanitized.name,
         description: sanitized.description,
-        status: sanitized.status,
+        status: nextStatus,
         executionMode: sanitized.executionMode,
         nodes: sanitized.nodes,
         edges: sanitized.edges,
         contextVariables: sanitized.contextVariables,
         retryPolicy: sanitized.retryPolicy,
-        version: 1,
-        lastPublishedAt: sanitized.status === "ACTIVE" ? new Date() : null,
+        version: governanceAction === "rollback" ? 1 : 1,
+        lastPublishedAt: nextStatus === "ACTIVE" ? new Date() : null,
       },
       update: {
         name: sanitized.name,
         description: sanitized.description,
-        status: sanitized.status,
+        status: nextStatus,
         executionMode: sanitized.executionMode,
         nodes: sanitized.nodes,
         edges: sanitized.edges,
         contextVariables: sanitized.contextVariables,
         retryPolicy: sanitized.retryPolicy,
-        version: {
-          increment: 1,
-        },
-        lastPublishedAt: sanitized.status === "ACTIVE" ? new Date() : current?.lastPublishedAt || null,
+        version:
+          governanceAction === "rollback"
+            ? Math.max(1, (current?.version || 1) - 1)
+            : {
+                increment: 1,
+              },
+        lastPublishedAt: nextStatus === "ACTIVE" ? new Date() : current?.lastPublishedAt || null,
       },
     })
 
     await recordPromptAuditLog({
       actorId: session.user.id,
-      action: "promptflow.flow.upsert",
+      action: resolveFlowGovernanceAuditAction(governanceAction),
       resource: "prompt-flow",
       request,
       metadata: {
         flowId: flow.id,
+        governanceAction: governanceAction || "upsert",
         status: flow.status,
         mode: flow.executionMode,
         version: flow.version,
+        rollbackVersionHint: rollbackVersionHint || null,
       },
     })
 

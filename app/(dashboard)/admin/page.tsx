@@ -42,7 +42,22 @@ const BACKOFFICE_SECTIONS = [
     items: [
       { href: "/admin/connectors", label: "连接器目录", summary: "第三方模型与工具连接管理" },
       { href: "/admin/prompt-flow", label: "流程编排", summary: "Prompt Flow 编排与运行追踪" },
+      { href: "/admin/governance", label: "审计治理", summary: "连接器与工作流敏感操作治理" },
       { href: "/admin/interoperability", label: "跨平台互通", summary: "模板转换、能力映射与导出" },
+    ],
+  },
+  {
+    title: "运营自动化与交付",
+    description: "把运营动作、可靠性门禁和发布编排统一闭环。",
+    items: [
+      { href: "/admin/ops-center", label: "任务中心", summary: "运营任务模板、调度执行与历史追踪" },
+      { href: "/admin/notification-orchestration", label: "通知编排", summary: "多通道触达、静默窗口与频控去重" },
+      { href: "/admin/ops-analytics", label: "运营漏斗", summary: "激活留存漏斗、cohort 与实验联动" },
+      { href: "/admin/playbook-market", label: "Playbook 市场", summary: "运营剧本模板、评分与一键应用" },
+      { href: "/admin/reliability-gates", label: "质量闸门", summary: "功能/性能/安全门禁与发布阻断" },
+      { href: "/admin/self-heal", label: "自愈修复", summary: "回归资产沉淀、缺陷模式与自动建议" },
+      { href: "/admin/release-orchestration", label: "发布编排", summary: "灰度演练、流量开关与回滚评估" },
+      { href: "/admin/phase6-closure", label: "Phase6 终验", summary: "终验交付、基线冻结与下一阶段路线图" },
     ],
   },
 ] as const

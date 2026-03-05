@@ -61,7 +61,16 @@ export function resolveMobileRouteMeta(pathname: string): MobileRouteMeta {
       "growth-lab": "增长实验",
       connectors: "连接器目录",
       "prompt-flow": "流程编排",
+      governance: "治理审计",
       interoperability: "跨平台互通",
+      "ops-center": "任务中心",
+      "notification-orchestration": "通知编排",
+      "ops-analytics": "运营漏斗",
+      "playbook-market": "Playbook 市场",
+      "reliability-gates": "质量闸门",
+      "self-heal": "自愈修复",
+      "release-orchestration": "发布编排",
+      "phase6-closure": "Phase6 终验",
       partners: "伙伴结算",
       marketplace: "市场佣金",
       "developer-api": "API 策略",
@@ -96,6 +105,42 @@ export function resolveMobileRouteMeta(pathname: string): MobileRouteMeta {
 
   if (pathname === "/interoperability") {
     return { title: "跨平台互通", showBackButton: false }
+  }
+
+  if (pathname === "/governance") {
+    return { title: "治理审计", showBackButton: false }
+  }
+
+  if (pathname === "/ops-center") {
+    return { title: "任务中心", showBackButton: false }
+  }
+
+  if (pathname === "/notification-orchestration") {
+    return { title: "通知编排", showBackButton: false }
+  }
+
+  if (pathname === "/ops-analytics") {
+    return { title: "运营漏斗", showBackButton: false }
+  }
+
+  if (pathname === "/playbook-market") {
+    return { title: "Playbook 市场", showBackButton: false }
+  }
+
+  if (pathname === "/reliability-gates") {
+    return { title: "质量闸门", showBackButton: false }
+  }
+
+  if (pathname === "/self-heal") {
+    return { title: "自愈修复", showBackButton: false }
+  }
+
+  if (pathname === "/release-orchestration") {
+    return { title: "发布编排", showBackButton: false }
+  }
+
+  if (pathname === "/phase6-closure") {
+    return { title: "Phase6 终验", showBackButton: false }
   }
 
   if (pathname === "/partners") {

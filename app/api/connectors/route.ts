@@ -13,6 +13,7 @@ import {
   resolveConnectorHealthCheck,
   sanitizeConnectorInput,
 } from "@/lib/integration-connectors"
+import { resolveConnectorGovernanceAuditActions } from "@/lib/integration-governance"
 import { recordPromptAuditLog } from "@/lib/prompt-audit-log"
 import { sanitizeTextInput } from "@/lib/security"
 import { getUserEntitlementSnapshot, hasConnectorCatalogAccess } from "@/lib/subscription-entitlements"
@@ -143,6 +144,9 @@ export async function PUT(request: Request) {
     }
 
     const credentialChanged = Boolean(sanitized.credential)
+    const authorizationChanged =
+      Boolean(current) &&
+      (current?.status !== sanitized.status || current?.provider !== sanitized.provider)
     const credentialCipher = credentialChanged
       ? encryptConnectorCredential(sanitized.credential)
       : current?.credentialCipher || null
@@ -210,6 +214,26 @@ export async function PUT(request: Request) {
         secretVersion: connector.secretVersion,
       },
     })
+
+    const governanceActions = resolveConnectorGovernanceAuditActions({
+      credentialChanged,
+      authorizationChanged,
+    })
+
+    for (const action of governanceActions) {
+      await recordPromptAuditLog({
+        actorId: session.user.id,
+        action,
+        resource: "connectors",
+        request,
+        metadata: {
+          connectorId: connector.id,
+          provider: connector.provider,
+          status: connector.status,
+          credentialRotated: credentialChanged,
+        },
+      })
+    }
 
     return NextResponse.json({
       connector: {

@@ -9,6 +9,10 @@ import {
   getOrCreateAuditRetentionPolicy,
 } from "@/lib/compliance-audit"
 import { prisma } from "@/lib/db"
+import {
+  resolveAuditLogResourceMatch,
+  resolveGovernanceIntegritySummary,
+} from "@/lib/integration-governance"
 import { sanitizeTextInput } from "@/lib/security"
 
 function resolvePositiveInt(value: string | null, fallback: number, min: number, max: number) {
@@ -60,6 +64,7 @@ export async function GET(request: Request) {
     const status = sanitizeTextInput(searchParams.get("status"), 20)
     const resource = sanitizeTextInput(searchParams.get("resource"), 40)
     const requestId = sanitizeTextInput(searchParams.get("requestId"), 120)
+    const resourceId = sanitizeTextInput(searchParams.get("resourceId"), 120)
     const format = sanitizeTextInput(searchParams.get("format"), 12).toLowerCase() || "json"
     const includeExpired = sanitizeTextInput(searchParams.get("includeExpired"), 8) === "true"
     const includeAnomalies = sanitizeTextInput(searchParams.get("includeAnomalies"), 8) === "true"
@@ -101,13 +106,16 @@ export async function GET(request: Request) {
         },
         orderBy: { createdAt: "desc" },
         skip,
-        take,
+        take: resourceId ? Math.max(take, 300) : take,
       }),
       prisma.promptAuditLog.count({ where }),
     ])
 
+    const filteredLogs = resourceId ? logs.filter((item) => resolveAuditLogResourceMatch(item, resourceId)) : logs
+    const integrity = resolveGovernanceIntegritySummary(filteredLogs)
+
     if (format === "csv") {
-      const csv = exportAuditLogsAsCsv(logs)
+      const csv = exportAuditLogsAsCsv(filteredLogs)
       return new NextResponse(csv, {
         status: 200,
         headers: {
@@ -130,7 +138,7 @@ export async function GET(request: Request) {
       : []
 
     return NextResponse.json({
-      data: logs,
+      data: filteredLogs,
       policy: {
         retentionDays: effectiveRetentionDays,
         exportEnabled: policy.exportEnabled,
@@ -143,12 +151,14 @@ export async function GET(request: Request) {
               anomalyMeta.find((item) => item.status === "RESOLVED")?._count.status || 0,
           }
         : null,
+      integrity,
       meta: {
         page,
         take,
-        total,
-        totalPages: Math.max(1, Math.ceil(total / take)),
+        total: resourceId ? filteredLogs.length : total,
+        totalPages: Math.max(1, Math.ceil((resourceId ? filteredLogs.length : total) / take)),
         includeExpired,
+        resourceId,
       },
     })
   } catch (error) {

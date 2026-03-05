@@ -26,6 +26,15 @@ const GROWTH_LAB_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise
 const CONNECTOR_CATALOG_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
 const PROMPT_FLOW_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
 const PROMPT_INTEROP_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
+const INTEGRATION_GOVERNANCE_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
+const OPS_AUTOMATION_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
+const NOTIFICATION_ORCHESTRATION_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
+const OPS_ANALYTICS_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
+const OPS_PLAYBOOK_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
+const RELIABILITY_GATE_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
+const SELF_HEAL_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
+const RELEASE_ORCHESTRATION_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
+const PHASE6_CLOSURE_PLANS = new Set<SubscriptionPlanId>(["pro", "team", "enterprise"])
 
 function resolveEffectivePlanId(rawPlanId: string | null, status: SubscriptionStatus | null) {
   if (!rawPlanId || !isSubscriptionPlanId(rawPlanId)) {
@@ -171,6 +180,69 @@ export function hasPromptInteropAccess(planId: string) {
     return false
   }
   return PROMPT_INTEROP_PLANS.has(planId)
+}
+
+export function hasIntegrationGovernanceAccess(planId: string) {
+  if (!isSubscriptionPlanId(planId)) {
+    return false
+  }
+  return INTEGRATION_GOVERNANCE_PLANS.has(planId)
+}
+
+export function hasOpsAutomationAccess(planId: string) {
+  if (!isSubscriptionPlanId(planId)) {
+    return false
+  }
+  return OPS_AUTOMATION_PLANS.has(planId)
+}
+
+export function hasNotificationOrchestrationAccess(planId: string) {
+  if (!isSubscriptionPlanId(planId)) {
+    return false
+  }
+  return NOTIFICATION_ORCHESTRATION_PLANS.has(planId)
+}
+
+export function hasOpsAnalyticsAccess(planId: string) {
+  if (!isSubscriptionPlanId(planId)) {
+    return false
+  }
+  return OPS_ANALYTICS_PLANS.has(planId)
+}
+
+export function hasOpsPlaybookAccess(planId: string) {
+  if (!isSubscriptionPlanId(planId)) {
+    return false
+  }
+  return OPS_PLAYBOOK_PLANS.has(planId)
+}
+
+export function hasReliabilityGateAccess(planId: string) {
+  if (!isSubscriptionPlanId(planId)) {
+    return false
+  }
+  return RELIABILITY_GATE_PLANS.has(planId)
+}
+
+export function hasSelfHealAccess(planId: string) {
+  if (!isSubscriptionPlanId(planId)) {
+    return false
+  }
+  return SELF_HEAL_PLANS.has(planId)
+}
+
+export function hasReleaseOrchestrationAccess(planId: string) {
+  if (!isSubscriptionPlanId(planId)) {
+    return false
+  }
+  return RELEASE_ORCHESTRATION_PLANS.has(planId)
+}
+
+export function hasPhase6ClosureAccess(planId: string) {
+  if (!isSubscriptionPlanId(planId)) {
+    return false
+  }
+  return PHASE6_CLOSURE_PLANS.has(planId)
 }
 
 export function getPlanLimitHint(plan: SubscriptionPlan, key: keyof SubscriptionPlan["limits"]) {

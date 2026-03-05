@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "last_updated": "2026-03-05",
     "total_features": 16,
-    "completed_features": 7
+    "completed_features": 16
   },
   "features": [
     {
@@ -118,7 +118,7 @@
         "提供按资源维度审计检索",
         "验证敏感操作不可抵赖"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase6-week23-001",
@@ -132,7 +132,7 @@
         "支持任务运行历史与产出追踪",
         "验证任务幂等与异常恢复"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase6-week23-002",
@@ -146,7 +146,7 @@
         "补充触达送达率与失败回执",
         "验证重复消息去重与补偿机制"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase6-week23-003",
@@ -160,7 +160,7 @@
         "接入实验结果联动分析",
         "验证漏斗口径一致与可追溯"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase6-week23-004",
@@ -174,7 +174,7 @@
         "支持一键应用到任务中心",
         "验证模板升级兼容与回滚"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase6-week24-001",
@@ -188,7 +188,7 @@
         "接入分支保护与发布门禁",
         "验证关键缺陷无法越过发布流程"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase6-week24-002",
@@ -202,7 +202,7 @@
         "支持自动修复建议与人工确认",
         "验证重复缺陷修复效率提升"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase6-week24-003",
@@ -216,7 +216,7 @@
         "支持一键回滚与影响面评估",
         "验证灰度放量与回滚准确性"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "phase6-week24-004",
@@ -230,7 +230,7 @@
         "执行上线前全链路演练与复盘",
         "冻结基线并输出下一阶段路线图"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

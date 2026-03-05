@@ -8,97 +8,109 @@ datasource db {
 }
 
 model User {
-  id                     String              @id @default(cuid())
-  name                   String?
-  email                  String              @unique
-  password               String
-  image                  String?
-  createdAt              DateTime            @default(now())
-  updatedAt              DateTime            @updatedAt
-  accounts               Account[]
-  favorites              Favorite[]
-  prompts                Prompt[]
-  collections            PromptCollection[]
-  sessions               Session[]
-  promptVersionsCreated  PromptVersion[]
-  promptAuditLogsCreated PromptAuditLog[]
-  promptEvalRunsTriggered PromptEvalRun[]
-  promptMemberships      PromptMember[]       @relation("PromptMemberUser")
-  promptMemberInvites    PromptMember[]       @relation("PromptMemberInviter")
-  subscriptions          Subscription[]
-  billingEvents          BillingEvent[]
-  invoiceProfile         InvoiceProfile?
-  invoices               BillingInvoice[]
-  marketplaceCommissionRules MarketplaceCommissionRule[]
+  id                           String                            @id @default(cuid())
+  name                         String?
+  email                        String                            @unique
+  password                     String
+  image                        String?
+  createdAt                    DateTime                          @default(now())
+  updatedAt                    DateTime                          @updatedAt
+  accounts                     Account[]
+  favorites                    Favorite[]
+  prompts                      Prompt[]
+  collections                  PromptCollection[]
+  sessions                     Session[]
+  promptVersionsCreated        PromptVersion[]
+  promptAuditLogsCreated       PromptAuditLog[]
+  promptEvalRunsTriggered      PromptEvalRun[]
+  promptMemberships            PromptMember[]                    @relation("PromptMemberUser")
+  promptMemberInvites          PromptMember[]                    @relation("PromptMemberInviter")
+  subscriptions                Subscription[]
+  billingEvents                BillingEvent[]
+  invoiceProfile               InvoiceProfile?
+  invoices                     BillingInvoice[]
+  marketplaceCommissionRules   MarketplaceCommissionRule[]
   marketplaceCommissionLedgers MarketplaceCommissionLedger[]
   marketplaceSettlementBatches MarketplaceSettlementBatch[]
-  apiKeys                 ApiKey[]
-  apiUsageRecords         ApiUsageRecord[]
-  apiQuotaAlerts          ApiQuotaAlert[]
-  apiOveragePurchases     ApiOveragePurchase[]
-  adPlacementRules        AdPlacementRule[]
-  adCampaigns             AdCampaign[]
-  adPerformanceSnapshots  AdPerformanceSnapshot[]
-  partnerTiers            PartnerTier[]
-  partnerLeads            PartnerLead[]
-  partnerSettlements      PartnerSettlement[]
-  growthExperiments       GrowthExperiment[]
-  growthMetricSnapshots   GrowthMetricSnapshot[]
-  growthAudienceSegments  GrowthAudienceSegment[]
-  growthExperimentAudiences GrowthExperimentAudience[]
-  growthAttributionSnapshots GrowthAttributionSnapshot[]
-  growthExperimentAlerts  GrowthExperimentAlert[]
-  integrationConnectors   IntegrationConnector[]
-  integrationHealthChecks IntegrationConnectorHealthCheck[]
-  promptFlows            PromptFlowDefinition[]
-  promptFlowRuns         PromptFlowRun[]
-  promptInteropProfiles  PromptInteropProfile[]
-  promptInteropJobs      PromptInteropJob[]
-  supportTickets         SupportTicket[]      @relation("SupportTicketRequester")
-  assignedSupportTickets SupportTicket[]      @relation("SupportTicketAssignee")
-  supportTicketEvents    SupportTicketEvent[]
-  supportEscalationPolicies SupportEscalationPolicy[]
-  supportEscalationEvents SupportEscalationEvent[]
-  supportRunbook         SupportRunbook?
-  supportPostmortems     SupportPostmortem[] @relation("SupportPostmortemTenant")
-  authoredSupportPostmortems SupportPostmortem[] @relation("SupportPostmortemAuthor")
-  brandProfile           BrandProfile?
-  slaSnapshots           SlaSnapshot[]
-  slaAlerts              SlaAlert[]
-  ssoProviders           SsoProvider[]
-  userIdentities         UserIdentity[]
-  directorySyncRuns      DirectorySyncRun[]
-  identityConflicts      IdentityConflict[]   @relation("IdentityConflictExistingUser")
-  auditRetentionPolicy   AuditRetentionPolicy?
-  auditAnomalies         AuditAnomaly[]
+  apiKeys                      ApiKey[]
+  apiUsageRecords              ApiUsageRecord[]
+  apiQuotaAlerts               ApiQuotaAlert[]
+  apiOveragePurchases          ApiOveragePurchase[]
+  adPlacementRules             AdPlacementRule[]
+  adCampaigns                  AdCampaign[]
+  adPerformanceSnapshots       AdPerformanceSnapshot[]
+  partnerTiers                 PartnerTier[]
+  partnerLeads                 PartnerLead[]
+  partnerSettlements           PartnerSettlement[]
+  growthExperiments            GrowthExperiment[]
+  growthMetricSnapshots        GrowthMetricSnapshot[]
+  growthAudienceSegments       GrowthAudienceSegment[]
+  growthExperimentAudiences    GrowthExperimentAudience[]
+  growthAttributionSnapshots   GrowthAttributionSnapshot[]
+  growthExperimentAlerts       GrowthExperimentAlert[]
+  integrationConnectors        IntegrationConnector[]
+  integrationHealthChecks      IntegrationConnectorHealthCheck[]
+  promptFlows                  PromptFlowDefinition[]
+  promptFlowRuns               PromptFlowRun[]
+  promptInteropProfiles        PromptInteropProfile[]
+  promptInteropJobs            PromptInteropJob[]
+  opsTaskTemplates             OpsTaskTemplate[]
+  opsTaskRuns                  OpsTaskRun[]
+  opsNotificationRules         OpsNotificationRule[]
+  opsNotificationDeliveries    OpsNotificationDelivery[]
+  opsAnalyticsSnapshots        OpsAnalyticsSnapshot[]
+  opsPlaybookTemplates         OpsPlaybookTemplate[]
+  reliabilityGateRuns          ReliabilityGateRun[]
+  selfHealPatterns             SelfHealPattern[]
+  selfHealExecutions           SelfHealExecution[]
+  releasePlans                 ReleaseOrchestrationPlan[]
+  releaseRollbackEvents        ReleaseRollbackEvent[]
+  phase6ClosureReports         Phase6ClosureReport[]
+  supportTickets               SupportTicket[]                   @relation("SupportTicketRequester")
+  assignedSupportTickets       SupportTicket[]                   @relation("SupportTicketAssignee")
+  supportTicketEvents          SupportTicketEvent[]
+  supportEscalationPolicies    SupportEscalationPolicy[]
+  supportEscalationEvents      SupportEscalationEvent[]
+  supportRunbook               SupportRunbook?
+  supportPostmortems           SupportPostmortem[]               @relation("SupportPostmortemTenant")
+  authoredSupportPostmortems   SupportPostmortem[]               @relation("SupportPostmortemAuthor")
+  brandProfile                 BrandProfile?
+  slaSnapshots                 SlaSnapshot[]
+  slaAlerts                    SlaAlert[]
+  ssoProviders                 SsoProvider[]
+  userIdentities               UserIdentity[]
+  directorySyncRuns            DirectorySyncRun[]
+  identityConflicts            IdentityConflict[]                @relation("IdentityConflictExistingUser")
+  auditRetentionPolicy         AuditRetentionPolicy?
+  auditAnomalies               AuditAnomaly[]
 }
 
 model Prompt {
-  id               String                 @id @default(cuid())
-  title            String
-  content          String                 @db.Text
-  description      String?                @db.Text
-  categoryId       String
-  isPublic         Boolean                @default(false)
-  publishStatus    PromptPublishStatus    @default(DRAFT)
-  publishedAt      DateTime?
-  sourceExternalId String?                @unique
-  authorId         String?
-  viewCount        Int                    @default(0)
-  favoriteCount    Int                    @default(0)
-  createdAt        DateTime               @default(now())
-  updatedAt        DateTime               @updatedAt
-  favorites        Favorite[]
-  author           User?                  @relation(fields: [authorId], references: [id])
-  category         Category               @relation(fields: [categoryId], references: [id])
-  tags             PromptTag[]
-  versions         PromptVersion[]
-  auditLogs        PromptAuditLog[]
+  id                String                   @id @default(cuid())
+  title             String
+  content           String                   @db.Text
+  description       String?                  @db.Text
+  categoryId        String
+  isPublic          Boolean                  @default(false)
+  publishStatus     PromptPublishStatus      @default(DRAFT)
+  publishedAt       DateTime?
+  sourceExternalId  String?                  @unique
+  authorId          String?
+  viewCount         Int                      @default(0)
+  favoriteCount     Int                      @default(0)
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+  favorites         Favorite[]
+  author            User?                    @relation(fields: [authorId], references: [id])
+  category          Category                 @relation(fields: [categoryId], references: [id])
+  tags              PromptTag[]
+  versions          PromptVersion[]
+  auditLogs         PromptAuditLog[]
   templateVariables PromptTemplateVariable[]
-  testCases        PromptTestCase[]
-  evalRuns         PromptEvalRun[]
-  members          PromptMember[]
-  auditAnomalies   AuditAnomaly[]
+  testCases         PromptTestCase[]
+  evalRuns          PromptEvalRun[]
+  members           PromptMember[]
+  auditAnomalies    AuditAnomaly[]
 
   @@index([authorId], map: "Prompt_authorId_fkey")
   @@index([categoryId], map: "Prompt_categoryId_fkey")
@@ -438,6 +450,83 @@ enum AuditRiskLevel {
   CRITICAL
 }
 
+enum OpsTaskStatus {
+  DRAFT
+  SCHEDULED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  PAUSED
+}
+
+enum OpsTaskChannel {
+  IN_APP
+  EMAIL
+  WEBHOOK
+}
+
+enum OpsNotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  DEDUPED
+  SUPPRESSED
+}
+
+enum OpsAnalyticsMetricType {
+  ACTIVATION
+  RETENTION
+  REVISIT
+}
+
+enum PlaybookTemplateStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ReliabilityGateType {
+  FUNCTIONAL
+  PERFORMANCE
+  SECURITY
+}
+
+enum ReliabilityGateSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ReliabilityGateStatus {
+  PASS
+  WARN
+  FAIL
+  BLOCKED
+}
+
+enum SelfHealSuggestionStatus {
+  OPEN
+  APPLIED
+  DISMISSED
+}
+
+enum ReleaseStageStatus {
+  DRAFT
+  READY
+  ROLLING
+  ROLLED_BACK
+  COMPLETED
+  FAILED
+}
+
+enum PhaseClosureStatus {
+  DRAFT
+  IN_REVIEW
+  SIGNED_OFF
+  FROZEN
+}
+
 model PromptVersion {
   id            String              @id @default(cuid())
   promptId      String
@@ -512,16 +601,16 @@ model PromptAuditLog {
 }
 
 model PromptMember {
-  id         String     @id @default(cuid())
-  promptId   String
-  userId     String
-  role       PromptRole @default(VIEWER)
+  id          String     @id @default(cuid())
+  promptId    String
+  userId      String
+  role        PromptRole @default(VIEWER)
   invitedById String?
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  prompt     Prompt     @relation(fields: [promptId], references: [id], onDelete: Cascade)
-  user       User       @relation("PromptMemberUser", fields: [userId], references: [id], onDelete: Cascade)
-  invitedBy  User?      @relation("PromptMemberInviter", fields: [invitedById], references: [id], onDelete: SetNull)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  prompt      Prompt     @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user        User       @relation("PromptMemberUser", fields: [userId], references: [id], onDelete: Cascade)
+  invitedBy   User?      @relation("PromptMemberInviter", fields: [invitedById], references: [id], onDelete: SetNull)
 
   @@unique([promptId, userId])
   @@index([promptId])
@@ -575,17 +664,17 @@ model PromptEvalRun {
 }
 
 model PromptEvalResult {
-  id            String        @id @default(cuid())
-  runId         String
-  testCaseId    String
-  passed        Boolean
-  latencyMs     Int           @default(0)
-  renderedOutput String?      @db.Text
-  errorMessage  String?       @db.Text
-  details       Json?
-  createdAt     DateTime      @default(now())
-  run           PromptEvalRun @relation(fields: [runId], references: [id], onDelete: Cascade)
-  testCase      PromptTestCase @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
+  id             String         @id @default(cuid())
+  runId          String
+  testCaseId     String
+  passed         Boolean
+  latencyMs      Int            @default(0)
+  renderedOutput String?        @db.Text
+  errorMessage   String?        @db.Text
+  details        Json?
+  createdAt      DateTime       @default(now())
+  run            PromptEvalRun  @relation(fields: [runId], references: [id], onDelete: Cascade)
+  testCase       PromptTestCase @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
 
   @@index([runId])
   @@index([testCaseId])
@@ -593,23 +682,23 @@ model PromptEvalResult {
 }
 
 model Subscription {
-  id                     String              @id @default(cuid())
+  id                     String             @id @default(cuid())
   userId                 String
-  provider               BillingProvider     @default(MOCKPAY)
+  provider               BillingProvider    @default(MOCKPAY)
   externalCustomerId     String?
-  externalSubscriptionId String?             @unique
+  externalSubscriptionId String?            @unique
   planId                 String
-  cycle                  BillingCycle        @default(MONTHLY)
-  status                 SubscriptionStatus  @default(TRIALING)
-  cancelAtPeriodEnd      Boolean             @default(false)
+  cycle                  BillingCycle       @default(MONTHLY)
+  status                 SubscriptionStatus @default(TRIALING)
+  cancelAtPeriodEnd      Boolean            @default(false)
   trialEndsAt            DateTime?
   currentPeriodStart     DateTime?
   currentPeriodEnd       DateTime?
   canceledAt             DateTime?
   metadata               Json?
-  createdAt              DateTime            @default(now())
-  updatedAt              DateTime            @updatedAt
-  user                   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  user                   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   billingEvents          BillingEvent[]
   invoices               BillingInvoice[]
 
@@ -644,51 +733,51 @@ model BillingEvent {
 }
 
 model InvoiceProfile {
-  id            String         @id @default(cuid())
-  userId        String         @unique
-  title         String
-  taxNumber     String
-  billingEmail  String?
-  address       String?
-  phone         String?
-  bankName      String?
-  bankAccount   String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  invoices      BillingInvoice[]
+  id           String           @id @default(cuid())
+  userId       String           @unique
+  title        String
+  taxNumber    String
+  billingEmail String?
+  address      String?
+  phone        String?
+  bankName     String?
+  bankAccount  String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices     BillingInvoice[]
 
   @@index([taxNumber])
 }
 
 model BillingInvoice {
-  id                 String      @id @default(cuid())
-  invoiceNo          String      @unique
+  id                 String                       @id @default(cuid())
+  invoiceNo          String                       @unique
   userId             String
   profileId          String?
   subscriptionId     String?
   billingEventId     String?
-  type               InvoiceType @default(SUBSCRIPTION)
-  status             InvoiceStatus @default(ISSUED)
-  currency           String      @default("CNY")
+  type               InvoiceType                  @default(SUBSCRIPTION)
+  status             InvoiceStatus                @default(ISSUED)
+  currency           String                       @default("CNY")
   subtotalCents      Int
-  taxRateBasisPoints Int         @default(600)
-  taxCents           Int         @default(0)
+  taxRateBasisPoints Int                          @default(600)
+  taxCents           Int                          @default(0)
   totalCents         Int
-  refundedCents      Int         @default(0)
+  refundedCents      Int                          @default(0)
   amountDueCents     Int
-  issuedAt           DateTime    @default(now())
+  issuedAt           DateTime                     @default(now())
   dueAt              DateTime?
   paidAt             DateTime?
   refundedAt         DateTime?
-  notes              String?     @db.Text
+  notes              String?                      @db.Text
   metadata           Json?
-  createdAt          DateTime    @default(now())
-  updatedAt          DateTime    @updatedAt
-  user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  profile            InvoiceProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
-  subscription       Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
-  billingEvent       BillingEvent? @relation(fields: [billingEventId], references: [id], onDelete: SetNull)
+  createdAt          DateTime                     @default(now())
+  updatedAt          DateTime                     @updatedAt
+  user               User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile            InvoiceProfile?              @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  subscription       Subscription?                @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  billingEvent       BillingEvent?                @relation(fields: [billingEventId], references: [id], onDelete: SetNull)
   marketplaceLedger  MarketplaceCommissionLedger?
 
   @@index([userId])
@@ -700,21 +789,21 @@ model BillingInvoice {
 }
 
 model MarketplaceCommissionRule {
-  id                  String   @id @default(cuid())
-  userId              String
-  name                String
-  category            String   @default("prompt-template")
-  creatorRateBasisPoints Int
+  id                      String                        @id @default(cuid())
+  userId                  String
+  name                    String
+  category                String                        @default("prompt-template")
+  creatorRateBasisPoints  Int
   platformRateBasisPoints Int
-  settlementCycleDays Int      @default(30)
-  minimumPayoutCents  Int      @default(10000)
-  currency            String   @default("CNY")
-  active              Boolean  @default(true)
-  metadata            Json?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  ledgers             MarketplaceCommissionLedger[]
+  settlementCycleDays     Int                           @default(30)
+  minimumPayoutCents      Int                           @default(10000)
+  currency                String                        @default("CNY")
+  active                  Boolean                       @default(true)
+  metadata                Json?
+  createdAt               DateTime                      @default(now())
+  updatedAt               DateTime                      @updatedAt
+  user                    User                          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ledgers                 MarketplaceCommissionLedger[]
 
   @@index([userId])
   @@index([active])
@@ -722,26 +811,26 @@ model MarketplaceCommissionRule {
 }
 
 model MarketplaceCommissionLedger {
-  id                     String                @id @default(cuid())
-  userId                 String
-  ruleId                 String
-  sourceInvoiceId        String?               @unique
-  status                 MarketplaceLedgerStatus @default(ACCRUED)
-  currency               String                @default("CNY")
-  grossAmountCents       Int
-  creatorCommissionCents Int
+  id                      String                      @id @default(cuid())
+  userId                  String
+  ruleId                  String
+  sourceInvoiceId         String?                     @unique
+  status                  MarketplaceLedgerStatus     @default(ACCRUED)
+  currency                String                      @default("CNY")
+  grossAmountCents        Int
+  creatorCommissionCents  Int
   platformCommissionCents Int
-  settlementBatchId      String?
-  settlementPeriodStart  DateTime
-  settlementPeriodEnd    DateTime
-  settledAt              DateTime?
-  metadata               Json?
-  createdAt              DateTime              @default(now())
-  updatedAt              DateTime              @updatedAt
-  user                   User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rule                   MarketplaceCommissionRule @relation(fields: [ruleId], references: [id], onDelete: Restrict)
-  sourceInvoice          BillingInvoice?       @relation(fields: [sourceInvoiceId], references: [id], onDelete: SetNull)
-  settlementBatch        MarketplaceSettlementBatch? @relation(fields: [settlementBatchId], references: [id], onDelete: SetNull)
+  settlementBatchId       String?
+  settlementPeriodStart   DateTime
+  settlementPeriodEnd     DateTime
+  settledAt               DateTime?
+  metadata                Json?
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt
+  user                    User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rule                    MarketplaceCommissionRule   @relation(fields: [ruleId], references: [id], onDelete: Restrict)
+  sourceInvoice           BillingInvoice?             @relation(fields: [sourceInvoiceId], references: [id], onDelete: SetNull)
+  settlementBatch         MarketplaceSettlementBatch? @relation(fields: [settlementBatchId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([ruleId])
@@ -751,25 +840,25 @@ model MarketplaceCommissionLedger {
 }
 
 model MarketplaceSettlementBatch {
-  id                     String                    @id @default(cuid())
-  userId                 String
-  status                 MarketplaceSettlementStatus @default(PENDING)
-  currency               String                    @default("CNY")
-  periodStart            DateTime
-  periodEnd              DateTime
-  ledgerCount            Int                       @default(0)
-  grossAmountCents       Int
-  creatorCommissionCents Int
+  id                      String                        @id @default(cuid())
+  userId                  String
+  status                  MarketplaceSettlementStatus   @default(PENDING)
+  currency                String                        @default("CNY")
+  periodStart             DateTime
+  periodEnd               DateTime
+  ledgerCount             Int                           @default(0)
+  grossAmountCents        Int
+  creatorCommissionCents  Int
   platformCommissionCents Int
-  payoutAmountCents      Int
-  payoutReference        String?
-  summary                String?                   @db.Text
-  processedAt            DateTime?
-  metadata               Json?
-  createdAt              DateTime                  @default(now())
-  updatedAt              DateTime                  @updatedAt
-  user                   User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  ledgers                MarketplaceCommissionLedger[]
+  payoutAmountCents       Int
+  payoutReference         String?
+  summary                 String?                       @db.Text
+  processedAt             DateTime?
+  metadata                Json?
+  createdAt               DateTime                      @default(now())
+  updatedAt               DateTime                      @updatedAt
+  user                    User                          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ledgers                 MarketplaceCommissionLedger[]
 
   @@index([userId])
   @@index([status])
@@ -777,25 +866,25 @@ model MarketplaceSettlementBatch {
 }
 
 model ApiKey {
-  id                     String      @id @default(cuid())
+  id                     String               @id @default(cuid())
   userId                 String
   name                   String
-  keyHash                String      @unique
-  keyPrefix              String      @unique
-  status                 ApiKeyStatus @default(ACTIVE)
-  planId                 String      @default("free")
+  keyHash                String               @unique
+  keyPrefix              String               @unique
+  status                 ApiKeyStatus         @default(ACTIVE)
+  planId                 String               @default("free")
   monthlyQuota           Int
   rateLimitPerMinute     Int
-  overageAutoPackEnabled Boolean     @default(false)
-  overagePackSize        Int         @default(0)
-  consumedCallsMonth     Int         @default(0)
+  overageAutoPackEnabled Boolean              @default(false)
+  overagePackSize        Int                  @default(0)
+  consumedCallsMonth     Int                  @default(0)
   monthWindowStart       DateTime
   monthWindowEnd         DateTime
   metadata               Json?
   lastUsedAt             DateTime?
-  createdAt              DateTime    @default(now())
-  updatedAt              DateTime    @updatedAt
-  user                   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  user                   User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   usageRecords           ApiUsageRecord[]
   alerts                 ApiQuotaAlert[]
   overagePurchases       ApiOveragePurchase[]
@@ -807,21 +896,21 @@ model ApiKey {
 }
 
 model ApiUsageRecord {
-  id            String      @id @default(cuid())
-  userId        String
-  apiKeyId      String
-  modelTier     ApiModelTier
-  requestCount  Int         @default(1)
-  billableUnits Int         @default(1)
+  id             String       @id @default(cuid())
+  userId         String
+  apiKeyId       String
+  modelTier      ApiModelTier
+  requestCount   Int          @default(1)
+  billableUnits  Int          @default(1)
   unitPriceCents Int
-  amountCents   Int
-  blocked       Boolean     @default(false)
-  blockedReason String?
-  ipHash        String?
-  metadata      Json?
-  createdAt     DateTime    @default(now())
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  apiKey        ApiKey      @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  amountCents    Int
+  blocked        Boolean      @default(false)
+  blockedReason  String?
+  ipHash         String?
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  apiKey         ApiKey       @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([apiKeyId])
@@ -831,20 +920,20 @@ model ApiUsageRecord {
 }
 
 model ApiQuotaAlert {
-  id              String             @id @default(cuid())
-  userId          String
-  apiKeyId        String
-  type            String
-  status          ApiQuotaAlertStatus @default(OPEN)
+  id               String              @id @default(cuid())
+  userId           String
+  apiKeyId         String
+  type             String
+  status           ApiQuotaAlertStatus @default(OPEN)
   thresholdPercent Int
-  observedPercent Int
-  message         String             @db.Text
-  metadata        Json?
-  resolvedAt      DateTime?
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
-  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  apiKey          ApiKey             @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  observedPercent  Int
+  message          String              @db.Text
+  metadata         Json?
+  resolvedAt       DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  apiKey           ApiKey              @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([apiKeyId])
@@ -854,20 +943,20 @@ model ApiQuotaAlert {
 }
 
 model ApiOveragePurchase {
-  id             String   @id @default(cuid())
-  userId         String
-  apiKeyId       String
-  units          Int
-  amountCents    Int
-  currency       String   @default("CNY")
-  providerEventId String  @unique
-  status         BillingEventProcessStatus @default(PROCESSED)
-  processedAt    DateTime?
-  metadata       Json?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  apiKey         ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  id              String                    @id @default(cuid())
+  userId          String
+  apiKeyId        String
+  units           Int
+  amountCents     Int
+  currency        String                    @default("CNY")
+  providerEventId String                    @unique
+  status          BillingEventProcessStatus @default(PROCESSED)
+  processedAt     DateTime?
+  metadata        Json?
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  user            User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  apiKey          ApiKey                    @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([apiKeyId])
@@ -876,21 +965,21 @@ model ApiOveragePurchase {
 }
 
 model AdPlacementRule {
-  id                         String   @id @default(cuid())
-  userId                     String
-  name                       String
-  placementType              String
-  audienceSegment            String
-  biddingModel               String   @default("CPC")
-  bidPriceCents              Int
-  dailyBudgetCapCents        Int
-  conversionTarget           Float    @default(0)
-  safetyPolicy               Json?
-  active                     Boolean  @default(true)
-  createdAt                  DateTime @default(now())
-  updatedAt                  DateTime @updatedAt
-  user                       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  campaigns                  AdCampaign[]
+  id                  String       @id @default(cuid())
+  userId              String
+  name                String
+  placementType       String
+  audienceSegment     String
+  biddingModel        String       @default("CPC")
+  bidPriceCents       Int
+  dailyBudgetCapCents Int
+  conversionTarget    Float        @default(0)
+  safetyPolicy        Json?
+  active              Boolean      @default(true)
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  user                User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaigns           AdCampaign[]
 
   @@index([userId])
   @@index([active])
@@ -898,31 +987,31 @@ model AdPlacementRule {
 }
 
 model AdCampaign {
-  id                         String           @id @default(cuid())
-  userId                     String
-  ruleId                     String
-  title                      String
-  advertiser                 String
-  status                     AdCampaignStatus @default(DRAFT)
-  content                    String           @db.Text
-  landingUrl                 String?
-  startAt                    DateTime
-  endAt                      DateTime
-  budgetCents                Int
-  spentCents                 Int              @default(0)
-  impressions                Int              @default(0)
-  clicks                     Int              @default(0)
-  conversions                Int              @default(0)
-  blockedBySafetyCount       Int              @default(0)
-  reviewNote                 String?          @db.Text
-  reviewBy                   String?
-  reviewedAt                 DateTime?
-  metadata                   Json?
-  createdAt                  DateTime         @default(now())
-  updatedAt                  DateTime         @updatedAt
-  user                       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rule                       AdPlacementRule  @relation(fields: [ruleId], references: [id], onDelete: Restrict)
-  snapshots                  AdPerformanceSnapshot[]
+  id                   String                  @id @default(cuid())
+  userId               String
+  ruleId               String
+  title                String
+  advertiser           String
+  status               AdCampaignStatus        @default(DRAFT)
+  content              String                  @db.Text
+  landingUrl           String?
+  startAt              DateTime
+  endAt                DateTime
+  budgetCents          Int
+  spentCents           Int                     @default(0)
+  impressions          Int                     @default(0)
+  clicks               Int                     @default(0)
+  conversions          Int                     @default(0)
+  blockedBySafetyCount Int                     @default(0)
+  reviewNote           String?                 @db.Text
+  reviewBy             String?
+  reviewedAt           DateTime?
+  metadata             Json?
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+  user                 User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rule                 AdPlacementRule         @relation(fields: [ruleId], references: [id], onDelete: Restrict)
+  snapshots            AdPerformanceSnapshot[]
 
   @@index([userId])
   @@index([ruleId])
@@ -932,21 +1021,21 @@ model AdCampaign {
 }
 
 model AdPerformanceSnapshot {
-  id                         String   @id @default(cuid())
-  userId                     String
-  campaignId                 String
-  windowStart                DateTime
-  windowEnd                  DateTime
-  impressions                Int      @default(0)
-  clicks                     Int      @default(0)
-  conversions                Int      @default(0)
-  spendCents                 Int      @default(0)
-  conversionRate             Float    @default(0)
-  unsafeBlocks               Int      @default(0)
-  metadata                   Json?
-  createdAt                  DateTime @default(now())
-  user                       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  campaign                   AdCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  id             String     @id @default(cuid())
+  userId         String
+  campaignId     String
+  windowStart    DateTime
+  windowEnd      DateTime
+  impressions    Int        @default(0)
+  clicks         Int        @default(0)
+  conversions    Int        @default(0)
+  spendCents     Int        @default(0)
+  conversionRate Float      @default(0)
+  unsafeBlocks   Int        @default(0)
+  metadata       Json?
+  createdAt      DateTime   @default(now())
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaign       AdCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([campaignId])
@@ -954,20 +1043,20 @@ model AdPerformanceSnapshot {
 }
 
 model PartnerTier {
-  id                       String           @id @default(cuid())
-  userId                   String
-  name                     String
-  level                    PartnerTierLevel @default(REGISTERED)
-  minQualifiedLeads        Int              @default(0)
-  revenueShareBasisPoints  Int
-  settlementCycleDays      Int              @default(30)
-  benefitPolicy            Json?
-  active                   Boolean          @default(true)
-  createdAt                DateTime         @default(now())
-  updatedAt                DateTime         @updatedAt
-  user                     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  leads                    PartnerLead[]
-  settlements              PartnerSettlement[]
+  id                      String              @id @default(cuid())
+  userId                  String
+  name                    String
+  level                   PartnerTierLevel    @default(REGISTERED)
+  minQualifiedLeads       Int                 @default(0)
+  revenueShareBasisPoints Int
+  settlementCycleDays     Int                 @default(30)
+  benefitPolicy           Json?
+  active                  Boolean             @default(true)
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  user                    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leads                   PartnerLead[]
+  settlements             PartnerSettlement[]
 
   @@index([userId])
   @@index([active])
@@ -975,27 +1064,27 @@ model PartnerTier {
 }
 
 model PartnerSettlement {
-  id                       String                  @id @default(cuid())
-  userId                   String
-  tierId                   String
-  status                   PartnerSettlementStatus @default(DRAFT)
-  periodStart              DateTime
-  periodEnd                DateTime
-  leadCount                Int                     @default(0)
-  qualifiedLeadCount       Int                     @default(0)
-  wonLeadCount             Int                     @default(0)
-  grossRevenueCents        Int                     @default(0)
-  payoutRateBasisPoints    Int
-  payoutAmountCents        Int                     @default(0)
-  reconciledDeltaCents     Int                     @default(0)
-  payoutReference          String?
-  summary                  Json?
-  processedAt              DateTime?
-  createdAt                DateTime                @default(now())
-  updatedAt                DateTime                @updatedAt
-  user                     User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tier                     PartnerTier             @relation(fields: [tierId], references: [id], onDelete: Restrict)
-  leads                    PartnerLead[]
+  id                    String                  @id @default(cuid())
+  userId                String
+  tierId                String
+  status                PartnerSettlementStatus @default(DRAFT)
+  periodStart           DateTime
+  periodEnd             DateTime
+  leadCount             Int                     @default(0)
+  qualifiedLeadCount    Int                     @default(0)
+  wonLeadCount          Int                     @default(0)
+  grossRevenueCents     Int                     @default(0)
+  payoutRateBasisPoints Int
+  payoutAmountCents     Int                     @default(0)
+  reconciledDeltaCents  Int                     @default(0)
+  payoutReference       String?
+  summary               Json?
+  processedAt           DateTime?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tier                  PartnerTier             @relation(fields: [tierId], references: [id], onDelete: Restrict)
+  leads                 PartnerLead[]
 
   @@index([userId])
   @@index([tierId])
@@ -1004,27 +1093,27 @@ model PartnerSettlement {
 }
 
 model PartnerLead {
-  id                       String            @id @default(cuid())
-  userId                   String
-  tierId                   String
-  settlementId             String?
-  leadName                 String
-  company                  String?
-  contactEmail             String?
-  sourceChannel            String
-  attributionCode          String
-  status                   PartnerLeadStatus @default(NEW)
-  estimatedDealCents       Int               @default(0)
-  closedDealCents          Int               @default(0)
-  commissionBasisPoints    Int               @default(0)
-  qualifiedAt              DateTime?
-  convertedAt              DateTime?
-  metadata                 Json?
-  createdAt                DateTime          @default(now())
-  updatedAt                DateTime          @updatedAt
-  user                     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tier                     PartnerTier       @relation(fields: [tierId], references: [id], onDelete: Restrict)
-  settlement               PartnerSettlement? @relation(fields: [settlementId], references: [id], onDelete: SetNull)
+  id                    String             @id @default(cuid())
+  userId                String
+  tierId                String
+  settlementId          String?
+  leadName              String
+  company               String?
+  contactEmail          String?
+  sourceChannel         String
+  attributionCode       String
+  status                PartnerLeadStatus  @default(NEW)
+  estimatedDealCents    Int                @default(0)
+  closedDealCents       Int                @default(0)
+  commissionBasisPoints Int                @default(0)
+  qualifiedAt           DateTime?
+  convertedAt           DateTime?
+  metadata              Json?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tier                  PartnerTier        @relation(fields: [tierId], references: [id], onDelete: Restrict)
+  settlement            PartnerSettlement? @relation(fields: [settlementId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([tierId])
@@ -1034,25 +1123,25 @@ model PartnerLead {
 }
 
 model GrowthExperiment {
-  id                  String                 @id @default(cuid())
-  userId              String
-  name                String
-  hypothesis          String                 @db.Text
-  segmentKey          String
-  status              GrowthExperimentStatus @default(DRAFT)
-  baselineMetric      Float                  @default(0)
-  targetMetric        Float                  @default(0)
-  liftTargetPercent   Float                  @default(0)
-  startAt             DateTime
-  endAt               DateTime
-  payload             Json?
-  createdAt           DateTime               @default(now())
-  updatedAt           DateTime               @updatedAt
-  user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  snapshots           GrowthMetricSnapshot[]
-  audiences           GrowthExperimentAudience[]
+  id                   String                      @id @default(cuid())
+  userId               String
+  name                 String
+  hypothesis           String                      @db.Text
+  segmentKey           String
+  status               GrowthExperimentStatus      @default(DRAFT)
+  baselineMetric       Float                       @default(0)
+  targetMetric         Float                       @default(0)
+  liftTargetPercent    Float                       @default(0)
+  startAt              DateTime
+  endAt                DateTime
+  payload              Json?
+  createdAt            DateTime                    @default(now())
+  updatedAt            DateTime                    @updatedAt
+  user                 User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snapshots            GrowthMetricSnapshot[]
+  audiences            GrowthExperimentAudience[]
   attributionSnapshots GrowthAttributionSnapshot[]
-  alerts              GrowthExperimentAlert[]
+  alerts               GrowthExperimentAlert[]
 
   @@index([userId])
   @@index([status])
@@ -1062,22 +1151,22 @@ model GrowthExperiment {
 }
 
 model GrowthMetricSnapshot {
-  id                  String           @id @default(cuid())
-  userId              String
-  experimentId        String
-  metricType          GrowthMetricType @default(CONVERSION)
-  windowStart         DateTime
-  windowEnd           DateTime
-  exposures           Int              @default(0)
-  conversions         Int              @default(0)
-  retainedUsers       Int              @default(0)
-  revenueCents        Int              @default(0)
-  conversionRate      Float            @default(0)
-  liftPercent         Float            @default(0)
-  metadata            Json?
-  createdAt           DateTime         @default(now())
-  user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  experiment          GrowthExperiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  id             String           @id @default(cuid())
+  userId         String
+  experimentId   String
+  metricType     GrowthMetricType @default(CONVERSION)
+  windowStart    DateTime
+  windowEnd      DateTime
+  exposures      Int              @default(0)
+  conversions    Int              @default(0)
+  retainedUsers  Int              @default(0)
+  revenueCents   Int              @default(0)
+  conversionRate Float            @default(0)
+  liftPercent    Float            @default(0)
+  metadata       Json?
+  createdAt      DateTime         @default(now())
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experiment     GrowthExperiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([experimentId])
@@ -1086,21 +1175,21 @@ model GrowthMetricSnapshot {
 }
 
 model GrowthAudienceSegment {
-  id                  String                @id @default(cuid())
-  userId              String
-  name                String
-  key                 String
-  description         String?               @db.Text
-  version             Int                   @default(1)
-  status              GrowthSegmentStatus   @default(DRAFT)
-  matchMode           GrowthSegmentMatchMode @default(ALL)
-  ruleConfig          Json?
-  estimatedUsers      Int                   @default(0)
-  lastMatchedAt       DateTime?
-  createdAt           DateTime              @default(now())
-  updatedAt           DateTime              @updatedAt
-  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  audiences           GrowthExperimentAudience[]
+  id             String                     @id @default(cuid())
+  userId         String
+  name           String
+  key            String
+  description    String?                    @db.Text
+  version        Int                        @default(1)
+  status         GrowthSegmentStatus        @default(DRAFT)
+  matchMode      GrowthSegmentMatchMode     @default(ALL)
+  ruleConfig     Json?
+  estimatedUsers Int                        @default(0)
+  lastMatchedAt  DateTime?
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+  user           User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  audiences      GrowthExperimentAudience[]
 
   @@unique([userId, key])
   @@index([userId])
@@ -1109,17 +1198,17 @@ model GrowthAudienceSegment {
 }
 
 model GrowthExperimentAudience {
-  id                  String               @id @default(cuid())
+  id                  String                @id @default(cuid())
   userId              String
   experimentId        String
   segmentId           String
-  rolloutPercent      Int                  @default(100)
+  rolloutPercent      Int                   @default(100)
   excludedSegmentKeys Json?
-  status              String               @default("ACTIVE")
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  experiment          GrowthExperiment     @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  status              String                @default("ACTIVE")
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experiment          GrowthExperiment      @relation(fields: [experimentId], references: [id], onDelete: Cascade)
   segment             GrowthAudienceSegment @relation(fields: [segmentId], references: [id], onDelete: Restrict)
 
   @@unique([experimentId, segmentId])
@@ -1129,29 +1218,29 @@ model GrowthExperimentAudience {
 }
 
 model GrowthAttributionSnapshot {
-  id                  String                 @id @default(cuid())
-  userId              String
-  experimentId        String
-  channel             String
-  windowStart         DateTime
-  windowEnd           DateTime
-  exposures           Int                    @default(0)
-  clicks              Int                    @default(0)
-  conversions         Int                    @default(0)
-  costCents           Int                    @default(0)
-  revenueCents        Int                    @default(0)
-  ctr                 Float                  @default(0)
-  conversionRate      Float                  @default(0)
-  anomalyReason       String?
-  anomalyScore        Float                  @default(0)
-  status              GrowthAttributionStatus @default(NORMAL)
-  correctionTag       String?
-  correctedAt         DateTime?
-  metadata            Json?
-  createdAt           DateTime               @default(now())
-  updatedAt           DateTime               @updatedAt
-  user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  experiment          GrowthExperiment       @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  id             String                  @id @default(cuid())
+  userId         String
+  experimentId   String
+  channel        String
+  windowStart    DateTime
+  windowEnd      DateTime
+  exposures      Int                     @default(0)
+  clicks         Int                     @default(0)
+  conversions    Int                     @default(0)
+  costCents      Int                     @default(0)
+  revenueCents   Int                     @default(0)
+  ctr            Float                   @default(0)
+  conversionRate Float                   @default(0)
+  anomalyReason  String?
+  anomalyScore   Float                   @default(0)
+  status         GrowthAttributionStatus @default(NORMAL)
+  correctionTag  String?
+  correctedAt    DateTime?
+  metadata       Json?
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  user           User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experiment     GrowthExperiment        @relation(fields: [experimentId], references: [id], onDelete: Cascade)
 
   @@unique([experimentId, channel, windowStart, windowEnd])
   @@index([userId])
@@ -1162,23 +1251,23 @@ model GrowthAttributionSnapshot {
 }
 
 model GrowthExperimentAlert {
-  id                  String            @id @default(cuid())
-  userId              String
-  experimentId        String
-  type                GrowthAlertType
-  status              GrowthAlertStatus @default(OPEN)
-  severity            String            @default("P2")
-  message             String            @db.Text
-  triggerValue        Float             @default(0)
-  thresholdValue      Float             @default(0)
-  autoPaused          Boolean           @default(false)
-  triggeredAt         DateTime          @default(now())
-  resolvedAt          DateTime?
-  metadata            Json?
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-  user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  experiment          GrowthExperiment  @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  id             String            @id @default(cuid())
+  userId         String
+  experimentId   String
+  type           GrowthAlertType
+  status         GrowthAlertStatus @default(OPEN)
+  severity       String            @default("P2")
+  message        String            @db.Text
+  triggerValue   Float             @default(0)
+  thresholdValue Float             @default(0)
+  autoPaused     Boolean           @default(false)
+  triggeredAt    DateTime          @default(now())
+  resolvedAt     DateTime?
+  metadata       Json?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experiment     GrowthExperiment  @relation(fields: [experimentId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([experimentId])
@@ -1188,25 +1277,25 @@ model GrowthExperimentAlert {
 }
 
 model IntegrationConnector {
-  id                  String               @id @default(cuid())
-  userId              String
-  name                String
-  provider            ConnectorProvider
-  status              ConnectorStatus      @default(DISABLED)
-  apiBaseUrl          String?
-  credentialCipher    String?              @db.Text
-  credentialPreview   String?
+  id                    String                            @id @default(cuid())
+  userId                String
+  name                  String
+  provider              ConnectorProvider
+  status                ConnectorStatus                   @default(DISABLED)
+  apiBaseUrl            String?
+  credentialCipher      String?                           @db.Text
+  credentialPreview     String?
   credentialFingerprint String?
-  secretVersion       Int                  @default(1)
-  lastRotatedAt       DateTime?
-  lastCheckedAt       DateTime?
-  lastCheckStatus     ConnectorCheckStatus?
-  lastCheckMessage    String?
-  metadata            Json?
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  healthChecks        IntegrationConnectorHealthCheck[]
+  secretVersion         Int                               @default(1)
+  lastRotatedAt         DateTime?
+  lastCheckedAt         DateTime?
+  lastCheckStatus       ConnectorCheckStatus?
+  lastCheckMessage      String?
+  metadata              Json?
+  createdAt             DateTime                          @default(now())
+  updatedAt             DateTime                          @updatedAt
+  user                  User                              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  healthChecks          IntegrationConnectorHealthCheck[]
 
   @@unique([userId, provider, name])
   @@index([userId])
@@ -1216,17 +1305,17 @@ model IntegrationConnector {
 }
 
 model IntegrationConnectorHealthCheck {
-  id                  String               @id @default(cuid())
-  userId              String
-  connectorId         String
-  status              ConnectorCheckStatus
-  message             String
-  latencyMs           Int                  @default(0)
-  checkAt             DateTime             @default(now())
-  diagnostics         Json?
-  createdAt           DateTime             @default(now())
-  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  connector           IntegrationConnector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  id          String               @id @default(cuid())
+  userId      String
+  connectorId String
+  status      ConnectorCheckStatus
+  message     String
+  latencyMs   Int                  @default(0)
+  checkAt     DateTime             @default(now())
+  diagnostics Json?
+  createdAt   DateTime             @default(now())
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  connector   IntegrationConnector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([connectorId])
@@ -1235,22 +1324,22 @@ model IntegrationConnectorHealthCheck {
 }
 
 model PromptFlowDefinition {
-  id                  String                   @id @default(cuid())
-  userId              String
-  name                String
-  description         String?                  @db.Text
-  status              PromptFlowStatus         @default(DRAFT)
-  executionMode       PromptFlowExecutionMode  @default(SERIAL)
-  nodes               Json
-  edges               Json
-  contextVariables    Json?
-  retryPolicy         Json?
-  version             Int                      @default(1)
-  lastPublishedAt     DateTime?
-  createdAt           DateTime                 @default(now())
-  updatedAt           DateTime                 @updatedAt
-  user                User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  runs                PromptFlowRun[]
+  id               String                  @id @default(cuid())
+  userId           String
+  name             String
+  description      String?                 @db.Text
+  status           PromptFlowStatus        @default(DRAFT)
+  executionMode    PromptFlowExecutionMode @default(SERIAL)
+  nodes            Json
+  edges            Json
+  contextVariables Json?
+  retryPolicy      Json?
+  version          Int                     @default(1)
+  lastPublishedAt  DateTime?
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  user             User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  runs             PromptFlowRun[]
 
   @@index([userId])
   @@index([status])
@@ -1258,22 +1347,22 @@ model PromptFlowDefinition {
 }
 
 model PromptFlowRun {
-  id                  String                  @id @default(cuid())
-  userId              String
-  flowId              String
-  replayToken         String
-  status              PromptFlowRunStatus     @default(PENDING)
-  executionMode       PromptFlowExecutionMode
-  attempts            Int                     @default(0)
-  runLog              Json?
-  metrics             Json?
-  errorMessage        String?
-  startedAt           DateTime?
-  endedAt             DateTime?
-  createdAt           DateTime                @default(now())
-  updatedAt           DateTime                @updatedAt
-  user                User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  flow                PromptFlowDefinition    @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  id            String                  @id @default(cuid())
+  userId        String
+  flowId        String
+  replayToken   String
+  status        PromptFlowRunStatus     @default(PENDING)
+  executionMode PromptFlowExecutionMode
+  attempts      Int                     @default(0)
+  runLog        Json?
+  metrics       Json?
+  errorMessage  String?
+  startedAt     DateTime?
+  endedAt       DateTime?
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  user          User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  flow          PromptFlowDefinition    @relation(fields: [flowId], references: [id], onDelete: Cascade)
 
   @@unique([flowId, replayToken])
   @@index([userId])
@@ -1283,18 +1372,18 @@ model PromptFlowRun {
 }
 
 model PromptInteropProfile {
-  id                  String                @id @default(cuid())
-  userId              String
-  name                String
-  platform            PromptInteropPlatform
-  mode                PromptInteropMode
-  fieldMapping        Json
-  conflictPolicy      String                @default("skip")
-  compatibilityMode   String                @default("strict")
-  createdAt           DateTime              @default(now())
-  updatedAt           DateTime              @updatedAt
-  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jobs                PromptInteropJob[]
+  id                String                @id @default(cuid())
+  userId            String
+  name              String
+  platform          PromptInteropPlatform
+  mode              PromptInteropMode
+  fieldMapping      Json
+  conflictPolicy    String                @default("skip")
+  compatibilityMode String                @default("strict")
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  user              User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobs              PromptInteropJob[]
 
   @@unique([userId, platform, mode, name])
   @@index([userId])
@@ -1303,23 +1392,23 @@ model PromptInteropProfile {
 }
 
 model PromptInteropJob {
-  id                  String                @id @default(cuid())
-  userId              String
-  profileId           String
-  platform            PromptInteropPlatform
-  mode                PromptInteropMode
-  status              PromptInteropJobStatus @default(PREVIEW)
-  payload             Json?
-  previewSummary      Json?
-  exportedPayload     Json?
-  appliedCount        Int                   @default(0)
-  skippedCount        Int                   @default(0)
-  conflictCount       Int                   @default(0)
-  errorMessage        String?
-  createdAt           DateTime              @default(now())
-  updatedAt           DateTime              @updatedAt
-  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  profile             PromptInteropProfile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  id              String                 @id @default(cuid())
+  userId          String
+  profileId       String
+  platform        PromptInteropPlatform
+  mode            PromptInteropMode
+  status          PromptInteropJobStatus @default(PREVIEW)
+  payload         Json?
+  previewSummary  Json?
+  exportedPayload Json?
+  appliedCount    Int                    @default(0)
+  skippedCount    Int                    @default(0)
+  conflictCount   Int                    @default(0)
+  errorMessage    String?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  user            User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile         PromptInteropProfile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([profileId])
@@ -1329,26 +1418,26 @@ model PromptInteropJob {
 }
 
 model SupportTicket {
-  id               String               @id @default(cuid())
-  ticketNo         String               @unique
+  id               String                   @id @default(cuid())
+  ticketNo         String                   @unique
   userId           String
   assigneeId       String?
   title            String
-  description      String               @db.Text
-  category         String               @default("general")
-  planId           String               @default("free")
-  tier             SupportTicketTier    @default(COMMUNITY)
-  priority         SupportTicketPriority @default(NORMAL)
-  status           SupportTicketStatus  @default(OPEN)
+  description      String                   @db.Text
+  category         String                   @default("general")
+  planId           String                   @default("free")
+  tier             SupportTicketTier        @default(COMMUNITY)
+  priority         SupportTicketPriority    @default(NORMAL)
+  status           SupportTicketStatus      @default(OPEN)
   firstResponseAt  DateTime?
   responseDueAt    DateTime?
   resolvedAt       DateTime?
   closedAt         DateTime?
   metadata         Json?
-  createdAt        DateTime             @default(now())
-  updatedAt        DateTime             @updatedAt
-  user             User                 @relation("SupportTicketRequester", fields: [userId], references: [id], onDelete: Cascade)
-  assignee         User?                @relation("SupportTicketAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  user             User                     @relation("SupportTicketRequester", fields: [userId], references: [id], onDelete: Cascade)
+  assignee         User?                    @relation("SupportTicketAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
   events           SupportTicketEvent[]
   escalationEvents SupportEscalationEvent[]
   postmortems      SupportPostmortem[]
@@ -1361,17 +1450,17 @@ model SupportTicket {
 }
 
 model SupportTicketEvent {
-  id             String              @id @default(cuid())
-  ticketId       String
-  actorId        String
-  action         String
-  fromStatus     SupportTicketStatus?
-  toStatus       SupportTicketStatus?
-  note           String?             @db.Text
-  metadata       Json?
-  createdAt      DateTime            @default(now())
-  ticket         SupportTicket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  actor          User                @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  id         String               @id @default(cuid())
+  ticketId   String
+  actorId    String
+  action     String
+  fromStatus SupportTicketStatus?
+  toStatus   SupportTicketStatus?
+  note       String?              @db.Text
+  metadata   Json?
+  createdAt  DateTime             @default(now())
+  ticket     SupportTicket        @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  actor      User                 @relation(fields: [actorId], references: [id], onDelete: Cascade)
 
   @@index([ticketId])
   @@index([actorId])
@@ -1380,23 +1469,23 @@ model SupportTicketEvent {
 }
 
 model SupportEscalationPolicy {
-  id                 String               @id @default(cuid())
+  id                 String                   @id @default(cuid())
   userId             String
-  planId             String               @default("enterprise")
-  level              SupportEscalationLevel @default(L1)
+  planId             String                   @default("enterprise")
+  level              SupportEscalationLevel   @default(L1)
   fromTier           SupportTicketTier
   fromPriority       SupportTicketPriority
   targetTier         SupportTicketTier
-  targetPriority     SupportTicketPriority @default(HIGH)
+  targetPriority     SupportTicketPriority    @default(HIGH)
   targetTeam         String
   targetRole         String?
-  responseSlaHours   Int                  @default(4)
-  resolutionSlaHours Int                  @default(24)
+  responseSlaHours   Int                      @default(4)
+  resolutionSlaHours Int                      @default(24)
   workflowSteps      Json?
-  active             Boolean              @default(true)
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
-  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  active             Boolean                  @default(true)
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+  user               User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   events             SupportEscalationEvent[]
 
   @@index([userId])
@@ -1406,26 +1495,26 @@ model SupportEscalationPolicy {
 }
 
 model SupportEscalationEvent {
-  id             String                @id @default(cuid())
-  ticketId       String
-  actorId        String
-  policyId       String?
-  status         SupportEscalationStatus @default(OPEN)
-  level          SupportEscalationLevel  @default(L1)
-  fromTier       SupportTicketTier
-  toTier         SupportTicketTier
-  fromPriority   SupportTicketPriority
-  toPriority     SupportTicketPriority
-  targetTeam     String
-  reason         String                @db.Text
+  id               String                   @id @default(cuid())
+  ticketId         String
+  actorId          String
+  policyId         String?
+  status           SupportEscalationStatus  @default(OPEN)
+  level            SupportEscalationLevel   @default(L1)
+  fromTier         SupportTicketTier
+  toTier           SupportTicketTier
+  fromPriority     SupportTicketPriority
+  toPriority       SupportTicketPriority
+  targetTeam       String
+  reason           String                   @db.Text
   handoffChecklist Json?
-  acknowledgedAt DateTime?
-  resolvedAt     DateTime?
-  createdAt      DateTime              @default(now())
-  updatedAt      DateTime              @updatedAt
-  ticket         SupportTicket         @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  actor          User                  @relation(fields: [actorId], references: [id], onDelete: Cascade)
-  policy         SupportEscalationPolicy? @relation(fields: [policyId], references: [id], onDelete: SetNull)
+  acknowledgedAt   DateTime?
+  resolvedAt       DateTime?
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  ticket           SupportTicket            @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  actor            User                     @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  policy           SupportEscalationPolicy? @relation(fields: [policyId], references: [id], onDelete: SetNull)
 
   @@index([ticketId])
   @@index([actorId])
@@ -1435,37 +1524,37 @@ model SupportEscalationEvent {
 }
 
 model SupportRunbook {
-  id                String   @id @default(cuid())
-  userId            String   @unique
-  triageChecklist   Json?
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  triageChecklist    Json?
   escalationWorkflow Json?
-  responseWorkflow  Json?
-  contactMatrix     Json?
+  responseWorkflow   Json?
+  contactMatrix      Json?
   postmortemTemplate Json?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model SupportPostmortem {
-  id               String                @id @default(cuid())
-  ticketId         String
-  tenantUserId     String
-  authorId         String?
-  status           SupportPostmortemStatus @default(DRAFT)
-  severity         SupportTicketPriority @default(NORMAL)
-  summary          String                @db.Text
-  impact           String?               @db.Text
-  rootCause        String?               @db.Text
-  timeline         Json?
-  actionItems      Json?
+  id                String                  @id @default(cuid())
+  ticketId          String
+  tenantUserId      String
+  authorId          String?
+  status            SupportPostmortemStatus @default(DRAFT)
+  severity          SupportTicketPriority   @default(NORMAL)
+  summary           String                  @db.Text
+  impact            String?                 @db.Text
+  rootCause         String?                 @db.Text
+  timeline          Json?
+  actionItems       Json?
   collaborationMeta Json?
-  publishedAt      DateTime?
-  createdAt        DateTime              @default(now())
-  updatedAt        DateTime              @updatedAt
-  ticket           SupportTicket         @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  tenant           User                  @relation("SupportPostmortemTenant", fields: [tenantUserId], references: [id], onDelete: Cascade)
-  author           User?                 @relation("SupportPostmortemAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  publishedAt       DateTime?
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  ticket            SupportTicket           @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  tenant            User                    @relation("SupportPostmortemTenant", fields: [tenantUserId], references: [id], onDelete: Cascade)
+  author            User?                   @relation("SupportPostmortemAuthor", fields: [authorId], references: [id], onDelete: SetNull)
 
   @@index([ticketId])
   @@index([tenantUserId])
@@ -1475,15 +1564,15 @@ model SupportPostmortem {
 }
 
 model BrandProfile {
-  id              String           @id @default(cuid())
-  userId          String           @unique
+  id              String            @id @default(cuid())
+  userId          String            @unique
   status          BrandConfigStatus @default(DRAFT)
   draftConfig     Json?
   publishedConfig Json?
   publishedAt     DateTime?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([status])
 }
@@ -1509,19 +1598,19 @@ model SlaSnapshot {
 }
 
 model SlaAlert {
-  id         String         @id @default(cuid())
-  userId     String
-  metric     SlaMetricType
-  status     SlaAlertStatus @default(OPEN)
-  threshold  Float
-  observed   Float
-  summary    String         @db.Text
-  triggeredAt DateTime      @default(now())
+  id          String         @id @default(cuid())
+  userId      String
+  metric      SlaMetricType
+  status      SlaAlertStatus @default(OPEN)
+  threshold   Float
+  observed    Float
+  summary     String         @db.Text
+  triggeredAt DateTime       @default(now())
   recoveredAt DateTime?
-  metadata   Json?
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
-  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  metadata    Json?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([metric])
@@ -1530,10 +1619,10 @@ model SlaAlert {
 }
 
 model SsoProvider {
-  id                 String            @id @default(cuid())
+  id                 String             @id @default(cuid())
   userId             String
-  type               SsoProviderType   @default(OIDC)
-  status             SsoProviderStatus @default(DISABLED)
+  type               SsoProviderType    @default(OIDC)
+  status             SsoProviderStatus  @default(DISABLED)
   name               String
   issuerUrl          String
   ssoUrl             String?
@@ -1541,14 +1630,14 @@ model SsoProvider {
   clientSecret       String?
   domains            Json?
   roleMapping        Json?
-  defaultRole        String            @default("VIEWER")
-  enforceSso         Boolean           @default(false)
-  allowLocalFallback Boolean           @default(true)
+  defaultRole        String             @default("VIEWER")
+  enforceSso         Boolean            @default(false)
+  allowLocalFallback Boolean            @default(true)
   metadata           Json?
   lastSyncedAt       DateTime?
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
-  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   identities         UserIdentity[]
   syncRuns           DirectorySyncRun[]
   conflicts          IdentityConflict[]
@@ -1581,23 +1670,23 @@ model UserIdentity {
 }
 
 model DirectorySyncRun {
-  id           String              @id @default(cuid())
-  providerId   String
-  actorId      String
-  status       DirectorySyncStatus @default(SUCCESS)
-  summary      String?             @db.Text
-  totalUsers   Int                 @default(0)
-  createdUsers Int                 @default(0)
-  linkedUsers  Int                 @default(0)
-  conflictCount Int                @default(0)
-  startedAt    DateTime            @default(now())
-  finishedAt   DateTime?
-  metadata     Json?
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  provider     SsoProvider         @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  actor        User                @relation(fields: [actorId], references: [id], onDelete: Cascade)
-  conflicts    IdentityConflict[]
+  id            String              @id @default(cuid())
+  providerId    String
+  actorId       String
+  status        DirectorySyncStatus @default(SUCCESS)
+  summary       String?             @db.Text
+  totalUsers    Int                 @default(0)
+  createdUsers  Int                 @default(0)
+  linkedUsers   Int                 @default(0)
+  conflictCount Int                 @default(0)
+  startedAt     DateTime            @default(now())
+  finishedAt    DateTime?
+  metadata      Json?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  provider      SsoProvider         @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  actor         User                @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  conflicts     IdentityConflict[]
 
   @@index([providerId])
   @@index([actorId])
@@ -1665,6 +1754,285 @@ model AuditAnomaly {
   @@index([status])
   @@index([severity])
   @@index([lastSeenAt])
+}
+
+model OpsTaskTemplate {
+  id                       String         @id @default(cuid())
+  userId                   String
+  name                     String
+  description              String?        @db.Text
+  status                   OpsTaskStatus  @default(DRAFT)
+  scheduleCron             String?
+  timezone                 String         @default("Asia/Shanghai")
+  retryLimit               Int            @default(2)
+  failAlertEnabled         Boolean        @default(true)
+  defaultChannel           OpsTaskChannel @default(IN_APP)
+  idempotencyWindowMinutes Int            @default(30)
+  outputTrackingEnabled    Boolean        @default(true)
+  metadata                 Json?
+  lastRunAt                DateTime?
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+  user                     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  runs                     OpsTaskRun[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([updatedAt])
+}
+
+model OpsTaskRun {
+  id            String          @id @default(cuid())
+  userId        String
+  templateId    String
+  status        OpsTaskStatus   @default(RUNNING)
+  triggerSource String          @default("manual")
+  replayToken   String
+  attempts      Int             @default(1)
+  outputSummary String?         @db.Text
+  outputPayload Json?
+  errorMessage  String?         @db.Text
+  alertSent     Boolean         @default(false)
+  startedAt     DateTime?
+  endedAt       DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template      OpsTaskTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, replayToken])
+  @@index([userId])
+  @@index([templateId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OpsNotificationRule {
+  id                  String                    @id @default(cuid())
+  userId              String
+  name                String
+  enabled             Boolean                   @default(true)
+  channels            Json
+  quietWindowStart    Int                       @default(23)
+  quietWindowEnd      Int                       @default(8)
+  frequencyCapPerHour Int                       @default(3)
+  dedupeWindowMinutes Int                       @default(30)
+  webhookUrl          String?
+  metadata            Json?
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  user                User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries          OpsNotificationDelivery[]
+
+  @@index([userId])
+  @@index([enabled])
+  @@index([updatedAt])
+}
+
+model OpsNotificationDelivery {
+  id           String                @id @default(cuid())
+  userId       String
+  ruleId       String
+  channel      OpsTaskChannel
+  status       OpsNotificationStatus @default(PENDING)
+  dedupeKey    String
+  recipient    String
+  message      String                @db.Text
+  receiptCode  String?
+  sentAt       DateTime?
+  errorMessage String?               @db.Text
+  metadata     Json?
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rule         OpsNotificationRule   @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@unique([ruleId, dedupeKey, channel])
+  @@index([userId])
+  @@index([ruleId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OpsAnalyticsSnapshot {
+  id              String                 @id @default(cuid())
+  userId          String
+  cohortKey       String
+  metricType      OpsAnalyticsMetricType
+  stage           String
+  windowStart     DateTime
+  windowEnd       DateTime
+  activatedUsers  Int                    @default(0)
+  retainedUsers   Int                    @default(0)
+  revisitUsers    Int                    @default(0)
+  conversionUsers Int                    @default(0)
+  experimentId    String?
+  traceToken      String
+  metadata        Json?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  user            User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([cohortKey])
+  @@index([metricType])
+  @@index([windowEnd])
+}
+
+model OpsPlaybookTemplate {
+  id                    String                 @id @default(cuid())
+  userId                String
+  name                  String
+  summary               String                 @db.Text
+  status                PlaybookTemplateStatus @default(DRAFT)
+  tags                  Json?
+  version               Int                    @default(1)
+  ratingScore           Float                  @default(0)
+  ratingCount           Int                    @default(0)
+  content               Json
+  compatibilityNotes    String?                @db.Text
+  rollbackTargetVersion Int?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([updatedAt])
+}
+
+model ReliabilityGateRun {
+  id          String                  @id @default(cuid())
+  userId      String
+  releaseKey  String
+  gateType    ReliabilityGateType
+  severity    ReliabilityGateSeverity @default(MEDIUM)
+  status      ReliabilityGateStatus
+  branchName  String?
+  commitSha   String?
+  environment String                  @default("staging")
+  findings    Json?
+  blockReason String?                 @db.Text
+  startedAt   DateTime                @default(now())
+  endedAt     DateTime?
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  user        User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([releaseKey])
+  @@index([status])
+  @@index([gateType])
+}
+
+model SelfHealPattern {
+  id               String              @id @default(cuid())
+  userId           String
+  name             String
+  defectSignature  String
+  fixTemplate      String              @db.Text
+  regressionScript String              @db.Text
+  confidenceScore  Float               @default(0.7)
+  successRate      Float               @default(0)
+  enabled          Boolean             @default(true)
+  metadata         Json?
+  lastAppliedAt    DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  executions       SelfHealExecution[]
+
+  @@index([userId])
+  @@index([enabled])
+  @@index([defectSignature])
+}
+
+model SelfHealExecution {
+  id              String                   @id @default(cuid())
+  userId          String
+  patternId       String
+  status          SelfHealSuggestionStatus @default(OPEN)
+  defectReference String
+  suggestion      String                   @db.Text
+  patchPreview    String?                  @db.Text
+  confirmedBy     String?
+  appliedAt       DateTime?
+  metadata        Json?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  user            User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pattern         SelfHealPattern          @relation(fields: [patternId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([patternId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ReleaseOrchestrationPlan {
+  id                       String                 @id @default(cuid())
+  userId                   String
+  name                     String
+  status                   ReleaseStageStatus     @default(DRAFT)
+  releaseWindowStart       DateTime
+  releaseWindowEnd         DateTime
+  canaryTrafficPercent     Int                    @default(10)
+  rollbackThresholdPercent Int                    @default(5)
+  checklist                Json?
+  rehearsalScript          String?                @db.Text
+  impactSummary            String?                @db.Text
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
+  user                     User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rollbackEvents           ReleaseRollbackEvent[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([releaseWindowStart])
+}
+
+model ReleaseRollbackEvent {
+  id               String                   @id @default(cuid())
+  userId           String
+  planId           String
+  reason           String                   @db.Text
+  impactedServices Json?
+  estimatedUsers   Int                      @default(0)
+  impactScore      Float                    @default(0)
+  rollbackAt       DateTime                 @default(now())
+  completedAt      DateTime?
+  metadata         Json?
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  user             User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan             ReleaseOrchestrationPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([planId])
+  @@index([rollbackAt])
+}
+
+model Phase6ClosureReport {
+  id                    String             @id @default(cuid())
+  userId                String
+  status                PhaseClosureStatus @default(DRAFT)
+  functionalGatePassed  Boolean            @default(false)
+  performanceGatePassed Boolean            @default(false)
+  securityGatePassed    Boolean            @default(false)
+  runbookUrl            String?
+  emergencyPlanUrl      String?
+  trainingMaterialUrl   String?
+  rehearsalSummary      String?            @db.Text
+  roadmap               String?            @db.Text
+  baselineTag           String?
+  frozenAt              DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([updatedAt])
 }
 
 model Category {
