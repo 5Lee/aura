@@ -107,6 +107,25 @@ type AttributionConsistency = {
   consistent: boolean
 }
 
+type AlertRow = {
+  id: string
+  experimentId: string
+  type: string
+  status: string
+  severity: string
+  message: string
+  triggerValue: number
+  thresholdValue: number
+  autoPaused: boolean
+  triggeredAt: string
+  resolvedAt: string
+  experiment: {
+    id: string
+    name: string
+    status: string
+  }
+}
+
 type Summary = {
   totalExposures: number
   totalConversions: number
@@ -127,6 +146,7 @@ type GrowthExperimentPanelProps = {
   attributionSnapshots: AttributionRow[]
   attributionAggregate: AttributionAggregateRow[]
   attributionConsistency: AttributionConsistency
+  alerts: AlertRow[]
   summary: Summary
 }
 
@@ -169,6 +189,7 @@ export function GrowthExperimentPanel({
   attributionSnapshots,
   attributionAggregate,
   attributionConsistency,
+  alerts,
   summary,
 }: GrowthExperimentPanelProps) {
   const router = useRouter()
@@ -233,6 +254,11 @@ export function GrowthExperimentPanel({
     correctionTag: "manual-review",
   })
 
+  const [alertForm, setAlertForm] = useState({
+    status: "RESOLVED",
+    resumeExperiment: true,
+  })
+
   const [updateForm, setUpdateForm] = useState({
     status: "RUNNING",
     metricType: "CONVERSION",
@@ -245,6 +271,10 @@ export function GrowthExperimentPanel({
   const anomalies = useMemo(
     () => attributionSnapshots.filter((item) => item.status === "ANOMALY").slice(0, 8),
     [attributionSnapshots]
+  )
+  const activeAlerts = useMemo(
+    () => alerts.filter((item) => item.status !== "RESOLVED").slice(0, 10),
+    [alerts]
   )
 
   async function runAction(actionKey: string, fn: () => Promise<unknown>, success: string) {
@@ -871,6 +901,100 @@ export function GrowthExperimentPanel({
                       }
                     >
                       {pendingAction === `mark-attribution-${item.id}` ? "处理中..." : "标记纠偏"}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-2">
+        <div className="space-y-3 rounded-lg border border-border bg-background p-4">
+          <p className="text-sm font-medium">实验异常告警与自动熔断策略</p>
+          <p className="text-xs text-muted-foreground">规则：转化骤降 / 成本超阈 / 样本不足</p>
+          <Button
+            disabled={pendingAction !== null}
+            onClick={() =>
+              runAction(
+                "evaluate-alerts",
+                () =>
+                  requestJson("/api/growth-lab/alerts", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({}),
+                  }),
+                "告警评估完成，已更新自动熔断状态"
+              )
+            }
+          >
+            {pendingAction === "evaluate-alerts" ? "评估中..." : "执行告警评估"}
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            当前告警：OPEN/ACK {alerts.filter((item) => item.status !== "RESOLVED").length} 条，RESOLVED{" "}
+            {alerts.filter((item) => item.status === "RESOLVED").length} 条
+          </p>
+        </div>
+
+        <div className="space-y-3 rounded-lg border border-border bg-background p-4">
+          <p className="text-sm font-medium">告警处理与恢复路径</p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <select
+              aria-label="告警处理状态"
+              value={alertForm.status}
+              onChange={(event) => setAlertForm((prev) => ({ ...prev, status: event.target.value }))}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="RESOLVED">RESOLVED</option>
+              <option value="ACKNOWLEDGED">ACKNOWLEDGED</option>
+              <option value="OPEN">OPEN</option>
+            </select>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={alertForm.resumeExperiment}
+                onChange={(event) =>
+                  setAlertForm((prev) => ({ ...prev, resumeExperiment: event.target.checked }))
+                }
+              />
+              <span>关闭告警时尝试恢复实验</span>
+            </label>
+          </div>
+          {activeAlerts.length === 0 ? (
+            <p className="text-sm text-muted-foreground">暂无待处理告警。</p>
+          ) : (
+            <div className="space-y-2 text-sm">
+              {activeAlerts.map((item) => (
+                <div key={item.id} className="rounded-md border border-border bg-muted/10 px-3 py-2">
+                  <p className="font-medium">
+                    {item.experiment.name} · {item.type} · {item.severity}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {item.message} · 触发 {item.triggerValue} / 阈值 {item.thresholdValue} ·
+                    {item.autoPaused ? " 已触发自动暂停" : " 未自动暂停"}
+                  </p>
+                  <div className="mt-2">
+                    <Button
+                      disabled={pendingAction !== null}
+                      onClick={() =>
+                        runAction(
+                          `resolve-alert-${item.id}`,
+                          () =>
+                            requestJson("/api/growth-lab/alerts", {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                id: item.id,
+                                status: alertForm.status,
+                                resumeExperiment: alertForm.resumeExperiment,
+                              }),
+                            }),
+                          "告警处理结果已保存"
+                        )
+                      }
+                    >
+                      {pendingAction === `resolve-alert-${item.id}` ? "处理中..." : "更新告警状态"}
                     </Button>
                   </div>
                 </div>

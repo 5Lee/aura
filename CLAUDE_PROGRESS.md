@@ -3844,3 +3844,44 @@ npx prisma db seed    # Seed database with sample data
 - `__tests__/phase6-week21-attribution-dashboard.test.js`
 
 **Status**: ✅ WEEK21-003 COMPLETE（继续推进 week21-004 实验异常告警与自动熔断策略）
+
+### 2026-03-05 - Phase 6 Week 21 Step 4 Alerting & Circuit Breaker Strategy (Coding Agent Session)
+**Agent**: Codex
+**Session Type**: 连续执行（无需用户确认，直接推进）
+
+**Completed Feature**:
+- ✅ `phase6-week21-004` 完成实验异常告警与自动熔断策略
+
+**Major Changes**:
+- 告警与熔断数据模型扩展：
+  - `prisma/schema.prisma`
+  - 新增 `GrowthAlertType` / `GrowthAlertStatus` 枚举与 `GrowthExperimentAlert` 模型
+- 告警规则与熔断策略核心能力：
+  - `lib/growth-alerting.ts`
+  - 内置转化骤降、成本超阈、样本不足告警规则，支持严重等级评估与自动熔断判定
+- 告警 API：
+  - `app/api/growth-lab/alerts/route.ts`
+  - 支持告警列表查询、批量评估触发、自动暂停实验、人工恢复与状态流转
+- 增长实验 API/页面聚合增强：
+  - `app/api/growth-lab/experiments/route.ts`
+  - `app/(dashboard)/growth-lab/page.tsx`
+  - 增补 `alerts` 聚合返回与面板数据注入
+- 工作台告警面板：
+  - `components/growth/growth-experiment-panel.tsx`
+  - 新增“实验异常告警与自动熔断策略”“告警处理与恢复路径”，支持一键评估与恢复动作
+- Phase6 任务推进：
+  - `feature_list_phase6_growth_ecosystem.json`
+  - 标记 `phase6-week21-004` 完成，`completed_features` 更新为 `4`
+
+**Verification**:
+- `npm run db:generate` ✅
+- `npm run typecheck` ✅
+- `npm run lint` ✅（存在 `no-img-element` 警告，不影响通过）
+- `npm test -- --runInBand __tests__/phase6-week21-growth-lab.test.js __tests__/phase6-week21-segmentation-audience.test.js __tests__/phase6-week21-attribution-dashboard.test.js __tests__/phase6-week21-alerting-circuit-break.test.js` ✅
+- `npm test -- --runInBand` ✅
+- `npm run feature:meta:check -- feature_list_phase6_growth_ecosystem.json` ✅
+
+**New Tests**:
+- `__tests__/phase6-week21-alerting-circuit-break.test.js`
+
+**Status**: ✅ WEEK21-004 COMPLETE（继续推进 week22-001 第三方模型与工具连接器目录）

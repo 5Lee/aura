@@ -22,7 +22,7 @@ export default async function GrowthLabPage() {
   const snapshot = await getUserEntitlementSnapshot(session.user.id)
   const hasAccess = hasGrowthLabAccess(snapshot.plan.id)
 
-  const [count, experiments, snapshots, segments, audiences, attributionSnapshots] = await Promise.all([
+  const [count, experiments, snapshots, segments, audiences, attributionSnapshots, alerts] = await Promise.all([
     hasAccess
       ? prisma.growthExperiment.count({
           where: {
@@ -95,6 +95,24 @@ export default async function GrowthLabPage() {
           take: 240,
         })
       : Promise.resolve([]),
+    hasAccess
+      ? prisma.growthExperimentAlert.findMany({
+          where: {
+            userId: session.user.id,
+          },
+          include: {
+            experiment: {
+              select: {
+                id: true,
+                name: true,
+                status: true,
+              },
+            },
+          },
+          orderBy: [{ triggeredAt: "desc" }],
+          take: 200,
+        })
+      : Promise.resolve([]),
   ])
 
   if (hasAccess && count === 0) {
@@ -152,10 +170,11 @@ export default async function GrowthLabPage() {
             <CardTitle>增长实验中心</CardTitle>
             <Badge variant="secondary">Week21-001</Badge>
             <Badge variant="secondary">Week21-003</Badge>
+            <Badge variant="secondary">Week21-004</Badge>
             <Badge>{snapshot.plan.name}</Badge>
           </div>
           <CardDescription>
-            建立实验定义、受众编排、渠道归因与异常纠偏能力，帮助运营团队持续迭代增长策略并追踪实验效果。
+            建立实验定义、受众编排、渠道归因、异常告警与熔断恢复能力，帮助运营团队持续迭代增长策略并追踪实验效果。
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -240,6 +259,20 @@ export default async function GrowthLabPage() {
               roiPercent: item.roiPercent,
             }))}
             attributionConsistency={attributionConsistency}
+            alerts={alerts.map((item) => ({
+              id: item.id,
+              experimentId: item.experimentId,
+              type: item.type,
+              status: item.status,
+              severity: item.severity,
+              message: item.message,
+              triggerValue: item.triggerValue,
+              thresholdValue: item.thresholdValue,
+              autoPaused: item.autoPaused,
+              triggeredAt: item.triggeredAt.toISOString(),
+              resolvedAt: item.resolvedAt ? item.resolvedAt.toISOString() : "",
+              experiment: item.experiment,
+            }))}
             summary={{
               ...summaryCore,
               ...conversion,

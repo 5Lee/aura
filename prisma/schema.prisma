@@ -47,6 +47,7 @@ model User {
   growthAudienceSegments  GrowthAudienceSegment[]
   growthExperimentAudiences GrowthExperimentAudience[]
   growthAttributionSnapshots GrowthAttributionSnapshot[]
+  growthExperimentAlerts  GrowthExperimentAlert[]
   supportTickets         SupportTicket[]      @relation("SupportTicketRequester")
   assignedSupportTickets SupportTicket[]      @relation("SupportTicketAssignee")
   supportTicketEvents    SupportTicketEvent[]
@@ -269,6 +270,18 @@ enum GrowthAttributionStatus {
   NORMAL
   ANOMALY
   CORRECTED
+}
+
+enum GrowthAlertType {
+  CONVERSION_DROP
+  COST_SPIKE
+  LOW_SAMPLE
+}
+
+enum GrowthAlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
 }
 
 enum SupportTicketPriority {
@@ -976,6 +989,7 @@ model GrowthExperiment {
   snapshots           GrowthMetricSnapshot[]
   audiences           GrowthExperimentAudience[]
   attributionSnapshots GrowthAttributionSnapshot[]
+  alerts              GrowthExperimentAlert[]
 
   @@index([userId])
   @@index([status])
@@ -1082,6 +1096,32 @@ model GrowthAttributionSnapshot {
   @@index([channel])
   @@index([status])
   @@index([windowEnd])
+}
+
+model GrowthExperimentAlert {
+  id                  String            @id @default(cuid())
+  userId              String
+  experimentId        String
+  type                GrowthAlertType
+  status              GrowthAlertStatus @default(OPEN)
+  severity            String            @default("P2")
+  message             String            @db.Text
+  triggerValue        Float             @default(0)
+  thresholdValue      Float             @default(0)
+  autoPaused          Boolean           @default(false)
+  triggeredAt         DateTime          @default(now())
+  resolvedAt          DateTime?
+  metadata            Json?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experiment          GrowthExperiment  @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([experimentId])
+  @@index([type])
+  @@index([status])
+  @@index([triggeredAt])
 }
 
 model SupportTicket {
