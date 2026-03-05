@@ -49,6 +49,31 @@ export function resolveMobileRouteMeta(pathname: string): MobileRouteMeta {
     return { title: "后台中心", showBackButton: false }
   }
 
+  if (pathname.startsWith("/admin/")) {
+    const section = pathname.replace("/admin/", "").split("/")[0]
+    const sectionTitleMap: Record<string, string> = {
+      branding: "品牌中心",
+      sso: "SSO 身份",
+      compliance: "合规审计",
+      sla: "SLA 监控",
+      support: "支持流程",
+      ads: "广告投放",
+      "growth-lab": "增长实验",
+      connectors: "连接器目录",
+      "prompt-flow": "流程编排",
+      interoperability: "跨平台互通",
+      partners: "伙伴结算",
+      marketplace: "市场佣金",
+      "developer-api": "API 策略",
+      billing: "账单中心",
+    }
+    return {
+      title: sectionTitleMap[section] || "后台中心",
+      showBackButton: true,
+      backHref: "/admin",
+    }
+  }
+
   if (pathname === "/marketplace") {
     return { title: "市场佣金", showBackButton: false }
   }
