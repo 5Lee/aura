@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -64,20 +64,41 @@ function formatDateTime(value: string) {
   return DATE_TIME_FORMATTER.format(new Date(value))
 }
 
+function formatTemplateOptionLabel(template: TemplateRow) {
+  return `${template.name} · ${template.status} · ${template.id.slice(-6)}`
+}
+
+function formatRunTemplateOptionLabel(template: TemplateRow) {
+  return `${template.name} · retry ${template.retryLimit} · ${template.id.slice(-6)}`
+}
+
+function buildTemplateForm(template: TemplateRow | null) {
+  return {
+    id: template?.id || "",
+    name: template?.name || "",
+    description: template?.description || "",
+    status: template?.status || "SCHEDULED",
+    scheduleCron: template?.scheduleCron || "0 9 * * *",
+    retryLimit: String(template?.retryLimit || 2),
+    defaultChannel: template?.defaultChannel || "IN_APP",
+  }
+}
+
 export function OpsTaskCenterPanel({ hasAccess, planId, templates, runs }: OpsTaskCenterPanelProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [pending, setPending] = useState<string | null>(null)
-  const [form, setForm] = useState({
-    id: templates[0]?.id || "",
-    name: templates[0]?.name || "",
-    description: templates[0]?.description || "",
-    status: templates[0]?.status || "SCHEDULED",
-    scheduleCron: templates[0]?.scheduleCron || "0 9 * * *",
-    retryLimit: String(templates[0]?.retryLimit || 2),
-    defaultChannel: templates[0]?.defaultChannel || "IN_APP",
-  })
+  const [selectedTemplateId, setSelectedTemplateId] = useState(templates[0]?.id || "")
+  const selectedTemplate = useMemo(
+    () => templates.find((item) => item.id === selectedTemplateId) || null,
+    [selectedTemplateId, templates]
+  )
+  const [form, setForm] = useState(() => buildTemplateForm(selectedTemplate))
   const [runTemplateId, setRunTemplateId] = useState(templates[0]?.id || "")
+
+  useEffect(() => {
+    setForm(buildTemplateForm(selectedTemplate))
+  }, [selectedTemplate])
 
   if (!hasAccess) {
     return (
@@ -131,26 +152,14 @@ export function OpsTaskCenterPanel({ hasAccess, planId, templates, runs }: OpsTa
           <p className="text-sm font-medium">建立运营任务模板与执行计划模型</p>
           <select
             aria-label="选择模板"
-            value={form.id}
-            onChange={(event) => {
-              const selected = templates.find((item) => item.id === event.target.value)
-              setForm((prev) => ({
-                ...prev,
-                id: event.target.value,
-                name: selected?.name || prev.name,
-                description: selected?.description || "",
-                status: selected?.status || prev.status,
-                scheduleCron: selected?.scheduleCron || prev.scheduleCron,
-                retryLimit: String(selected?.retryLimit || prev.retryLimit),
-                defaultChannel: selected?.defaultChannel || prev.defaultChannel,
-              }))
-            }}
+            value={selectedTemplateId}
+            onChange={(event) => setSelectedTemplateId(event.target.value)}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
           >
             <option value="">新建模板</option>
             {templates.map((item) => (
               <option key={item.id} value={item.id}>
-                {item.name} · {item.status}
+                {formatTemplateOptionLabel(item)}
               </option>
             ))}
           </select>
@@ -244,7 +253,7 @@ export function OpsTaskCenterPanel({ hasAccess, planId, templates, runs }: OpsTa
             <option value="">选择模板</option>
             {templates.map((item) => (
               <option key={item.id} value={item.id}>
-                {item.name} · retry {item.retryLimit}
+                {formatRunTemplateOptionLabel(item)}
               </option>
             ))}
           </select>

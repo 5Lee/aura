@@ -127,6 +127,9 @@ test("ops APIs support template execution, multi-channel delivery, cohort analyt
   assert.match(playbookApiSource, /export async function PUT\(request: Request\)/)
   assert.match(playbookApiSource, /export async function POST\(request: Request\)/)
   assert.match(playbookApiSource, /ops\.playbook\.template\.apply/)
+  assert.match(playbookApiSource, /appliedTemplateCount/)
+  assert.match(playbookApiSource, /startsWith: `\$\{playbook\.name\} · 应用实例`/)
+  assert.match(playbookApiSource, /应用实例\$\{appliedTemplateSuffix\}/)
 })
 
 test("week23 pages and panels expose end-to-end operations workflow", () => {
@@ -145,10 +148,19 @@ test("week23 pages and panels expose end-to-end operations workflow", () => {
   assert.match(playbookPageSource, /Week23-004/)
 
   assert.match(opsPanelSource, /\/api\/ops\/tasks/)
+  assert.match(opsPanelSource, /buildTemplateForm/)
+  assert.match(opsPanelSource, /const selectedTemplate = useMemo/)
+  assert.match(opsPanelSource, /setForm\(buildTemplateForm\(selectedTemplate\)\)/)
   assert.match(opsPanelSource, /定时执行、重试、失败告警与运行历史追踪/)
   assert.match(opsPanelSource, /DATE_TIME_FORMATTER/)
+  assert.match(opsPanelSource, /formatTemplateOptionLabel/)
+  assert.match(opsPanelSource, /formatRunTemplateOptionLabel/)
+  assert.match(opsPanelSource, /slice\(-6\)/)
 
   assert.match(notifyPanelSource, /\/api\/ops\/notifications/)
+  assert.match(notifyPanelSource, /buildNotificationRuleForm/)
+  assert.match(notifyPanelSource, /const selectedRule = useMemo/)
+  assert.match(notifyPanelSource, /setForm\(buildNotificationRuleForm\(selectedRule\)\)/)
   assert.match(notifyPanelSource, /频控、去重补偿与触达回执/)
   assert.match(notifyPanelSource, /DATE_TIME_FORMATTER/)
 
@@ -158,6 +170,9 @@ test("week23 pages and panels expose end-to-end operations workflow", () => {
   assert.match(analyticsPanelSource, /manual-snapshot-/)
 
   assert.match(playbookPanelSource, /\/api\/ops\/playbooks/)
+  assert.match(playbookPanelSource, /buildPlaybookForm/)
+  assert.match(playbookPanelSource, /const selectedPlaybook = useMemo/)
+  assert.match(playbookPanelSource, /setForm\(buildPlaybookForm\(selectedPlaybook\)\)/)
   assert.match(playbookPanelSource, /一键应用到任务中心并支持升级回滚/)
 })
 

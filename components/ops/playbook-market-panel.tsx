@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -41,23 +41,36 @@ function toTags(value: unknown) {
   return value.map((item) => String(item))
 }
 
+function buildPlaybookForm(playbook: PlaybookRow | null) {
+  return {
+    id: playbook?.id || "",
+    name: playbook?.name || "",
+    summary: playbook?.summary || "",
+    status: playbook?.status || "PUBLISHED",
+    tags: toTags(playbook?.tags).join(","),
+    compatibilityNotes: playbook?.compatibilityNotes || "",
+    rollbackTargetVersion: String(playbook?.rollbackTargetVersion || 0),
+    rating: "",
+  }
+}
+
 export function PlaybookMarketPanel({ hasAccess, planId, playbooks }: PlaybookMarketPanelProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [pending, setPending] = useState<string | null>(null)
 
-  const [form, setForm] = useState({
-    id: playbooks[0]?.id || "",
-    name: playbooks[0]?.name || "",
-    summary: playbooks[0]?.summary || "",
-    status: playbooks[0]?.status || "PUBLISHED",
-    tags: toTags(playbooks[0]?.tags).join(","),
-    compatibilityNotes: playbooks[0]?.compatibilityNotes || "",
-    rollbackTargetVersion: String(playbooks[0]?.rollbackTargetVersion || 0),
-    rating: "",
-  })
+  const [selectedPlaybookId, setSelectedPlaybookId] = useState(playbooks[0]?.id || "")
+  const selectedPlaybook = useMemo(
+    () => playbooks.find((item) => item.id === selectedPlaybookId) || null,
+    [playbooks, selectedPlaybookId]
+  )
+  const [form, setForm] = useState(() => buildPlaybookForm(selectedPlaybook))
 
   const [applyId, setApplyId] = useState(playbooks[0]?.id || "")
+
+  useEffect(() => {
+    setForm(buildPlaybookForm(selectedPlaybook))
+  }, [selectedPlaybook])
 
   if (!hasAccess) {
     return (
@@ -118,20 +131,8 @@ export function PlaybookMarketPanel({ hasAccess, planId, playbooks }: PlaybookMa
         <div className="rounded-lg border border-border bg-background p-4 space-y-3">
           <p className="text-sm font-medium">模板创建、评分、标签与版本管理</p>
           <select
-            value={form.id}
-            onChange={(event) => {
-              const selected = playbooks.find((item) => item.id === event.target.value)
-              setForm((prev) => ({
-                ...prev,
-                id: event.target.value,
-                name: selected?.name || prev.name,
-                summary: selected?.summary || prev.summary,
-                status: selected?.status || prev.status,
-                tags: toTags(selected?.tags).join(","),
-                compatibilityNotes: selected?.compatibilityNotes || "",
-                rollbackTargetVersion: String(selected?.rollbackTargetVersion || 0),
-              }))
-            }}
+            value={selectedPlaybookId}
+            onChange={(event) => setSelectedPlaybookId(event.target.value)}
             aria-label="选择模板"
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
           >

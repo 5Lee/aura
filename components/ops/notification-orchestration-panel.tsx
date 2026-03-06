@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -79,6 +79,19 @@ function formatDateTime(value: string) {
   return DATE_TIME_FORMATTER.format(new Date(value))
 }
 
+function buildNotificationRuleForm(rule: RuleRow | null) {
+  return {
+    id: rule?.id || "",
+    name: rule?.name || "",
+    enabled: rule?.enabled ?? true,
+    channels: rule ? toChannels(rule.channels) : ["IN_APP"],
+    quietWindowStart: String(rule?.quietWindowStart ?? 23),
+    quietWindowEnd: String(rule?.quietWindowEnd ?? 8),
+    frequencyCapPerHour: String(rule?.frequencyCapPerHour ?? 3),
+    dedupeWindowMinutes: String(rule?.dedupeWindowMinutes ?? 30),
+  }
+}
+
 export function NotificationOrchestrationPanel({
   hasAccess,
   planId,
@@ -90,24 +103,20 @@ export function NotificationOrchestrationPanel({
   const { toast } = useToast()
   const [pending, setPending] = useState<string | null>(null)
   const [selectedRuleId, setSelectedRuleId] = useState(rules[0]?.id || "")
-  const selectedRule = useMemo(() => rules.find((item) => item.id === selectedRuleId) || rules[0], [rules, selectedRuleId])
+  const selectedRule = useMemo(() => rules.find((item) => item.id === selectedRuleId) || null, [rules, selectedRuleId])
 
-  const [form, setForm] = useState({
-    id: selectedRule?.id || "",
-    name: selectedRule?.name || "",
-    enabled: selectedRule?.enabled ?? true,
-    channels: toChannels(selectedRule?.channels),
-    quietWindowStart: String(selectedRule?.quietWindowStart ?? 23),
-    quietWindowEnd: String(selectedRule?.quietWindowEnd ?? 8),
-    frequencyCapPerHour: String(selectedRule?.frequencyCapPerHour ?? 3),
-    dedupeWindowMinutes: String(selectedRule?.dedupeWindowMinutes ?? 30),
-  })
+  const [form, setForm] = useState(() => buildNotificationRuleForm(selectedRule))
 
   const [dispatchForm, setDispatchForm] = useState({
     ruleId: selectedRule?.id || "",
     recipient: "ops@aura.local",
     message: "发布链路告警，请关注。",
   })
+
+  useEffect(() => {
+    setForm(buildNotificationRuleForm(selectedRule))
+    setDispatchForm((prev) => ({ ...prev, ruleId: selectedRule?.id || "" }))
+  }, [selectedRule])
 
   if (!hasAccess) {
     return (
@@ -165,21 +174,7 @@ export function NotificationOrchestrationPanel({
           <p className="text-sm font-medium">站内 / 邮件 / Webhook 多通道编排策略</p>
           <select
             value={selectedRuleId}
-            onChange={(event) => {
-              const next = rules.find((item) => item.id === event.target.value)
-              setSelectedRuleId(event.target.value)
-              setForm({
-                id: next?.id || "",
-                name: next?.name || "",
-                enabled: next?.enabled ?? true,
-                channels: toChannels(next?.channels),
-                quietWindowStart: String(next?.quietWindowStart ?? 23),
-                quietWindowEnd: String(next?.quietWindowEnd ?? 8),
-                frequencyCapPerHour: String(next?.frequencyCapPerHour ?? 3),
-                dedupeWindowMinutes: String(next?.dedupeWindowMinutes ?? 30),
-              })
-              setDispatchForm((prev) => ({ ...prev, ruleId: event.target.value }))
-            }}
+            onChange={(event) => setSelectedRuleId(event.target.value)}
             aria-label="通知规则"
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
           >

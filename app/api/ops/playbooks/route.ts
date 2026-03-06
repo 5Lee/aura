@@ -200,10 +200,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "归档模板不能应用" }, { status: 400 })
     }
 
+    const appliedTemplateCount = await prisma.opsTaskTemplate.count({
+      where: {
+        userId: session.user.id,
+        name: {
+          startsWith: `${playbook.name} · 应用实例`,
+        },
+      },
+    })
+    const appliedTemplateSuffix = appliedTemplateCount > 0 ? ` #${appliedTemplateCount + 1}` : ""
+
     const taskTemplate = await prisma.opsTaskTemplate.create({
       data: {
         userId: session.user.id,
-        name: `${playbook.name} · 应用实例`,
+        name: `${playbook.name} · 应用实例${appliedTemplateSuffix}`,
         description: playbook.summary,
         status: OpsTaskStatus.SCHEDULED,
         scheduleCron: "0 */6 * * *",
