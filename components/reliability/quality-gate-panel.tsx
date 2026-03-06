@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -54,10 +54,40 @@ function formatDateTime(value: string) {
   return DATE_TIME_FORMATTER.format(new Date(value))
 }
 
+function buildGateSummary(rows: GateRunRow[]) {
+  return rows.reduce(
+    (acc, item) => {
+      acc.total += 1
+      if (item.status === "PASS") {
+        acc.pass += 1
+      }
+      if (item.status === "WARN") {
+        acc.warn += 1
+      }
+      if (item.status === "FAIL") {
+        acc.fail += 1
+      }
+      if (item.status === "BLOCKED") {
+        acc.blocked += 1
+      }
+      return acc
+    },
+    {
+      total: 0,
+      pass: 0,
+      warn: 0,
+      fail: 0,
+      blocked: 0,
+    }
+  )
+}
+
 export function QualityGatePanel({ hasAccess, planId, runs, summary }: QualityGatePanelProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [pending, setPending] = useState(false)
+  const [runRows, setRunRows] = useState(runs)
+  const [gateSummary, setGateSummary] = useState(summary)
   const [form, setForm] = useState({
     releaseKey: "phase6-main",
     gateType: "FUNCTIONAL",
@@ -66,6 +96,11 @@ export function QualityGatePanel({ hasAccess, planId, runs, summary }: QualityGa
     blockReason: "",
     findingsJson: '[{"name":"ui-regression","severity":"high"}]',
   })
+
+  useEffect(() => {
+    setRunRows(runs)
+    setGateSummary(summary)
+  }, [runs, summary])
 
   if (!hasAccess) {
     return (
@@ -86,7 +121,7 @@ export function QualityGatePanel({ hasAccess, planId, runs, summary }: QualityGa
         findings = []
       }
 
-      await requestJson("/api/reliability/gates", {
+      const payload = await requestJson("/api/reliability/gates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -98,8 +133,14 @@ export function QualityGatePanel({ hasAccess, planId, runs, summary }: QualityGa
           findings,
         }),
       })
+
+      if (payload?.run) {
+        const nextRuns = [payload.run as GateRunRow, ...runRows]
+        setRunRows(nextRuns)
+        setGateSummary(buildGateSummary(nextRuns))
+      }
+
       toast({ type: "success", title: "质量闸门执行完成" })
-      router.refresh()
     } catch (error) {
       toast({
         type: "error",
@@ -116,23 +157,23 @@ export function QualityGatePanel({ hasAccess, planId, runs, summary }: QualityGa
       <div className="grid gap-3 md:grid-cols-5">
         <div className="rounded-lg border border-border bg-muted/20 p-4">
           <p className="text-xs text-muted-foreground">总闸门</p>
-          <p className="mt-1 text-lg font-semibold">{summary.total}</p>
+          <p className="mt-1 text-lg font-semibold">{gateSummary.total}</p>
         </div>
         <div className="rounded-lg border border-border bg-muted/20 p-4">
           <p className="text-xs text-muted-foreground">PASS</p>
-          <p className="mt-1 text-lg font-semibold">{summary.pass}</p>
+          <p className="mt-1 text-lg font-semibold">{gateSummary.pass}</p>
         </div>
         <div className="rounded-lg border border-border bg-muted/20 p-4">
           <p className="text-xs text-muted-foreground">WARN</p>
-          <p className="mt-1 text-lg font-semibold">{summary.warn}</p>
+          <p className="mt-1 text-lg font-semibold">{gateSummary.warn}</p>
         </div>
         <div className="rounded-lg border border-border bg-muted/20 p-4">
           <p className="text-xs text-muted-foreground">FAIL</p>
-          <p className="mt-1 text-lg font-semibold">{summary.fail}</p>
+          <p className="mt-1 text-lg font-semibold">{gateSummary.fail}</p>
         </div>
         <div className="rounded-lg border border-border bg-muted/20 p-4">
           <p className="text-xs text-muted-foreground">BLOCKED</p>
-          <p className="mt-1 text-lg font-semibold">{summary.blocked}</p>
+          <p className="mt-1 text-lg font-semibold">{gateSummary.blocked}</p>
         </div>
       </div>
 
@@ -199,7 +240,7 @@ export function QualityGatePanel({ hasAccess, planId, runs, summary }: QualityGa
 
         <div className="rounded-lg border border-border bg-background p-4 space-y-2 text-sm">
           <p className="text-sm font-medium">分支保护 / 发布门禁执行记录</p>
-          {runs.slice(0, 10).map((item) => (
+          {runRows.slice(0, 10).map((item) => (
             <div key={item.id} className="rounded-md border border-border bg-muted/10 px-3 py-2">
               <p className="font-medium">
                 {item.releaseKey} · {item.gateType} · {item.status}
@@ -210,7 +251,7 @@ export function QualityGatePanel({ hasAccess, planId, runs, summary }: QualityGa
               {item.blockReason ? <p className="mt-1 text-xs text-destructive">阻断：{item.blockReason}</p> : null}
             </div>
           ))}
-          {runs.length === 0 ? <p className="text-muted-foreground">暂无闸门执行记录。</p> : null}
+          {runRows.length === 0 ? <p className="text-muted-foreground">暂无闸门执行记录。</p> : null}
         </div>
       </div>
     </div>

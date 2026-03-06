@@ -97,6 +97,9 @@ test("week24 libs expose gate policy, self-heal, rollback impact and closure sco
   assert.match(gateLibSource, /sanitizeReliabilityGateInput/)
   assert.match(gateLibSource, /resolveReliabilityGateStatus/)
   assert.match(gateLibSource, /buildReliabilityGateSummary/)
+  assert.match(gateLibSource, /gateType === ReliabilityGateType\.SECURITY/)
+  assert.match(gateLibSource, /highCount > gatePolicy\.maxHigh/)
+  assert.match(gateLibSource, /criticalCount > \(gatePolicy\?\.maxCritical \?\? 0\)/)
 
   assert.match(selfHealLibSource, /DEFAULT_SELF_HEAL_PATTERNS/)
   assert.match(selfHealLibSource, /sanitizeSelfHealPatternInput/)
@@ -124,6 +127,9 @@ test("week24 APIs cover gates, self-heal, rollback and phase closure lifecycle",
   assert.match(selfHealApiSource, /export async function POST\(request: Request\)/)
   assert.match(selfHealApiSource, /export async function PATCH\(request: Request\)/)
   assert.match(selfHealApiSource, /reliability\.selfheal\.suggestion\.update/)
+  assert.match(selfHealApiSource, /reliability\.selfheal\.suggestion\.deduped/)
+  assert.match(selfHealApiSource, /SelfHealSuggestionStatus\.OPEN/)
+  assert.match(selfHealApiSource, /deduped: true/)
 
   assert.match(releaseApiSource, /export async function GET\(\)/)
   assert.match(releaseApiSource, /export async function PUT\(request: Request\)/)
@@ -133,6 +139,8 @@ test("week24 APIs cover gates, self-heal, rollback and phase closure lifecycle",
   assert.match(closureApiSource, /export async function GET\(\)/)
   assert.match(closureApiSource, /export async function PUT\(request: Request\)/)
   assert.match(closureApiSource, /canTransitionPhaseClosureStatus/)
+  assert.match(closureApiSource, /currentStatus === PhaseClosureStatus\.FROZEN/)
+  assert.match(closureApiSource, /基线已冻结，终验报告不可再修改/)
   assert.match(closureApiSource, /phase6\.closure\.update/)
 })
 
@@ -152,16 +160,27 @@ test("week24 dashboard pages and panels expose reliability and closure workflows
   assert.match(closurePageSource, /Week24-004/)
 
   assert.match(gatePanelSource, /\/api\/reliability\/gates/)
+  assert.match(gatePanelSource, /buildGateSummary/)
+  assert.match(gatePanelSource, /const \[runRows, setRunRows\] = useState\(runs\)/)
+  assert.match(gatePanelSource, /setGateSummary\(buildGateSummary\(nextRuns\)\)/)
   assert.match(gatePanelSource, /统一功能\/性能\/安全门禁与阻断策略/)
 
   assert.match(selfHealPanelSource, /\/api\/reliability\/self-heal/)
+  assert.match(selfHealPanelSource, /buildSelfHealEfficiencySummary/)
+  assert.match(selfHealPanelSource, /const \[executionRows, setExecutionRows\] = useState\(executions\)/)
+  assert.match(selfHealPanelSource, /setEfficiencyState\(buildSelfHealEfficiencySummary\(nextRows\)\)/)
   assert.match(selfHealPanelSource, /自动修复建议 \+ 人工确认应用/)
 
   assert.match(releasePanelSource, /\/api\/reliability\/releases/)
   assert.match(releasePanelSource, /一键回滚与影响面评估/)
+  assert.match(releasePanelSource, /formatPlanOptionLabel/)
+  assert.match(releasePanelSource, /setRollbackForm\(\(prev\) => \(\{ \.\.\.prev, planId: nextPlan\.id \}\)\)/)
 
   assert.match(closurePanelSource, /\/api\/reliability\/phase6-closure/)
   assert.match(closurePanelSource, /Phase6 功能终验 \/ 运维手册 \/ 演练复盘 \/ 基线冻结/)
+  assert.match(closurePanelSource, /const isLocked = report\.status === "FROZEN"/)
+  assert.match(closurePanelSource, /disabled=\{pending \|\| isLocked\}/)
+  assert.match(closurePanelSource, /冻结后内容只读，如需调整请新建下一轮终验/)
   assert.match(closurePanelSource, /终验状态/)
   assert.match(closurePanelSource, /签收终验/)
   assert.match(closurePanelSource, /冻结基线/)

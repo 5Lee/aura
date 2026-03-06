@@ -85,6 +85,12 @@ export function resolveReliabilityGateStatus({
   blockReason: string
 }) {
   const findingList = Array.isArray(findings) ? findings : []
+  const gatePolicy =
+    gateType === ReliabilityGateType.SECURITY
+      ? DEFAULT_RELIABILITY_GATE_POLICY.security
+      : gateType === ReliabilityGateType.FUNCTIONAL
+        ? DEFAULT_RELIABILITY_GATE_POLICY.functional
+        : null
   const criticalCount = findingList.filter((item) => {
     if (!item || typeof item !== "object" || Array.isArray(item)) {
       return false
@@ -101,11 +107,14 @@ export function resolveReliabilityGateStatus({
     return level === "high"
   }).length
 
-  if (blockReason || criticalCount > 0) {
+  if (blockReason || criticalCount > (gatePolicy?.maxCritical ?? 0)) {
     return ReliabilityGateStatus.BLOCKED
   }
 
-  if (severity === ReliabilityGateSeverity.CRITICAL || highCount > 1) {
+  if (
+    severity === ReliabilityGateSeverity.CRITICAL ||
+    (gatePolicy !== null && highCount > gatePolicy.maxHigh)
+  ) {
     return ReliabilityGateStatus.FAIL
   }
 

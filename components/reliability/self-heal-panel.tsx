@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -55,6 +55,30 @@ async function requestJson(path: string, init?: RequestInit) {
   return payload
 }
 
+function buildSelfHealEfficiencySummary(rows: ExecutionRow[]) {
+  const applied = rows.filter((item) => item.status === "APPLIED")
+  const averageFixMinutes =
+    applied.length === 0
+      ? 0
+      : Number(
+          (
+            applied.reduce((acc, item) => {
+              if (!item.appliedAt) {
+                return acc
+              }
+              return acc + (new Date(item.appliedAt).getTime() - new Date(item.createdAt).getTime()) / 60000
+            }, 0) / applied.length
+          ).toFixed(1)
+        )
+
+  return {
+    totalRuns: rows.length,
+    appliedRuns: applied.length,
+    improvePercent: rows.length === 0 ? 0 : Number(((applied.length / rows.length) * 100).toFixed(2)),
+    averageFixMinutes,
+  }
+}
+
 export function SelfHealPanel({
   hasAccess,
   planId,
@@ -65,6 +89,8 @@ export function SelfHealPanel({
   const router = useRouter()
   const { toast } = useToast()
   const [pending, setPending] = useState<string | null>(null)
+  const [executionRows, setExecutionRows] = useState(executions)
+  const [efficiencyState, setEfficiencyState] = useState(efficiency)
   const [patternForm, setPatternForm] = useState({
     id: patterns[0]?.id || "",
     name: patterns[0]?.name || "",
@@ -79,6 +105,11 @@ export function SelfHealPanel({
     defectReference: "INC-2026-001",
   })
 
+  useEffect(() => {
+    setExecutionRows(executions)
+    setEfficiencyState(efficiency)
+  }, [executions, efficiency])
+
   if (!hasAccess) {
     return (
       <div className="rounded-lg border border-border bg-muted/20 p-4 text-sm">
@@ -88,12 +119,14 @@ export function SelfHealPanel({
     )
   }
 
-  async function runAction(action: string, fn: () => Promise<unknown>, success: string) {
+  async function runAction(action: string, fn: () => Promise<unknown>, success: string, refresh = true) {
     setPending(action)
     try {
       await fn()
       toast({ type: "success", title: success })
-      router.refresh()
+      if (refresh) {
+        router.refresh()
+      }
     } catch (error) {
       toast({
         type: "error",
@@ -110,19 +143,19 @@ export function SelfHealPanel({
       <div className="grid gap-3 md:grid-cols-4">
         <div className="rounded-lg border border-border bg-muted/20 p-4">
           <p className="text-xs text-muted-foreground">修复建议总数</p>
-          <p className="mt-1 text-lg font-semibold">{efficiency.totalRuns}</p>
+          <p className="mt-1 text-lg font-semibold">{efficiencyState.totalRuns}</p>
         </div>
         <div className="rounded-lg border border-border bg-muted/20 p-4">
           <p className="text-xs text-muted-foreground">已应用</p>
-          <p className="mt-1 text-lg font-semibold">{efficiency.appliedRuns}</p>
+          <p className="mt-1 text-lg font-semibold">{efficiencyState.appliedRuns}</p>
         </div>
         <div className="rounded-lg border border-border bg-muted/20 p-4">
           <p className="text-xs text-muted-foreground">修复效率提升</p>
-          <p className="mt-1 text-lg font-semibold">{efficiency.improvePercent}%</p>
+          <p className="mt-1 text-lg font-semibold">{efficiencyState.improvePercent}%</p>
         </div>
         <div className="rounded-lg border border-border bg-muted/20 p-4">
           <p className="text-xs text-muted-foreground">平均修复耗时</p>
-          <p className="mt-1 text-lg font-semibold">{efficiency.averageFixMinutes} min</p>
+          <p className="mt-1 text-lg font-semibold">{efficiencyState.averageFixMinutes} min</p>
         </div>
       </div>
 
@@ -252,20 +285,28 @@ export function SelfHealPanel({
             onClick={() =>
               runAction(
                 "create-suggestion",
-                () =>
-                  requestJson("/api/reliability/self-heal", {
+                async () => {
+                  const payload = await requestJson("/api/reliability/self-heal", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(suggestionForm),
-                  }),
-                "自愈建议已生成"
+                  })
+
+                  if (payload?.execution) {
+                    const nextRows = [payload.execution as ExecutionRow, ...executionRows.filter((item) => item.id !== payload.execution.id)]
+                    setExecutionRows(nextRows)
+                    setEfficiencyState(buildSelfHealEfficiencySummary(nextRows))
+                  }
+                },
+                "自愈建议已生成",
+                false
               )
             }
           >
             {pending === "create-suggestion" ? "生成中..." : "生成修复建议"}
           </Button>
           <div className="space-y-2 text-sm">
-            {executions.slice(0, 8).map((item) => (
+            {executionRows.slice(0, 8).map((item) => (
               <div key={item.id} className="rounded-md border border-border bg-muted/10 px-3 py-2">
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -282,13 +323,29 @@ export function SelfHealPanel({
                       onClick={() =>
                         runAction(
                           `apply-${item.id}`,
-                          () =>
-                            requestJson("/api/reliability/self-heal", {
+                          async () => {
+                            const payload = await requestJson("/api/reliability/self-heal", {
                               method: "PATCH",
                               headers: { "Content-Type": "application/json" },
                               body: JSON.stringify({ executionId: item.id, status: "APPLIED" }),
-                            }),
-                          "建议已应用"
+                            })
+
+                            if (payload?.execution) {
+                              const nextRows = executionRows.map((entry) =>
+                                entry.id === item.id
+                                  ? {
+                                      ...entry,
+                                      status: payload.execution.status,
+                                      appliedAt: payload.execution.appliedAt,
+                                    }
+                                  : entry
+                              )
+                              setExecutionRows(nextRows)
+                              setEfficiencyState(buildSelfHealEfficiencySummary(nextRows))
+                            }
+                          },
+                          "建议已应用",
+                          false
                         )
                       }
                     >
@@ -301,13 +358,29 @@ export function SelfHealPanel({
                       onClick={() =>
                         runAction(
                           `dismiss-${item.id}`,
-                          () =>
-                            requestJson("/api/reliability/self-heal", {
+                          async () => {
+                            const payload = await requestJson("/api/reliability/self-heal", {
                               method: "PATCH",
                               headers: { "Content-Type": "application/json" },
                               body: JSON.stringify({ executionId: item.id, status: "DISMISSED" }),
-                            }),
-                          "建议已忽略"
+                            })
+
+                            if (payload?.execution) {
+                              const nextRows = executionRows.map((entry) =>
+                                entry.id === item.id
+                                  ? {
+                                      ...entry,
+                                      status: payload.execution.status,
+                                      appliedAt: payload.execution.appliedAt,
+                                    }
+                                  : entry
+                              )
+                              setExecutionRows(nextRows)
+                              setEfficiencyState(buildSelfHealEfficiencySummary(nextRows))
+                            }
+                          },
+                          "建议已忽略",
+                          false
                         )
                       }
                     >
@@ -318,7 +391,7 @@ export function SelfHealPanel({
                 <p className="mt-2 text-xs text-muted-foreground line-clamp-3">{item.suggestion}</p>
               </div>
             ))}
-            {executions.length === 0 ? <p className="text-muted-foreground">暂无修复建议。</p> : null}
+            {executionRows.length === 0 ? <p className="text-muted-foreground">暂无修复建议。</p> : null}
           </div>
         </div>
       </div>

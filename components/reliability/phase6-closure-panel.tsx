@@ -172,6 +172,7 @@ export function Phase6ClosurePanel({ hasAccess, planId, report, score }: Phase6C
   const selectableStatuses = new Set<PhaseClosureStatus>([report.status, form.status, ...availableTransitions])
   const primaryNextStatus = form.status === report.status ? resolvePrimaryNextStatus(report.status, availableTransitions) : null
   const remainingChecks = Math.max(0, localScore.total - localScore.passed)
+  const isLocked = report.status === "FROZEN"
 
   async function submit(nextStatus?: PhaseClosureStatus) {
     const payload = {
@@ -236,6 +237,7 @@ export function Phase6ClosurePanel({ hasAccess, planId, report, score }: Phase6C
               onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value as PhaseClosureStatus }))}
               aria-label="closure status"
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              disabled={isLocked}
             >
               {(["DRAFT", "IN_REVIEW", "SIGNED_OFF", "FROZEN"] as PhaseClosureStatus[]).map((statusOption) => (
                 <option key={statusOption} value={statusOption} disabled={!selectableStatuses.has(statusOption)}>
@@ -263,6 +265,7 @@ export function Phase6ClosurePanel({ hasAccess, planId, report, score }: Phase6C
               type="checkbox"
               checked={form.functionalGatePassed}
               onChange={(event) => setForm((prev) => ({ ...prev, functionalGatePassed: event.target.checked }))}
+              disabled={isLocked}
             />
             <span>功能门禁通过</span>
           </label>
@@ -271,6 +274,7 @@ export function Phase6ClosurePanel({ hasAccess, planId, report, score }: Phase6C
               type="checkbox"
               checked={form.performanceGatePassed}
               onChange={(event) => setForm((prev) => ({ ...prev, performanceGatePassed: event.target.checked }))}
+              disabled={isLocked}
             />
             <span>性能门禁通过</span>
           </label>
@@ -279,6 +283,7 @@ export function Phase6ClosurePanel({ hasAccess, planId, report, score }: Phase6C
               type="checkbox"
               checked={form.securityGatePassed}
               onChange={(event) => setForm((prev) => ({ ...prev, securityGatePassed: event.target.checked }))}
+              disabled={isLocked}
             />
             <span>安全门禁通过</span>
           </label>
@@ -290,6 +295,7 @@ export function Phase6ClosurePanel({ hasAccess, planId, report, score }: Phase6C
             aria-label="runbook"
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
             placeholder="运维手册 URL"
+            disabled={isLocked}
           />
           <input
             value={form.emergencyPlanUrl}
@@ -297,6 +303,7 @@ export function Phase6ClosurePanel({ hasAccess, planId, report, score }: Phase6C
             aria-label="emergency plan"
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
             placeholder="应急预案 URL"
+            disabled={isLocked}
           />
           <input
             value={form.trainingMaterialUrl}
@@ -304,6 +311,7 @@ export function Phase6ClosurePanel({ hasAccess, planId, report, score }: Phase6C
             aria-label="training"
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
             placeholder="培训资料 URL"
+            disabled={isLocked}
           />
           <input
             value={form.baselineTag}
@@ -311,6 +319,7 @@ export function Phase6ClosurePanel({ hasAccess, planId, report, score }: Phase6C
             aria-label="baseline"
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
             placeholder="基线标记"
+            disabled={isLocked}
           />
         </div>
         <textarea
@@ -319,6 +328,7 @@ export function Phase6ClosurePanel({ hasAccess, planId, report, score }: Phase6C
           aria-label="rehearsal summary"
           className="min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           placeholder="全链路演练与复盘总结"
+          disabled={isLocked}
         />
         <textarea
           value={form.roadmap}
@@ -326,10 +336,11 @@ export function Phase6ClosurePanel({ hasAccess, planId, report, score }: Phase6C
           aria-label="roadmap"
           className="min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           placeholder="下一阶段路线图"
+          disabled={isLocked}
         />
         <div className="flex flex-wrap items-center gap-3">
-          <Button disabled={pending} onClick={() => submit()}>
-            {pending ? "保存中..." : "保存终验内容"}
+          <Button disabled={pending || isLocked} onClick={() => submit()}>
+            {pending ? "保存中..." : isLocked ? "基线已冻结" : "保存终验内容"}
           </Button>
           {primaryNextStatus ? (
             <Button disabled={pending} variant="secondary" onClick={() => submit(primaryNextStatus)}>
@@ -339,6 +350,7 @@ export function Phase6ClosurePanel({ hasAccess, planId, report, score }: Phase6C
           {report.frozenAt ? (
             <p className="text-xs text-muted-foreground">已冻结于 {formatDateTime(report.frozenAt)}</p>
           ) : null}
+          {isLocked ? <p className="text-xs text-muted-foreground">冻结后内容只读，如需调整请新建下一轮终验。</p> : null}
         </div>
       </div>
     </div>

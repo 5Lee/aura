@@ -78,6 +78,10 @@ function buildDefaultReleaseWindow() {
   }
 }
 
+function formatPlanOptionLabel(item: PlanRow) {
+  return `${item.name} · ${item.status} · ${item.id.slice(-6)}`
+}
+
 export function ReleaseOrchestrationPanel({
   hasAccess,
   planId,
@@ -200,7 +204,7 @@ export function ReleaseOrchestrationPanel({
             <option value="">新建计划</option>
             {plans.map((item) => (
               <option key={item.id} value={item.id}>
-                {item.name} · {item.status}
+                {formatPlanOptionLabel(item)}
               </option>
             ))}
           </select>
@@ -268,8 +272,8 @@ export function ReleaseOrchestrationPanel({
             onClick={() =>
               runAction(
                 "save-plan",
-                () =>
-                  requestJson("/api/reliability/releases", {
+                async () => {
+                  const payload = (await requestJson("/api/reliability/releases", {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -282,7 +286,23 @@ export function ReleaseOrchestrationPanel({
                       rollbackThresholdPercent: Number(form.rollbackThresholdPercent),
                       impactSummary: form.impactSummary,
                     }),
-                  }),
+                  })) as { plan?: PlanRow }
+                  const nextPlan = payload.plan
+                  if (!nextPlan) {
+                    return
+                  }
+                  setForm({
+                    id: nextPlan.id,
+                    name: nextPlan.name,
+                    status: nextPlan.status,
+                    releaseWindowStart: toLocalDateTimeValue(nextPlan.releaseWindowStart),
+                    releaseWindowEnd: toLocalDateTimeValue(nextPlan.releaseWindowEnd),
+                    canaryTrafficPercent: String(nextPlan.canaryTrafficPercent),
+                    rollbackThresholdPercent: String(nextPlan.rollbackThresholdPercent),
+                    impactSummary: nextPlan.impactSummary || "",
+                  })
+                  setRollbackForm((prev) => ({ ...prev, planId: nextPlan.id }))
+                },
                 "发布计划已保存"
               )
             }
@@ -302,7 +322,7 @@ export function ReleaseOrchestrationPanel({
             <option value="">选择计划</option>
             {plans.map((item) => (
               <option key={item.id} value={item.id}>
-                {item.name} · {item.status}
+                {formatPlanOptionLabel(item)}
               </option>
             ))}
           </select>

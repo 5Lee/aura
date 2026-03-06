@@ -98,6 +98,10 @@ export async function PUT(request: Request) {
     })
     const currentStatus = current?.status || PhaseClosureStatus.DRAFT
 
+    if (currentStatus === PhaseClosureStatus.FROZEN) {
+      return NextResponse.json({ error: "基线已冻结，终验报告不可再修改" }, { status: 400 })
+    }
+
     if (!canTransitionPhaseClosureStatus(currentStatus, sanitized.status, nextScore.readyToFreeze)) {
       return NextResponse.json({ error: "不允许的 Phase6 终验状态流转" }, { status: 400 })
     }

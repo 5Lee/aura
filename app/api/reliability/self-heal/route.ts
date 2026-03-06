@@ -193,6 +193,44 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "自愈模式已禁用" }, { status: 400 })
     }
 
+    const existingExecution = await prisma.selfHealExecution.findFirst({
+      where: {
+        userId: session.user.id,
+        patternId: pattern.id,
+        defectReference,
+        status: {
+          in: [SelfHealSuggestionStatus.OPEN, SelfHealSuggestionStatus.APPLIED],
+        },
+      },
+      include: {
+        pattern: {
+          select: {
+            id: true,
+            name: true,
+            defectSignature: true,
+          },
+        },
+      },
+      orderBy: [{ createdAt: "desc" }],
+    })
+
+    if (existingExecution) {
+      await recordPromptAuditLog({
+        actorId: session.user.id,
+        action: "reliability.selfheal.suggestion.deduped",
+        resource: "self-heal",
+        request,
+        metadata: {
+          patternId: pattern.id,
+          executionId: existingExecution.id,
+          defectReference,
+          status: existingExecution.status,
+        },
+      })
+
+      return NextResponse.json({ execution: existingExecution, deduped: true })
+    }
+
     const suggestion = resolveSelfHealSuggestion({
       pattern,
       defectReference,
