@@ -5,6 +5,8 @@ import { buildSsoAuthorizeUrl } from "@/lib/sso"
 import { findTenantOwnerUserId, getActiveSsoProviderForUser } from "@/lib/sso-server"
 import { sanitizeTextInput } from "@/lib/security"
 
+export const dynamic = "force-dynamic"
+
 function encodeState(payload: Record<string, unknown>) {
   const raw = JSON.stringify(payload)
   return Buffer.from(raw, "utf8").toString("base64url")

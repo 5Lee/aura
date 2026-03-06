@@ -15,6 +15,8 @@ import {
 } from "@/lib/integration-governance"
 import { sanitizeTextInput } from "@/lib/security"
 
+export const dynamic = "force-dynamic"
+
 function resolvePositiveInt(value: string | null, fallback: number, min: number, max: number) {
   const parsed = Number(value || "")
   if (!Number.isFinite(parsed)) {
