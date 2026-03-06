@@ -224,12 +224,14 @@ export function BrandCustomizationPanel({
             <input
               value={emailSubject}
               onChange={(event) => setEmailSubject(event.target.value)}
+              aria-label="邮件标题"
               className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
               placeholder="邮件标题"
             />
             <textarea
               value={emailMessage}
               onChange={(event) => setEmailMessage(event.target.value)}
+              aria-label="邮件正文"
               className="min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               placeholder="邮件正文"
             />

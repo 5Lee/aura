@@ -77,6 +77,8 @@ test("branding dashboard page and panel provide save, publish and preview contro
   assert.match(brandingPanelSource, /\/api\/branding\/email-template/)
   assert.match(brandingPanelSource, /预览登录页品牌/)
   assert.match(brandingPanelSource, /生成邮件模板/)
+  assert.match(brandingPanelSource, /aria-label="邮件标题"/)
+  assert.match(brandingPanelSource, /aria-label="邮件正文"/)
 })
 
 test("auth pages load runtime branding by tenant for multi-tenant login and registration", () => {

@@ -74,6 +74,8 @@ test("ads routes cover placement rules, campaign creation, review workflow, budg
   assert.match(campaignRouteSource, /export async function PATCH\(request: Request/)
   assert.match(campaignRouteSource, /resolveAdBudgetGuard/)
   assert.match(campaignRouteSource, /resolveAdScheduleWindow/)
+  assert.match(campaignRouteSource, /isActivationTransition/)
+  assert.match(campaignRouteSource, /campaign\.status !== AdCampaignStatus\.ACTIVE/)
   assert.match(campaignRouteSource, /AdCampaignStatus\.COMPLETED/)
   assert.match(campaignRouteSource, /ads\.campaign\.update/)
 })
@@ -88,6 +90,14 @@ test("ads page and panel expose recommendation placement strategy and conversion
   assert.match(adsPanelSource, /提交审核状态/)
   assert.match(adsPanelSource, /上报投放数据/)
   assert.match(adsPanelSource, /投放预算与时段控制/)
+  assert.match(adsPanelSource, /buildReviewForm/)
+  assert.match(adsPanelSource, /const selectedCampaign = useMemo/)
+  assert.match(adsPanelSource, /setReviewForm\(buildReviewForm\(selectedCampaign\)\)/)
+  assert.match(adsPanelSource, /aria-label="规则名称"/)
+  assert.match(adsPanelSource, /aria-label="投放规则"/)
+  assert.match(adsPanelSource, /aria-label="审核状态"/)
+  assert.match(adsPanelSource, /aria-label="安全拦截"/)
+  assert.match(adsPanelSource, /timeZone: "Asia\/Shanghai"/)
 })
 
 test("ads route is managed via admin portal and protected by middleware", () => {

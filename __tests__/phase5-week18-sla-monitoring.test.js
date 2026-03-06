@@ -73,6 +73,10 @@ test("sla page and panel provide report refresh, fault injection and recovery ac
   assert.match(slaPanelSource, /执行恢复检查/)
   assert.match(slaPanelSource, /\/api\/sla\/report/)
   assert.match(slaPanelSource, /\/api\/sla\/fault-injection/)
+  assert.match(slaPanelSource, /SCENARIO_STORAGE_KEY/)
+  assert.match(slaPanelSource, /localStorage\.setItem/)
+  assert.match(slaPanelSource, /Asia\/Shanghai/)
+  assert.match(slaPanelSource, /formatDateTime/)
 })
 
 test("sla route is managed via admin portal and protected by middleware", () => {

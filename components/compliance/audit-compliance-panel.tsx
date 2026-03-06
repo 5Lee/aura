@@ -58,6 +58,21 @@ async function requestJson(path: string, init?: RequestInit) {
   return payload
 }
 
+const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("zh-CN", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+  timeZone: "Asia/Shanghai",
+})
+
+function formatDateTime(value: string) {
+  return DATE_TIME_FORMATTER.format(new Date(value))
+}
+
 export function AuditCompliancePanel({ policy, anomalies, logs }: AuditCompliancePanelProps) {
   const router = useRouter()
   const { toast } = useToast()
@@ -120,6 +135,7 @@ export function AuditCompliancePanel({ policy, anomalies, logs }: AuditComplianc
           <input
             value={form.retentionDays}
             onChange={(event) => setForm((prev) => ({ ...prev, retentionDays: event.target.value }))}
+            aria-label="retention days"
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder="retention days"
           />
@@ -129,6 +145,7 @@ export function AuditCompliancePanel({ policy, anomalies, logs }: AuditComplianc
               onChange={(event) =>
                 setForm((prev) => ({ ...prev, failureBurstThreshold: event.target.value }))
               }
+              aria-label="失败阈值"
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="失败阈值"
             />
@@ -137,6 +154,7 @@ export function AuditCompliancePanel({ policy, anomalies, logs }: AuditComplianc
               onChange={(event) =>
                 setForm((prev) => ({ ...prev, multiIpBurstThreshold: event.target.value }))
               }
+              aria-label="多 IP 阈值"
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="多 IP 阈值"
             />
@@ -145,6 +163,7 @@ export function AuditCompliancePanel({ policy, anomalies, logs }: AuditComplianc
               onChange={(event) =>
                 setForm((prev) => ({ ...prev, sensitiveBurstThreshold: event.target.value }))
               }
+              aria-label="敏感阈值"
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="敏感阈值"
             />
@@ -210,7 +229,7 @@ export function AuditCompliancePanel({ policy, anomalies, logs }: AuditComplianc
                 校验结果：{verifyResult.valid ? "通过" : `失败（${verifyResult.brokenEntries.length} 条异常）`}
               </p>
               <p className="mt-1 text-muted-foreground">
-                已校验 {verifyResult.verifiedCount} 条 · {new Date(verifyResult.inspectedAt).toLocaleString("zh-CN")}
+                已校验 {verifyResult.verifiedCount} 条 · {formatDateTime(verifyResult.inspectedAt)}
               </p>
             </div>
           ) : null}
@@ -228,7 +247,7 @@ export function AuditCompliancePanel({ policy, anomalies, logs }: AuditComplianc
                 </p>
                 <p className="mt-1 text-muted-foreground">{item.summary}</p>
                 <p className="mt-1 text-muted-foreground">
-                  触发次数 {item.occurrences} · 最近 {new Date(item.lastSeenAt).toLocaleString("zh-CN")}
+                  触发次数 {item.occurrences} · 最近 {formatDateTime(item.lastSeenAt)}
                 </p>
                 {item.status === "OPEN" ? (
                   <Button
@@ -270,7 +289,7 @@ export function AuditCompliancePanel({ policy, anomalies, logs }: AuditComplianc
                   {log.action} · {log.status} · {log.riskLevel}
                 </p>
                 <p className="mt-1 text-muted-foreground">
-                  {new Date(log.createdAt).toLocaleString("zh-CN")} · requestId: {log.requestId || "-"}
+                  {formatDateTime(log.createdAt)} · requestId: {log.requestId || "-"}
                 </p>
                 <p className="mt-1 break-all text-muted-foreground">
                   prev: {log.previousHash || "-"} · hash: {log.entryHash || "-"}

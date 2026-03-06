@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { SlaAlertStatus, SlaMetricType } from "@prisma/client"
 
@@ -70,12 +70,49 @@ function parseSnapshotSource(metadata: unknown) {
   return "runtime"
 }
 
+const DEFAULT_SCENARIO = "latency_spike"
+const SCENARIO_STORAGE_KEY = "aura:sla-monitoring:scenario"
+const AVAILABLE_SCENARIOS = [DEFAULT_SCENARIO, "error_burst", "downtime_blip"] as const
+
+type FaultScenario = (typeof AVAILABLE_SCENARIOS)[number]
+
+function isFaultScenario(value: string): value is FaultScenario {
+  return AVAILABLE_SCENARIOS.includes(value as FaultScenario)
+}
+
+const dateTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: "Asia/Shanghai",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+})
+
+function formatDateTime(value: string) {
+  return dateTimeFormatter.format(new Date(value))
+}
+
 export function SlaMonitoringPanel({ planId, policy, snapshots, alerts }: SlaMonitoringPanelProps) {
   const router = useRouter()
   const { toast } = useToast()
-  const [scenario, setScenario] = useState("latency_spike")
+  const [scenario, setScenario] = useState<FaultScenario>(DEFAULT_SCENARIO)
   const [windowHours, setWindowHours] = useState(policy.reportWindowHours)
   const [pendingAction, setPendingAction] = useState<string | null>(null)
+
+  useEffect(() => {
+    const persistedScenario = window.localStorage.getItem(SCENARIO_STORAGE_KEY)
+    if (persistedScenario && isFaultScenario(persistedScenario)) {
+      setScenario(persistedScenario)
+    }
+  }, [])
+
+  function updateScenario(nextScenario: FaultScenario) {
+    window.localStorage.setItem(SCENARIO_STORAGE_KEY, nextScenario)
+    setScenario(nextScenario)
+  }
 
   const latestSnapshot = snapshots[0] ?? null
   const openAlerts = useMemo(
@@ -153,7 +190,12 @@ export function SlaMonitoringPanel({ planId, policy, snapshots, alerts }: SlaMon
           <select
             aria-label="故障注入场景"
             value={scenario}
-            onChange={(event) => setScenario(event.target.value)}
+            onChange={(event) => {
+              const nextScenario = event.target.value
+              if (isFaultScenario(nextScenario)) {
+                updateScenario(nextScenario)
+              }
+            }}
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
             disabled={pendingAction !== null}
           >
@@ -243,8 +285,8 @@ export function SlaMonitoringPanel({ planId, policy, snapshots, alerts }: SlaMon
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">{alert.summary}</p>
                   <p className="mt-1 text-[11px] text-muted-foreground">
-                    触发 {new Date(alert.triggeredAt).toLocaleString("zh-CN")}
-                    {alert.recoveredAt ? ` · 恢复 ${new Date(alert.recoveredAt).toLocaleString("zh-CN")}` : ""}
+                    触发 {formatDateTime(alert.triggeredAt)}
+                    {alert.recoveredAt ? ` · 恢复 ${formatDateTime(alert.recoveredAt)}` : ""}
                   </p>
                 </div>
               ))}
@@ -261,7 +303,7 @@ export function SlaMonitoringPanel({ planId, policy, snapshots, alerts }: SlaMon
               {snapshots.slice(0, 10).map((snapshot) => (
                 <div key={snapshot.id} className="rounded-md border border-border px-3 py-2">
                   <p className="font-medium text-foreground">
-                    {new Date(snapshot.windowEnd).toLocaleString("zh-CN")} · {parseSnapshotSource(snapshot.metadata)}
+                    {formatDateTime(snapshot.windowEnd)} · {parseSnapshotSource(snapshot.metadata)}
                   </p>
                   <p className="mt-1 text-muted-foreground">
                     可用性 {snapshot.availabilityRate}% · 错误率 {snapshot.errorRate}% · P95 {snapshot.latencyP95Ms}ms

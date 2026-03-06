@@ -90,7 +90,8 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       return NextResponse.json({ error: "不允许的投放状态流转" }, { status: 400 })
     }
 
-    if (nextStatus === AdCampaignStatus.ACTIVE) {
+    const isActivationTransition = nextStatus === AdCampaignStatus.ACTIVE && campaign.status !== AdCampaignStatus.ACTIVE
+    if (isActivationTransition) {
       const window = resolveAdScheduleWindow(campaign.startAt, campaign.endAt)
       if (!window.active) {
         return NextResponse.json({ error: "当前不在投放时段内" }, { status: 400 })

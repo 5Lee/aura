@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -64,11 +64,38 @@ async function requestJson(path: string, init?: RequestInit) {
   return payload
 }
 
+const dateTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: "Asia/Shanghai",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+})
+
 function formatCny(cents: number) {
   return (cents / 100).toLocaleString("zh-CN", {
     style: "currency",
     currency: "CNY",
   })
+}
+
+function formatDateTime(value: string) {
+  return dateTimeFormatter.format(new Date(value))
+}
+
+function buildReviewForm(campaign: CampaignRow | null) {
+  return {
+    status: campaign?.status || "APPROVED",
+    reviewNote: campaign?.reviewNote || "",
+    impressions: String(campaign?.impressions || 0),
+    clicks: String(campaign?.clicks || 0),
+    conversions: String(campaign?.conversions || 0),
+    spendCents: String(campaign?.spentCents || 0),
+    unsafeBlocks: String(campaign?.blockedBySafetyCount || 0),
+  }
 }
 
 export function AdStrategyPanel({ hasAccess, planId, rules, campaigns, summary }: AdStrategyPanelProps) {
@@ -77,8 +104,11 @@ export function AdStrategyPanel({ hasAccess, planId, rules, campaigns, summary }
   const [pendingAction, setPendingAction] = useState<string | null>(null)
 
   const defaultRule = useMemo(() => rules.find((item) => item.active) || rules[0] || null, [rules])
-  const [selectedRuleId, setSelectedRuleId] = useState(defaultRule?.id || "")
   const [selectedCampaignId, setSelectedCampaignId] = useState(campaigns[0]?.id || "")
+  const selectedCampaign = useMemo(
+    () => campaigns.find((item) => item.id === selectedCampaignId) || null,
+    [campaigns, selectedCampaignId]
+  )
 
   const [ruleForm, setRuleForm] = useState({
     id: defaultRule?.id || "",
@@ -103,15 +133,11 @@ export function AdStrategyPanel({ hasAccess, planId, rules, campaigns, summary }
     endAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
   })
 
-  const [reviewForm, setReviewForm] = useState({
-    status: "APPROVED",
-    reviewNote: "",
-    impressions: "0",
-    clicks: "0",
-    conversions: "0",
-    spendCents: "0",
-    unsafeBlocks: "0",
-  })
+  const [reviewForm, setReviewForm] = useState(() => buildReviewForm(selectedCampaign))
+
+  useEffect(() => {
+    setReviewForm(buildReviewForm(selectedCampaign))
+  }, [selectedCampaign])
 
   async function runAction(actionKey: string, fn: () => Promise<unknown>, success: string) {
     setPendingAction(actionKey)
@@ -170,6 +196,7 @@ export function AdStrategyPanel({ hasAccess, planId, rules, campaigns, summary }
             onChange={(event) => setRuleForm((prev) => ({ ...prev, name: event.target.value }))}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder="规则名称"
+            aria-label="规则名称"
           />
           <div className="grid gap-2 sm:grid-cols-2">
             <input
@@ -177,12 +204,14 @@ export function AdStrategyPanel({ hasAccess, planId, rules, campaigns, summary }
               onChange={(event) => setRuleForm((prev) => ({ ...prev, placementType: event.target.value }))}
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="投放位"
+              aria-label="投放位"
             />
             <input
               value={ruleForm.audienceSegment}
               onChange={(event) => setRuleForm((prev) => ({ ...prev, audienceSegment: event.target.value }))}
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="人群分层"
+              aria-label="人群分层"
             />
           </div>
           <div className="grid gap-2 sm:grid-cols-3">
@@ -190,6 +219,7 @@ export function AdStrategyPanel({ hasAccess, planId, rules, campaigns, summary }
               value={ruleForm.biddingModel}
               onChange={(event) => setRuleForm((prev) => ({ ...prev, biddingModel: event.target.value }))}
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              aria-label="竞价模式"
             >
               <option value="CPC">CPC</option>
               <option value="CPM">CPM</option>
@@ -199,12 +229,14 @@ export function AdStrategyPanel({ hasAccess, planId, rules, campaigns, summary }
               onChange={(event) => setRuleForm((prev) => ({ ...prev, bidPriceCents: event.target.value }))}
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="单价(分)"
+              aria-label="单价(分)"
             />
             <input
               value={ruleForm.dailyBudgetCapCents}
               onChange={(event) => setRuleForm((prev) => ({ ...prev, dailyBudgetCapCents: event.target.value }))}
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="日预算上限(分)"
+              aria-label="日预算上限(分)"
             />
           </div>
           <input
@@ -212,6 +244,7 @@ export function AdStrategyPanel({ hasAccess, planId, rules, campaigns, summary }
             onChange={(event) => setRuleForm((prev) => ({ ...prev, conversionTarget: event.target.value }))}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder="转化目标(%)"
+            aria-label="转化目标(%)"
           />
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -256,6 +289,7 @@ export function AdStrategyPanel({ hasAccess, planId, rules, campaigns, summary }
             value={campaignForm.ruleId}
             onChange={(event) => setCampaignForm((prev) => ({ ...prev, ruleId: event.target.value }))}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            aria-label="投放规则"
           >
             <option value="">选择规则</option>
             {rules.map((rule) => (
@@ -269,18 +303,21 @@ export function AdStrategyPanel({ hasAccess, planId, rules, campaigns, summary }
             onChange={(event) => setCampaignForm((prev) => ({ ...prev, title: event.target.value }))}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder="投放标题"
+            aria-label="投放标题"
           />
           <input
             value={campaignForm.advertiser}
             onChange={(event) => setCampaignForm((prev) => ({ ...prev, advertiser: event.target.value }))}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder="投放方"
+            aria-label="投放方"
           />
           <textarea
             value={campaignForm.content}
             onChange={(event) => setCampaignForm((prev) => ({ ...prev, content: event.target.value }))}
             className="min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             placeholder="广告内容"
+            aria-label="广告内容"
           />
           <div className="grid gap-2 sm:grid-cols-2">
             <input
@@ -288,12 +325,14 @@ export function AdStrategyPanel({ hasAccess, planId, rules, campaigns, summary }
               value={campaignForm.startAt}
               onChange={(event) => setCampaignForm((prev) => ({ ...prev, startAt: event.target.value }))}
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              aria-label="开始时间"
             />
             <input
               type="datetime-local"
               value={campaignForm.endAt}
               onChange={(event) => setCampaignForm((prev) => ({ ...prev, endAt: event.target.value }))}
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              aria-label="结束时间"
             />
           </div>
           <input
@@ -301,6 +340,7 @@ export function AdStrategyPanel({ hasAccess, planId, rules, campaigns, summary }
             onChange={(event) => setCampaignForm((prev) => ({ ...prev, budgetCents: event.target.value }))}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder="总预算(分)"
+            aria-label="总预算(分)"
           />
           <Button
             disabled={pendingAction !== null || !campaignForm.ruleId}
@@ -338,6 +378,7 @@ export function AdStrategyPanel({ hasAccess, planId, rules, campaigns, summary }
             value={selectedCampaignId}
             onChange={(event) => setSelectedCampaignId(event.target.value)}
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            aria-label="选择投放"
           >
             <option value="">选择投放</option>
             {campaigns.map((item) => (
@@ -350,6 +391,7 @@ export function AdStrategyPanel({ hasAccess, planId, rules, campaigns, summary }
             value={reviewForm.status}
             onChange={(event) => setReviewForm((prev) => ({ ...prev, status: event.target.value }))}
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            aria-label="审核状态"
           >
             <option value="IN_REVIEW">IN_REVIEW</option>
             <option value="APPROVED">APPROVED</option>
@@ -363,6 +405,7 @@ export function AdStrategyPanel({ hasAccess, planId, rules, campaigns, summary }
             onChange={(event) => setReviewForm((prev) => ({ ...prev, reviewNote: event.target.value }))}
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
             placeholder="审核备注"
+            aria-label="审核备注"
           />
         </div>
 
@@ -372,30 +415,35 @@ export function AdStrategyPanel({ hasAccess, planId, rules, campaigns, summary }
             onChange={(event) => setReviewForm((prev) => ({ ...prev, impressions: event.target.value }))}
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
             placeholder="曝光"
+            aria-label="曝光"
           />
           <input
             value={reviewForm.clicks}
             onChange={(event) => setReviewForm((prev) => ({ ...prev, clicks: event.target.value }))}
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
             placeholder="点击"
+            aria-label="点击"
           />
           <input
             value={reviewForm.conversions}
             onChange={(event) => setReviewForm((prev) => ({ ...prev, conversions: event.target.value }))}
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
             placeholder="转化"
+            aria-label="转化"
           />
           <input
             value={reviewForm.spendCents}
             onChange={(event) => setReviewForm((prev) => ({ ...prev, spendCents: event.target.value }))}
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
             placeholder="消耗(分)"
+            aria-label="消耗(分)"
           />
           <input
             value={reviewForm.unsafeBlocks}
             onChange={(event) => setReviewForm((prev) => ({ ...prev, unsafeBlocks: event.target.value }))}
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
             placeholder="安全拦截"
+            aria-label="安全拦截"
           />
         </div>
 
@@ -479,7 +527,7 @@ export function AdStrategyPanel({ hasAccess, planId, rules, campaigns, summary }
                       {item.impressions} / {item.clicks} / {item.conversions}
                     </td>
                     <td className="border-b px-2 py-2 text-xs text-muted-foreground">
-                      {new Date(item.startAt).toLocaleString("zh-CN")} - {new Date(item.endAt).toLocaleString("zh-CN")}
+                      {formatDateTime(item.startAt)} - {formatDateTime(item.endAt)}
                     </td>
                     <td className="border-b px-2 py-2">{item.blockedBySafetyCount}</td>
                   </tr>

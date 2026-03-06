@@ -92,6 +92,10 @@ test("compliance page and panel expose retention config, export and tamper-proof
   assert.match(compliancePanelSource, /\/api\/audit-logs\?format=csv/)
   assert.match(compliancePanelSource, /校验不可篡改链/)
   assert.match(compliancePanelSource, /异常访问检测/)
+  assert.match(compliancePanelSource, /aria-label="retention days"/)
+  assert.match(compliancePanelSource, /aria-label="失败阈值"/)
+  assert.match(compliancePanelSource, /aria-label="多 IP 阈值"/)
+  assert.match(compliancePanelSource, /aria-label="敏感阈值"/)
 })
 
 test("compliance route is managed via admin portal and protected by middleware", () => {
