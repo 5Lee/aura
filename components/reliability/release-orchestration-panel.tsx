@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -48,15 +48,34 @@ async function requestJson(path: string, init?: RequestInit) {
   return payload
 }
 
-function toLocalDateTimeValue(value: string | null) {
-  if (!value) {
-    const now = new Date(Date.now() + 60 * 60 * 1000)
-    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-    return local.toISOString().slice(0, 16)
-  }
+const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("zh-CN", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+  timeZone: "Asia/Shanghai",
+})
+
+function formatDateTime(value: string) {
+  return DATE_TIME_FORMATTER.format(new Date(value))
+}
+
+function toLocalDateTimeValue(value: string) {
   const parsed = new Date(value)
   const local = new Date(parsed.getTime() - parsed.getTimezoneOffset() * 60000)
   return local.toISOString().slice(0, 16)
+}
+
+function buildDefaultReleaseWindow() {
+  const start = new Date(Date.now() + 60 * 60 * 1000)
+  const end = new Date(start.getTime() + 60 * 60 * 1000)
+  return {
+    releaseWindowStart: toLocalDateTimeValue(start.toISOString()),
+    releaseWindowEnd: toLocalDateTimeValue(end.toISOString()),
+  }
 }
 
 export function ReleaseOrchestrationPanel({
@@ -68,16 +87,16 @@ export function ReleaseOrchestrationPanel({
   const router = useRouter()
   const { toast } = useToast()
   const [pending, setPending] = useState<string | null>(null)
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => ({
     id: plans[0]?.id || "",
     name: plans[0]?.name || "",
     status: plans[0]?.status || "READY",
-    releaseWindowStart: toLocalDateTimeValue(plans[0]?.releaseWindowStart || null),
-    releaseWindowEnd: toLocalDateTimeValue(plans[0]?.releaseWindowEnd || null),
+    releaseWindowStart: plans[0]?.releaseWindowStart ? toLocalDateTimeValue(plans[0].releaseWindowStart) : "",
+    releaseWindowEnd: plans[0]?.releaseWindowEnd ? toLocalDateTimeValue(plans[0].releaseWindowEnd) : "",
     canaryTrafficPercent: String(plans[0]?.canaryTrafficPercent || 10),
     rollbackThresholdPercent: String(plans[0]?.rollbackThresholdPercent || 5),
     impactSummary: plans[0]?.impactSummary || "",
-  })
+  }))
 
   const [rollbackForm, setRollbackForm] = useState({
     planId: plans[0]?.id || "",
@@ -85,6 +104,18 @@ export function ReleaseOrchestrationPanel({
     estimatedUsers: "1200",
     impactedServices: "gateway,ops-api",
   })
+
+  useEffect(() => {
+    if (plans.length > 0) {
+      return
+    }
+    setForm((prev) => {
+      if (prev.id || prev.releaseWindowStart || prev.releaseWindowEnd) {
+        return prev
+      }
+      return { ...prev, ...buildDefaultReleaseWindow() }
+    })
+  }, [plans.length])
 
   if (!hasAccess) {
     return (
@@ -146,12 +177,17 @@ export function ReleaseOrchestrationPanel({
             value={form.id}
             onChange={(event) => {
               const selected = plans.find((item) => item.id === event.target.value)
+              const defaultWindow = buildDefaultReleaseWindow()
               setForm({
                 id: event.target.value,
                 name: selected?.name || "",
                 status: selected?.status || "READY",
-                releaseWindowStart: toLocalDateTimeValue(selected?.releaseWindowStart || null),
-                releaseWindowEnd: toLocalDateTimeValue(selected?.releaseWindowEnd || null),
+                releaseWindowStart: selected?.releaseWindowStart
+                  ? toLocalDateTimeValue(selected.releaseWindowStart)
+                  : defaultWindow.releaseWindowStart,
+                releaseWindowEnd: selected?.releaseWindowEnd
+                  ? toLocalDateTimeValue(selected.releaseWindowEnd)
+                  : defaultWindow.releaseWindowEnd,
                 canaryTrafficPercent: String(selected?.canaryTrafficPercent || 10),
                 rollbackThresholdPercent: String(selected?.rollbackThresholdPercent || 5),
                 impactSummary: selected?.impactSummary || "",
@@ -185,7 +221,9 @@ export function ReleaseOrchestrationPanel({
               <option value="DRAFT">DRAFT</option>
               <option value="READY">READY</option>
               <option value="ROLLING">ROLLING</option>
+              <option value="ROLLED_BACK">ROLLED_BACK</option>
               <option value="COMPLETED">COMPLETED</option>
+              <option value="FAILED">FAILED</option>
             </select>
             <input
               value={form.canaryTrafficPercent}
@@ -323,7 +361,7 @@ export function ReleaseOrchestrationPanel({
                   {item.plan.name} · impact {item.impactScore}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {item.reason} · users {item.estimatedUsers} · {new Date(item.rollbackAt).toLocaleString()}
+                  {item.reason} · users {item.estimatedUsers} · {formatDateTime(item.rollbackAt)}
                 </p>
               </div>
             ))}

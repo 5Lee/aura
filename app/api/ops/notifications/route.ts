@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import {
   buildNotificationRuleSeed,
+  buildNotificationDeliveryKey,
   resolveNotificationDedupKey,
   resolveNotificationStatus,
   resolveNotificationWindowSuppressed,
@@ -251,9 +252,11 @@ export async function POST(request: Request) {
 
     const deliveries = await Promise.all(
       channels.map(async (channel) => {
-        const dedupeKey = resolveNotificationDedupKey({
+        const dedupeFingerprint = resolveNotificationDedupKey({
           ruleId: rule.id,
           channel,
+          recipient,
+          message,
           payload,
         })
 
@@ -263,7 +266,9 @@ export async function POST(request: Request) {
             where: {
               ruleId: rule.id,
               channel,
-              dedupeKey,
+              dedupeKey: {
+                startsWith: dedupeFingerprint,
+              },
               createdAt: {
                 gte: dedupeWindowStart,
               },
@@ -283,13 +288,18 @@ export async function POST(request: Request) {
           forceFail,
         })
 
+        const deliveryKey = buildNotificationDeliveryKey({
+          dedupeKey: dedupeFingerprint,
+          deduped,
+        })
+
         return prisma.opsNotificationDelivery.create({
           data: {
             userId: session.user.id,
             ruleId: rule.id,
             channel,
             status,
-            dedupeKey,
+            dedupeKey: deliveryKey,
             recipient,
             message,
             sentAt:
@@ -301,7 +311,10 @@ export async function POST(request: Request) {
                 ? `${channel}-${Date.now().toString(36)}`
                 : null,
             errorMessage: status === OpsNotificationStatus.FAILED ? "通道发送失败" : null,
-            metadata: payload as Prisma.InputJsonValue,
+            metadata: {
+              ...payload,
+              dedupeFingerprint,
+            } as Prisma.InputJsonValue,
           },
         })
       })

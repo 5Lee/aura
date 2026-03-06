@@ -64,6 +64,21 @@ function toChannels(value: unknown) {
   return value.map((item) => String(item))
 }
 
+const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("zh-CN", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+  timeZone: "Asia/Shanghai",
+})
+
+function formatDateTime(value: string) {
+  return DATE_TIME_FORMATTER.format(new Date(value))
+}
+
 export function NotificationOrchestrationPanel({
   hasAccess,
   planId,
@@ -355,7 +370,7 @@ export function NotificationOrchestrationPanel({
                   {item.rule.name} · {item.channel} · {item.status}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {item.recipient} · receipt {item.receiptCode || "-"} · {new Date(item.createdAt).toLocaleString()}
+                  {item.recipient} · receipt {item.receiptCode || "-"} · {formatDateTime(item.createdAt)}
                 </p>
               </div>
             ))}

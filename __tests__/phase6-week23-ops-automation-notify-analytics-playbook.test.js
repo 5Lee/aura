@@ -89,6 +89,9 @@ test("ops libs provide scheduling, dedupe, funnel and playbook helpers", () => {
   assert.match(notificationsLib, /DEFAULT_NOTIFICATION_RULES/)
   assert.match(notificationsLib, /resolveNotificationWindowSuppressed/)
   assert.match(notificationsLib, /resolveNotificationDedupKey/)
+  assert.match(notificationsLib, /buildNotificationDeliveryKey/)
+  assert.match(notificationsLib, /recipient/)
+  assert.match(notificationsLib, /message/)
   assert.match(notificationsLib, /resolveNotificationStatus/)
 
   assert.match(opsAnalyticsLib, /buildOpsFunnelSummary/)
@@ -110,6 +113,9 @@ test("ops APIs support template execution, multi-channel delivery, cohort analyt
   assert.match(notificationApiSource, /export async function PUT\(request: Request\)/)
   assert.match(notificationApiSource, /export async function POST\(request: Request\)/)
   assert.match(notificationApiSource, /resolveNotificationStatus/)
+  assert.match(notificationApiSource, /buildNotificationDeliveryKey/)
+  assert.match(notificationApiSource, /startsWith: dedupeFingerprint/)
+  assert.match(notificationApiSource, /dedupeKey: deliveryKey/)
   assert.match(notificationApiSource, /ops\.notification\.delivery\.dispatch/)
 
   assert.match(analyticsApiSource, /export async function GET\(\)/)
@@ -140,12 +146,16 @@ test("week23 pages and panels expose end-to-end operations workflow", () => {
 
   assert.match(opsPanelSource, /\/api\/ops\/tasks/)
   assert.match(opsPanelSource, /定时执行、重试、失败告警与运行历史追踪/)
+  assert.match(opsPanelSource, /DATE_TIME_FORMATTER/)
 
   assert.match(notifyPanelSource, /\/api\/ops\/notifications/)
   assert.match(notifyPanelSource, /频控、去重补偿与触达回执/)
+  assert.match(notifyPanelSource, /DATE_TIME_FORMATTER/)
 
   assert.match(analyticsPanelSource, /\/api\/ops\/analytics/)
   assert.match(analyticsPanelSource, /cohort 对比与实验联动分析/)
+  assert.match(analyticsPanelSource, /DATE_TIME_FORMATTER/)
+  assert.match(analyticsPanelSource, /manual-snapshot-/)
 
   assert.match(playbookPanelSource, /\/api\/ops\/playbooks/)
   assert.match(playbookPanelSource, /一键应用到任务中心并支持升级回滚/)

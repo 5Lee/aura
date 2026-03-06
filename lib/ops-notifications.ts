@@ -1,3 +1,5 @@
+import { createHash, randomUUID } from "node:crypto"
+
 import { OpsNotificationStatus, OpsTaskChannel } from "@prisma/client"
 
 import { sanitizeJsonValue, sanitizeMultilineTextInput, sanitizeTextInput } from "@/lib/security"
@@ -22,6 +24,24 @@ function toRecord(value: unknown) {
     return {} as Record<string, unknown>
   }
   return value as Record<string, unknown>
+}
+
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== "object") {
+    return JSON.stringify(value)
+  }
+
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableStringify(item)).join(",")}]`
+  }
+
+  const entries = Object.entries(value as Record<string, unknown>).sort(([left], [right]) =>
+    left.localeCompare(right)
+  )
+
+  return `{${entries
+    .map(([key, item]) => `${JSON.stringify(key)}:${stableStringify(item)}`)
+    .join(",")}}`
 }
 
 function toInt(value: unknown, fallback: number, min: number, max: number) {
@@ -117,15 +137,37 @@ export function resolveNotificationWindowSuppressed({
 export function resolveNotificationDedupKey({
   ruleId,
   channel,
+  recipient,
+  message,
   payload,
 }: {
   ruleId: string
   channel: OpsTaskChannel
+  recipient: string
+  message: string
   payload: Record<string, unknown>
 }) {
-  const serialized = JSON.stringify(payload || {})
-  const tail = Buffer.from(serialized).toString("base64").slice(0, 16)
-  return `${ruleId}:${channel}:${tail}`
+  const fingerprint = stableStringify({
+    recipient: sanitizeTextInput(recipient, 180),
+    message: sanitizeMultilineTextInput(message, 2000).trim(),
+    payload: sanitizeNotificationPayload(payload),
+  })
+  const hash = createHash("sha256").update(fingerprint).digest("hex").slice(0, 24)
+  return `${ruleId}:${channel}:${hash}`
+}
+
+export function buildNotificationDeliveryKey({
+  dedupeKey,
+  deduped,
+}: {
+  dedupeKey: string
+  deduped: boolean
+}) {
+  if (!deduped) {
+    return dedupeKey
+  }
+
+  return `${dedupeKey}:dup:${randomUUID()}`
 }
 
 export function resolveNotificationStatus({

@@ -68,6 +68,32 @@ export function resolvePhase6ClosureScore(input: {
   }
 }
 
+export function listPhaseClosureTransitions(status: PhaseClosureStatus, readyToFreeze: boolean): PhaseClosureStatus[] {
+  switch (status) {
+    case PhaseClosureStatus.DRAFT:
+      return [PhaseClosureStatus.IN_REVIEW]
+    case PhaseClosureStatus.IN_REVIEW:
+      return readyToFreeze ? [PhaseClosureStatus.DRAFT, PhaseClosureStatus.SIGNED_OFF] : [PhaseClosureStatus.DRAFT]
+    case PhaseClosureStatus.SIGNED_OFF:
+      return readyToFreeze ? [PhaseClosureStatus.IN_REVIEW, PhaseClosureStatus.FROZEN] : [PhaseClosureStatus.IN_REVIEW]
+    case PhaseClosureStatus.FROZEN:
+    default:
+      return []
+  }
+}
+
+export function canTransitionPhaseClosureStatus(
+  from: PhaseClosureStatus,
+  to: PhaseClosureStatus,
+  readyToFreeze: boolean
+) {
+  if (from === to) {
+    return true
+  }
+
+  return listPhaseClosureTransitions(from, readyToFreeze).includes(to)
+}
+
 export function resolvePhase6FreezeTimestamp(status: PhaseClosureStatus, currentFrozenAt: Date | null) {
   if (status !== PhaseClosureStatus.FROZEN) {
     return null

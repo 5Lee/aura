@@ -63,6 +63,21 @@ async function requestJson(path: string, init?: RequestInit) {
   return payload
 }
 
+const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("zh-CN", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+  timeZone: "Asia/Shanghai",
+})
+
+function formatDateTime(value: string) {
+  return DATE_TIME_FORMATTER.format(new Date(value))
+}
+
 export function OpsAnalyticsPanel({
   hasAccess,
   planId,
@@ -84,7 +99,7 @@ export function OpsAnalyticsPanel({
     revisitUsers: "80",
     conversionUsers: "45",
     experimentId: experiments[0]?.id || "",
-    traceToken: `manual-${Date.now()}`,
+    traceToken: `manual-snapshot-${snapshots.length + 1}`,
   })
 
   if (!hasAccess) {
@@ -236,7 +251,7 @@ export function OpsAnalyticsPanel({
                   {item.cohortKey} · {item.metricType} · trace {item.traceToken}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  experiment {item.experimentId || "-"} · {new Date(item.windowEnd).toLocaleString()}
+                  experiment {item.experimentId || "-"} · {formatDateTime(item.windowEnd)}
                 </p>
               </div>
             ))}

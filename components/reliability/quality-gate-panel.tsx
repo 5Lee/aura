@@ -39,6 +39,21 @@ async function requestJson(path: string, init?: RequestInit) {
   return payload
 }
 
+const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("zh-CN", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+  timeZone: "Asia/Shanghai",
+})
+
+function formatDateTime(value: string) {
+  return DATE_TIME_FORMATTER.format(new Date(value))
+}
+
 export function QualityGatePanel({ hasAccess, planId, runs, summary }: QualityGatePanelProps) {
   const router = useRouter()
   const { toast } = useToast()
@@ -190,7 +205,7 @@ export function QualityGatePanel({ hasAccess, planId, runs, summary }: QualityGa
                 {item.releaseKey} · {item.gateType} · {item.status}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                severity {item.severity} · env {item.environment} · {new Date(item.createdAt).toLocaleString()}
+                severity {item.severity} · env {item.environment} · {formatDateTime(item.createdAt)}
               </p>
               {item.blockReason ? <p className="mt-1 text-xs text-destructive">阻断：{item.blockReason}</p> : null}
             </div>

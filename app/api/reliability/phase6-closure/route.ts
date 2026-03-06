@@ -3,7 +3,10 @@ import { getServerSession } from "next-auth"
 
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { PhaseClosureStatus } from "@prisma/client"
+
 import {
+  canTransitionPhaseClosureStatus,
   resolvePhase6ClosureScore,
   resolvePhase6FreezeTimestamp,
   sanitizePhaseClosureInput,
@@ -85,6 +88,24 @@ export async function PUT(request: Request) {
       },
     })
 
+    const nextScore = resolvePhase6ClosureScore({
+      functionalGatePassed: sanitized.functionalGatePassed,
+      performanceGatePassed: sanitized.performanceGatePassed,
+      securityGatePassed: sanitized.securityGatePassed,
+      runbookUrl: sanitized.runbookUrl || "",
+      emergencyPlanUrl: sanitized.emergencyPlanUrl || "",
+      trainingMaterialUrl: sanitized.trainingMaterialUrl || "",
+    })
+    const currentStatus = current?.status || PhaseClosureStatus.DRAFT
+
+    if (!canTransitionPhaseClosureStatus(currentStatus, sanitized.status, nextScore.readyToFreeze)) {
+      return NextResponse.json({ error: "不允许的 Phase6 终验状态流转" }, { status: 400 })
+    }
+
+    if (sanitized.status === PhaseClosureStatus.FROZEN && !sanitized.baselineTag) {
+      return NextResponse.json({ error: "冻结基线前请填写基线标记" }, { status: 400 })
+    }
+
     const report = await prisma.phase6ClosureReport.upsert({
       where: {
         id: current?.id || "__create_phase6_closure__",
@@ -116,6 +137,7 @@ export async function PUT(request: Request) {
       request,
       metadata: {
         reportId: report.id,
+        fromStatus: currentStatus,
         status: report.status,
         readinessPercent: score.percent,
         readyToFreeze: score.readyToFreeze,

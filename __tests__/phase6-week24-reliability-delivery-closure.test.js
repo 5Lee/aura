@@ -109,6 +109,8 @@ test("week24 libs expose gate policy, self-heal, rollback impact and closure sco
 
   assert.match(closureLibSource, /sanitizePhaseClosureInput/)
   assert.match(closureLibSource, /resolvePhase6ClosureScore/)
+  assert.match(closureLibSource, /listPhaseClosureTransitions/)
+  assert.match(closureLibSource, /canTransitionPhaseClosureStatus/)
   assert.match(closureLibSource, /resolvePhase6FreezeTimestamp/)
 })
 
@@ -130,6 +132,7 @@ test("week24 APIs cover gates, self-heal, rollback and phase closure lifecycle",
 
   assert.match(closureApiSource, /export async function GET\(\)/)
   assert.match(closureApiSource, /export async function PUT\(request: Request\)/)
+  assert.match(closureApiSource, /canTransitionPhaseClosureStatus/)
   assert.match(closureApiSource, /phase6\.closure\.update/)
 })
 
@@ -159,6 +162,9 @@ test("week24 dashboard pages and panels expose reliability and closure workflows
 
   assert.match(closurePanelSource, /\/api\/reliability\/phase6-closure/)
   assert.match(closurePanelSource, /Phase6 功能终验 \/ 运维手册 \/ 演练复盘 \/ 基线冻结/)
+  assert.match(closurePanelSource, /终验状态/)
+  assert.match(closurePanelSource, /签收终验/)
+  assert.match(closurePanelSource, /冻结基线/)
 })
 
 test("week24 includes release gate workflow and operations handbook deliverables", () => {
