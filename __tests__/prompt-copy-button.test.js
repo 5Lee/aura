@@ -10,6 +10,7 @@ test("prompt copy button writes to clipboard and shows toast", () => {
   assert.match(source, /navigator\.clipboard\?\.writeText/)
   assert.match(source, /setIsToastVisible\(true\)/)
   assert.match(source, /提示词内容已复制到剪贴板/)
+  assert.match(source, /\{isToastVisible \? \(/)
   assert.equal(promptCopyExports.COPY_TOAST_DURATION_MS, 3000)
 })
 

@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react"
 import { Check, Copy } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
 
 interface PromptCopyButtonProps {
   content: string
@@ -61,16 +60,15 @@ export function PromptCopyButton({ content }: PromptCopyButtonProps) {
         <span>{isCopied ? "已复制" : "复制内容"}</span>
       </Button>
 
-      <div
-        role="status"
-        aria-live="polite"
-        className={cn(
-          "pointer-events-none fixed right-4 top-4 z-[700] inline-flex items-center rounded-md border border-emerald-400/40 bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-lg transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none",
-          isToastVisible ? "translate-y-0 opacity-100" : "-translate-y-1 opacity-0"
-        )}
-      >
-        提示词内容已复制到剪贴板
-      </div>
+      {isToastVisible ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="pointer-events-none fixed right-4 top-4 z-[700] inline-flex items-center rounded-md border border-emerald-400/40 bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-lg transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none"
+        >
+          提示词内容已复制到剪贴板
+        </div>
+      ) : null}
     </>
   )
 }

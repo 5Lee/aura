@@ -33,7 +33,7 @@ test("auth flows use toast feedback for success and failure", () => {
   assert.match(loginSource, /type: "info"/)
 
   assert.match(registerSource, /useToast/)
-  assert.match(registerSource, /type: "success"/)
+  assert.match(registerSource, /router\.push\("\/login\?registered=true"\)/)
   assert.match(registerSource, /type: "error"/)
 })
 

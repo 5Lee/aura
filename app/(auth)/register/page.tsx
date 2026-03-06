@@ -187,12 +187,6 @@ export default function RegisterPage() {
         })
         return
       }
-
-      toast({
-        type: "success",
-        title: "注册成功",
-        description: "账号创建成功，请继续登录。",
-      })
       router.push("/login?registered=true")
     } catch (error) {
       setError("注册失败，请重试")
