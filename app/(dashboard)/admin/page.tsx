@@ -94,6 +94,7 @@ export default async function AdminPage() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch={false}
                   className="rounded-lg border border-border bg-card/70 p-4 transition-colors hover:bg-muted/40"
                 >
                   <p className="text-sm font-semibold text-foreground">{item.label}</p>

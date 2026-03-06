@@ -51,6 +51,7 @@ export function AdminSubnav() {
           <Link
             key={item.href}
             href={item.href}
+            prefetch={false}
             aria-current={isActive(pathname, item.href) ? "page" : undefined}
             className={cn(
               "rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",

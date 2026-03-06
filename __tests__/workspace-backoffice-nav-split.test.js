@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs"
 
 const navbarSource = readFileSync(new URL("../components/layout/navbar.tsx", import.meta.url), "utf8")
 const adminPageSource = readFileSync(new URL("../app/(dashboard)/admin/page.tsx", import.meta.url), "utf8")
+const adminSubnavSource = readFileSync(new URL("../components/layout/admin-subnav.tsx", import.meta.url), "utf8")
 
 test("workspace navbar keeps only core entries and exposes admin entry", () => {
   assert.match(navbarSource, /const WORKSPACE_NAV_ITEMS = \[/)
@@ -27,4 +28,10 @@ test("admin portal routes link to /admin/* paths", () => {
   assert.match(adminPageSource, /href: "\/admin\/sla"/)
   assert.match(adminPageSource, /href: "\/admin\/growth-lab"/)
   assert.match(adminPageSource, /href: "\/admin\/interoperability"/)
+})
+
+
+test("backoffice navigation disables broad prefetching", () => {
+  assert.match(adminPageSource, /prefetch=\{false\}/)
+  assert.match(adminSubnavSource, /prefetch=\{false\}/)
 })
