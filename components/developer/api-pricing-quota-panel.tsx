@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -82,6 +82,31 @@ function formatLimit(value: number | "unlimited") {
   return value === "unlimited" ? "不限" : value.toLocaleString("zh-CN")
 }
 
+function buildKeyForm(selectedKey: ApiKeyRow | null, defaultOveragePackUnits: number) {
+  return {
+    status: selectedKey?.status || "ACTIVE",
+    monthlyQuota: String(selectedKey?.monthlyQuota || 200000),
+    rateLimitPerMinute: String(selectedKey?.rateLimitPerMinute || 120),
+    overagePackSize: String(selectedKey?.overagePackSize || defaultOveragePackUnits),
+    overageAutoPackEnabled: selectedKey?.overageAutoPackEnabled || false,
+  }
+}
+
+const dateTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: "Asia/Shanghai",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+})
+
+function formatDateTime(value: string) {
+  return dateTimeFormatter.format(new Date(value))
+}
+
 export function ApiPricingQuotaPanel({
   hasAccess,
   planId,
@@ -108,13 +133,12 @@ export function ApiPricingQuotaPanel({
     modelTier: "BASIC",
   })
 
-  const [keyForm, setKeyForm] = useState({
-    status: selectedKey?.status || "ACTIVE",
-    monthlyQuota: String(selectedKey?.monthlyQuota || 200000),
-    rateLimitPerMinute: String(selectedKey?.rateLimitPerMinute || 120),
-    overagePackSize: String(selectedKey?.overagePackSize || policy.defaultOveragePackUnits),
-    overageAutoPackEnabled: selectedKey?.overageAutoPackEnabled || false,
-  })
+  const [keyForm, setKeyForm] = useState(() => buildKeyForm(selectedKey, policy.defaultOveragePackUnits))
+  const canPurchaseOverage = selectedKey?.status === "ACTIVE"
+
+  useEffect(() => {
+    setKeyForm(buildKeyForm(selectedKey, policy.defaultOveragePackUnits))
+  }, [selectedKey, policy.defaultOveragePackUnits])
 
   async function runAction(actionKey: string, fn: () => Promise<unknown>, success: string) {
     setPendingAction(actionKey)
@@ -344,7 +368,7 @@ export function ApiPricingQuotaPanel({
             </Button>
             <Button
               variant="outline"
-              disabled={pendingAction !== null || !selectedKey}
+              disabled={pendingAction !== null || !selectedKey || !canPurchaseOverage}
               onClick={() =>
                 runAction(
                   "purchase-pack",
@@ -361,7 +385,11 @@ export function ApiPricingQuotaPanel({
                 )
               }
             >
-              {pendingAction === "purchase-pack" ? "购买中..." : "手动购买扩容包"}
+              {pendingAction === "purchase-pack"
+                ? "购买中..."
+                : !canPurchaseOverage && selectedKey
+                  ? "仅 ACTIVE Key 可购买"
+                  : "手动购买扩容包"}
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
@@ -398,7 +426,7 @@ export function ApiPricingQuotaPanel({
               {purchases.slice(0, 10).map((item) => (
                 <div key={item.id} className="rounded border border-border px-2 py-1">
                   <p>
-                    {new Date(item.createdAt).toLocaleString("zh-CN")} · +{item.units.toLocaleString("zh-CN")} 单位
+                    {formatDateTime(item.createdAt)} · +{item.units.toLocaleString("zh-CN")} 单位
                   </p>
                   <p className="text-muted-foreground">{formatCny(item.amountCents)} · {item.status}</p>
                 </div>

@@ -105,6 +105,8 @@ test("developer api routes support api key lifecycle, metering, overage and abus
   assert.match(usageRouteSource, /blockedCount/)
 
   assert.match(overageRouteSource, /export async function POST\(request: Request\)/)
+  assert.match(overageRouteSource, /apiKey\.status !== "ACTIVE"/)
+  assert.match(overageRouteSource, /仅 ACTIVE 状态的 API Key 可购买扩容包/)
   assert.match(overageRouteSource, /developer\.api\.overage\.purchase/)
 })
 
@@ -119,7 +121,12 @@ test("developer api page and panel expose pricing, quota linkage and auto overag
   assert.match(apiPanelSource, /aria-label=\"选择 API Key\"/)
   assert.match(apiPanelSource, /aria-label=\"模型级别\"/)
   assert.match(apiPanelSource, /启用超量自动扩容包购买/)
-  assert.match(apiPanelSource, /手动购买扩容包/)
+  assert.match(apiPanelSource, /const canPurchaseOverage = selectedKey\?\.status === "ACTIVE"/)
+  assert.match(apiPanelSource, /仅 ACTIVE Key 可购买/)
+  assert.match(apiPanelSource, /buildKeyForm/)
+  assert.match(apiPanelSource, /useEffect\(\(\) => \{/)
+  assert.match(apiPanelSource, /Asia\/Shanghai/)
+  assert.match(apiPanelSource, /formatDateTime/)
 })
 
 test("developer api route is managed via admin portal and protected by middleware", () => {

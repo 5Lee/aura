@@ -102,6 +102,14 @@ test("marketplace page and panel expose commission rules, earnings stats and set
   assert.match(marketplacePanelSource, /\/api\/marketplace\/commission\/settlements/)
   assert.match(marketplacePanelSource, /同步创作者收益台账/)
   assert.match(marketplacePanelSource, /更新结算状态/)
+  assert.match(marketplacePanelSource, /aria-label="规则名称"/)
+  assert.match(marketplacePanelSource, /aria-label="结算说明"/)
+  assert.match(marketplacePanelSource, /aria-label="选择结算批次"/)
+  assert.match(marketplacePanelSource, /aria-label="结算状态"/)
+  assert.match(marketplacePanelSource, /selectSettlement\(payload\.settlement\.id\)/)
+  assert.match(marketplacePanelSource, /setSelectedSettlementStatus\(settlement\?\.status \|\| "PAID"\)/)
+  assert.match(marketplacePanelSource, /selectSettlement\(event\.target\.value\)/)
+  assert.match(marketplacePanelSource, /timeZone: "Asia\/Shanghai"/)
 })
 
 test("marketplace route is managed via admin portal and protected by middleware", () => {

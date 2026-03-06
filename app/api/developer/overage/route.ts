@@ -58,6 +58,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "API Key 不存在" }, { status: 404 })
     }
 
+    if (apiKey.status !== "ACTIVE") {
+      return NextResponse.json({ error: "仅 ACTIVE 状态的 API Key 可购买扩容包" }, { status: 400 })
+    }
+
     const policy = resolveApiQuotaPolicy(apiKey.planId)
     const units = resolvePositiveInt(body.units, policy.defaultOveragePackUnits, 1000, 10000000)
     const pack = resolveOveragePackPrice({

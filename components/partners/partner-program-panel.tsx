@@ -454,20 +454,31 @@ export function PartnerProgramPanel({
               onClick={() =>
                 runAction(
                   "create-settlement",
-                  () =>
-                    requestJson("/api/partners/settlements", {
+                  async () => {
+                    const payload = (await requestJson("/api/partners/settlements", {
                       method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      tierId: settlementCreateForm.tierId,
-                      periodStart: toIsoDateTime(settlementCreateForm.periodStart),
-                      periodEnd: toIsoDateTime(settlementCreateForm.periodEnd),
-                      ...(settlementCreateForm.actualPayoutCents.trim()
-                        ? { actualPayoutCents: Number(settlementCreateForm.actualPayoutCents) }
-                        : {}),
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        tierId: settlementCreateForm.tierId,
+                        periodStart: toIsoDateTime(settlementCreateForm.periodStart),
+                        periodEnd: toIsoDateTime(settlementCreateForm.periodEnd),
+                        ...(settlementCreateForm.actualPayoutCents.trim()
+                          ? { actualPayoutCents: Number(settlementCreateForm.actualPayoutCents) }
+                          : {}),
                         payoutReference: settlementCreateForm.payoutReference,
                       }),
-                    }),
+                    })) as { settlement?: SettlementRow }
+                    if (!payload.settlement) {
+                      return
+                    }
+                    setSelectedSettlementId(payload.settlement.id)
+                    setSettlementUpdateForm((prev) => ({
+                      ...prev,
+                      payoutReference: payload.settlement?.payoutReference || prev.payoutReference,
+                      actualPayoutCents: "",
+                      note: "",
+                    }))
+                  },
                   "结算批次已创建"
                 )
               }

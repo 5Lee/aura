@@ -104,6 +104,8 @@ test("partners panel normalizes settlement datetime payload and keeps form contr
   assert.match(partnersPanelSource, /toIsoDateTime/)
   assert.match(partnersPanelSource, /periodStart: toIsoDateTime\(settlementCreateForm\.periodStart\)/)
   assert.match(partnersPanelSource, /periodEnd: toIsoDateTime\(settlementCreateForm\.periodEnd\)/)
+  assert.match(partnersPanelSource, /setSelectedSettlementId\(payload\.settlement\.id\)/)
+  assert.match(partnersPanelSource, /payoutReference: payload\.settlement\?\.payoutReference \|\| prev\.payoutReference/)
   assert.match(partnersPanelSource, /aria-label=\"结算开始时间\"/)
   assert.match(partnersPanelSource, /aria-label=\"结算结束时间\"/)
   assert.match(partnersPanelSource, /aria-label=\"结算付款流水号\"/)

@@ -73,11 +73,37 @@ async function requestJson(path: string, init?: RequestInit) {
   return payload
 }
 
+const dateTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: "Asia/Shanghai",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+})
+
+const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: "Asia/Shanghai",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+})
+
 function formatCny(valueCents: number) {
   return (valueCents / 100).toLocaleString("zh-CN", {
     style: "currency",
     currency: "CNY",
   })
+}
+
+function formatDateTime(value: string) {
+  return dateTimeFormatter.format(new Date(value))
+}
+
+function formatDate(value: string) {
+  return dateFormatter.format(new Date(value))
 }
 
 export function CommissionManagementPanel({
@@ -106,7 +132,16 @@ export function CommissionManagementPanel({
 
   const [settlementSummary, setSettlementSummary] = useState("")
   const [selectedSettlementId, setSelectedSettlementId] = useState(settlements[0]?.id || "")
-  const [selectedSettlementStatus, setSelectedSettlementStatus] = useState("PAID")
+  const [selectedSettlementStatus, setSelectedSettlementStatus] = useState(
+    settlements[0]?.status || "PAID"
+  )
+
+  function selectSettlement(settlementId: string) {
+    setSelectedSettlementId(settlementId)
+    const settlement = settlements.find((item) => item.id === settlementId)
+    setSelectedSettlementStatus(settlement?.status || "PAID")
+    setSettlementSummary(settlement?.summary || "")
+  }
 
   async function runAction(actionKey: string, fn: () => Promise<unknown>, success: string) {
     setPendingAction(actionKey)
@@ -165,12 +200,14 @@ export function CommissionManagementPanel({
             onChange={(event) => setRuleForm((prev) => ({ ...prev, name: event.target.value }))}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder="规则名称"
+            aria-label="规则名称"
           />
           <input
             value={ruleForm.category}
             onChange={(event) => setRuleForm((prev) => ({ ...prev, category: event.target.value }))}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder="分类"
+            aria-label="分类"
           />
           <div className="grid gap-2 sm:grid-cols-2">
             <input
@@ -180,6 +217,7 @@ export function CommissionManagementPanel({
               }
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="创作者分成 bps"
+              aria-label="创作者分成 bps"
             />
             <input
               value={ruleForm.platformRateBasisPoints}
@@ -188,6 +226,7 @@ export function CommissionManagementPanel({
               }
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="平台分成 bps"
+              aria-label="平台分成 bps"
             />
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -198,6 +237,7 @@ export function CommissionManagementPanel({
               }
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="结算周期（天）"
+              aria-label="结算周期（天）"
             />
             <input
               value={ruleForm.minimumPayoutCents}
@@ -206,6 +246,7 @@ export function CommissionManagementPanel({
               }
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="最小结算金额（分）"
+              aria-label="最小结算金额（分）"
             />
           </div>
           <label className="flex items-center gap-2 text-sm">
@@ -271,6 +312,7 @@ export function CommissionManagementPanel({
             onChange={(event) => setSettlementSummary(event.target.value)}
             className="min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             placeholder="结算说明"
+            aria-label="结算说明"
           />
           <div className="flex flex-wrap gap-2">
             <Button
@@ -278,12 +320,17 @@ export function CommissionManagementPanel({
               onClick={() =>
                 runAction(
                   "create-settlement",
-                  () =>
-                    requestJson("/api/marketplace/commission/settlements", {
+                  async () => {
+                    const payload = (await requestJson("/api/marketplace/commission/settlements", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ summary: settlementSummary }),
-                    }),
+                    })) as { settlement?: SettlementRow }
+                    if (!payload.settlement) {
+                      return
+                    }
+                    selectSettlement(payload.settlement.id)
+                  },
                   "结算批次已创建"
                 )
               }
@@ -292,20 +339,22 @@ export function CommissionManagementPanel({
             </Button>
             <select
               value={selectedSettlementId}
-              onChange={(event) => setSelectedSettlementId(event.target.value)}
+              onChange={(event) => selectSettlement(event.target.value)}
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              aria-label="选择结算批次"
             >
               <option value="">选择结算批次</option>
               {settlements.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {new Date(item.createdAt).toLocaleString("zh-CN")} · {item.status}
+                  {formatDateTime(item.createdAt)} · {item.status}
                 </option>
               ))}
             </select>
             <select
               value={selectedSettlementStatus}
-              onChange={(event) => setSelectedSettlementStatus(event.target.value)}
+              onChange={(event) => setSelectedSettlementStatus(event.target.value as SettlementRow["status"])}
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              aria-label="结算状态"
             >
               <option value="PENDING">PENDING</option>
               <option value="PROCESSING">PROCESSING</option>
@@ -344,8 +393,7 @@ export function CommissionManagementPanel({
                 {settlements.slice(0, 6).map((item) => (
                   <div key={item.id} className="rounded border border-border px-2 py-1">
                     <p>
-                      [{item.status}] {new Date(item.periodStart).toLocaleDateString("zh-CN")} -{" "}
-                      {new Date(item.periodEnd).toLocaleDateString("zh-CN")}
+                      [{item.status}] {formatDate(item.periodStart)} - {formatDate(item.periodEnd)}
                     </p>
                     <p className="text-muted-foreground">
                       流水 {item.ledgerCount} 条 · 结算 {formatCny(item.payoutAmountCents)}
@@ -386,8 +434,7 @@ export function CommissionManagementPanel({
                     <td className="border-b px-2 py-2">{formatCny(item.creatorCommissionCents)}</td>
                     <td className="border-b px-2 py-2">{formatCny(item.platformCommissionCents)}</td>
                     <td className="border-b px-2 py-2 text-xs text-muted-foreground">
-                      {new Date(item.settlementPeriodStart).toLocaleDateString("zh-CN")} -{" "}
-                      {new Date(item.settlementPeriodEnd).toLocaleDateString("zh-CN")}
+                      {formatDate(item.settlementPeriodStart)} - {formatDate(item.settlementPeriodEnd)}
                     </td>
                   </tr>
                 ))}
