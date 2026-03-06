@@ -36,6 +36,21 @@ async function requestJson(path: string) {
   return payload
 }
 
+const dateTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: "Asia/Shanghai",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+})
+
+function formatDateTime(value: string) {
+  return dateTimeFormatter.format(new Date(value))
+}
+
 export function GovernanceAuditPanel({ hasAccess, planId, logs, integrity }: GovernanceAuditPanelProps) {
   const { toast } = useToast()
   const [resource, setResource] = useState("")
@@ -132,7 +147,7 @@ export function GovernanceAuditPanel({ hasAccess, planId, logs, integrity }: Gov
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
               immutable={String(log.immutable)} · hash={log.entryHash ? "present" : "missing"} ·
-              {new Date(log.createdAt).toLocaleString()}
+              {formatDateTime(log.createdAt)}
             </p>
           </div>
         ))}

@@ -15,9 +15,13 @@ import {
 } from "@/lib/subscription-entitlements"
 
 function resolveTake(value: string | null) {
+  if (value === null || value.trim() === "") {
+    return 120
+  }
+
   const parsed = Number(value)
   if (!Number.isFinite(parsed)) {
-    return 80
+    return 120
   }
   const rounded = Math.floor(parsed)
   if (rounded < 1) {
@@ -55,7 +59,7 @@ export async function GET(request: Request) {
   const logs = await prisma.promptAuditLog.findMany({
     where: {
       actorId: session.user.id,
-      ...(resource ? { resource } : {}),
+      ...(resource ? { resource } : { resource: { in: ["connectors", "prompt-flow"] } }),
       ...(action ? { action: { contains: action } } : {}),
     },
     orderBy: {

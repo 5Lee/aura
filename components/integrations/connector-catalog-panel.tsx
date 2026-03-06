@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -51,6 +51,43 @@ async function requestJson(path: string, init?: RequestInit) {
   return payload
 }
 
+function buildConnectorForm(connector: ConnectorRow | null) {
+  return {
+    id: connector?.id || "",
+    name: connector?.name || "",
+    provider: connector?.provider || "OPENAI",
+    status: connector?.status || "DISABLED",
+    apiBaseUrl: connector?.apiBaseUrl || "",
+    credential: "",
+    note: "",
+  }
+}
+
+function formatShanghaiDateTime(value: string) {
+  if (!value) {
+    return ""
+  }
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
+
+  const parts = new Intl.DateTimeFormat("zh-CN", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(date)
+
+  const byType = Object.fromEntries(parts.map((part) => [part.type, part.value]))
+  return `${byType.year}/${byType.month}/${byType.day} ${byType.hour}:${byType.minute}:${byType.second}`
+}
+
 export function ConnectorCatalogPanel({
   hasAccess,
   planId,
@@ -61,15 +98,16 @@ export function ConnectorCatalogPanel({
   const { toast } = useToast()
   const [pendingAction, setPendingAction] = useState<string | null>(null)
 
-  const [form, setForm] = useState({
-    id: "",
-    name: connectors[0]?.name || "",
-    provider: connectors[0]?.provider || "OPENAI",
-    status: connectors[0]?.status || "DISABLED",
-    apiBaseUrl: connectors[0]?.apiBaseUrl || "",
-    credential: "",
-    note: "",
-  })
+  const [selectedConnectorId, setSelectedConnectorId] = useState("")
+  const selectedConnector = useMemo(
+    () => connectors.find((item) => item.id === selectedConnectorId) || null,
+    [connectors, selectedConnectorId]
+  )
+  const [form, setForm] = useState(() => buildConnectorForm(null))
+
+  useEffect(() => {
+    setForm(buildConnectorForm(selectedConnector))
+  }, [selectedConnector])
 
   async function runAction(actionKey: string, fn: () => Promise<unknown>, success: string) {
     setPendingAction(actionKey)
@@ -127,18 +165,8 @@ export function ConnectorCatalogPanel({
           <p className="text-sm font-medium">第三方模型与工具连接器目录</p>
           <select
             aria-label="选择连接器"
-            value={form.id}
-            onChange={(event) => {
-              const selected = connectors.find((item) => item.id === event.target.value)
-              setForm((prev) => ({
-                ...prev,
-                id: event.target.value,
-                name: selected?.name || prev.name,
-                provider: selected?.provider || prev.provider,
-                status: selected?.status || prev.status,
-                apiBaseUrl: selected?.apiBaseUrl || "",
-              }))
-            }}
+            value={selectedConnectorId}
+            onChange={(event) => setSelectedConnectorId(event.target.value)}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
           >
             <option value="">新建连接器</option>
@@ -244,7 +272,7 @@ export function ConnectorCatalogPanel({
                     {item.status}
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    最后轮换 {item.lastRotatedAt ? new Date(item.lastRotatedAt).toLocaleString() : "未轮换"}
+                    最后轮换 {item.lastRotatedAt ? formatShanghaiDateTime(item.lastRotatedAt) : "未轮换"}
                   </p>
                 </div>
               ))}
@@ -285,7 +313,7 @@ export function ConnectorCatalogPanel({
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
                   {item.lastCheckMessage || "暂无诊断信息"} ·
-                  最近检测 {item.lastCheckedAt ? new Date(item.lastCheckedAt).toLocaleString() : "未检测"}
+                  最近检测 {item.lastCheckedAt ? formatShanghaiDateTime(item.lastCheckedAt) : "未检测"}
                 </p>
               </div>
             ))}
@@ -299,7 +327,7 @@ export function ConnectorCatalogPanel({
                 {item.connector.name} · {item.status} · {item.latencyMs}ms
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {item.message} · {new Date(item.checkAt).toLocaleString()}
+                {item.message} · {formatShanghaiDateTime(item.checkAt)}
               </p>
             </div>
           ))}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -81,22 +81,16 @@ function summaryValue(summary: Record<string, unknown>, key: string) {
   return value
 }
 
-export function InteroperabilityPanel({ hasAccess, planId, profiles, jobs }: InteroperabilityPanelProps) {
-  const router = useRouter()
-  const { toast } = useToast()
-  const [pendingAction, setPendingAction] = useState<string | null>(null)
-
-  const defaultProfile = profiles[0] || null
-
-  const [profileForm, setProfileForm] = useState({
-    id: defaultProfile?.id || "",
-    name: defaultProfile?.name || "",
-    platform: defaultProfile?.platform || "LANGFUSE",
-    mode: defaultProfile?.mode || "IMPORT",
-    conflictPolicy: defaultProfile?.conflictPolicy || "skip",
-    compatibilityMode: defaultProfile?.compatibilityMode || "strict",
+function buildProfileForm(profile: ProfileRow | null) {
+  return {
+    id: profile?.id || "",
+    name: profile?.name || "",
+    platform: profile?.platform || "LANGFUSE",
+    mode: profile?.mode || "IMPORT",
+    conflictPolicy: profile?.conflictPolicy || "skip",
+    compatibilityMode: profile?.compatibilityMode || "strict",
     fieldMappingJson: JSON.stringify(
-      defaultProfile?.fieldMapping || {
+      profile?.fieldMapping || {
         externalId: "id",
         title: "title",
         content: "content",
@@ -107,7 +101,21 @@ export function InteroperabilityPanel({ hasAccess, planId, profiles, jobs }: Int
       null,
       2
     ),
-  })
+  }
+}
+
+export function InteroperabilityPanel({ hasAccess, planId, profiles, jobs }: InteroperabilityPanelProps) {
+  const router = useRouter()
+  const { toast } = useToast()
+  const [pendingAction, setPendingAction] = useState<string | null>(null)
+
+  const defaultProfile = profiles[0] || null
+  const [selectedProfileId, setSelectedProfileId] = useState(defaultProfile?.id || "")
+  const selectedProfile = useMemo(
+    () => profiles.find((item) => item.id === selectedProfileId) || null,
+    [profiles, selectedProfileId]
+  )
+  const [profileForm, setProfileForm] = useState(() => buildProfileForm(selectedProfile))
 
   const [importRowsText, setImportRowsText] = useState(
     JSON.stringify(
@@ -132,6 +140,10 @@ export function InteroperabilityPanel({ hasAccess, planId, profiles, jobs }: Int
     () => jobs.filter((item) => item.status === "PREVIEW"),
     [jobs]
   )
+
+  useEffect(() => {
+    setProfileForm(buildProfileForm(selectedProfile))
+  }, [selectedProfile])
 
   async function runAction(actionKey: string, fn: () => Promise<unknown>, success: string) {
     setPendingAction(actionKey)
@@ -185,20 +197,8 @@ export function InteroperabilityPanel({ hasAccess, planId, profiles, jobs }: Int
           <p className="text-sm font-medium">多源字段映射与冲突策略</p>
           <select
             aria-label="选择适配配置"
-            value={profileForm.id}
-            onChange={(event) => {
-              const selected = profiles.find((item) => item.id === event.target.value)
-              setProfileForm((prev) => ({
-                ...prev,
-                id: event.target.value,
-                name: selected?.name || prev.name,
-                platform: selected?.platform || prev.platform,
-                mode: selected?.mode || prev.mode,
-                conflictPolicy: selected?.conflictPolicy || prev.conflictPolicy,
-                compatibilityMode: selected?.compatibilityMode || prev.compatibilityMode,
-                fieldMappingJson: JSON.stringify(selected?.fieldMapping || safeJsonParse(prev.fieldMappingJson, {}), null, 2),
-              }))
-            }}
+            value={selectedProfileId}
+            onChange={(event) => setSelectedProfileId(event.target.value)}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
           >
             <option value="">新建适配配置</option>

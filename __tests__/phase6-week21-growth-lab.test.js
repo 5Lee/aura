@@ -81,6 +81,10 @@ test("growth page and panel expose experiment setup and metric update workflow",
   assert.match(growthPanelSource, /\/api\/growth-lab\/experiments/)
   assert.match(growthPanelSource, /实验定义与目标配置/)
   assert.match(growthPanelSource, /指标采集与状态流转/)
+  assert.match(growthPanelSource, /buildExperimentUpdateForm/)
+  assert.match(growthPanelSource, /const selectedExperiment = useMemo/)
+  assert.match(growthPanelSource, /setUpdateForm\(buildExperimentUpdateForm\(selectedExperiment, snapshots\)\)/)
+  assert.match(growthPanelSource, /<option value="DRAFT">DRAFT<\/option>/)
   assert.match(growthPanelSource, /实验进展总览/)
 })
 

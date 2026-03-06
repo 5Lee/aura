@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -66,35 +66,60 @@ function safeJsonParse<T>(value: string, fallback: T) {
   }
 }
 
+const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: "Asia/Shanghai",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+})
+
+function formatDateTime(value: string) {
+  return DATE_TIME_FORMATTER.format(new Date(value))
+}
+
+function buildFlowForm(flow: FlowRow | null) {
+  return {
+    id: flow?.id || "",
+    name: flow?.name || "",
+    description: flow?.description || "",
+    status: flow?.status || "DRAFT",
+    executionMode: flow?.executionMode || "SERIAL",
+    nodesJson: JSON.stringify(flow?.nodes || [{ id: "node-1", type: "task", title: "示例节点" }], null, 2),
+    edgesJson: JSON.stringify(flow?.edges || [], null, 2),
+    contextVariablesJson: JSON.stringify(flow?.contextVariables || [], null, 2),
+    retryMax: String(flow?.retryPolicy?.maxRetries || 0),
+    backoffSeconds: String(flow?.retryPolicy?.backoffSeconds || 0),
+  }
+}
+
 export function PromptFlowPanel({ hasAccess, planId, flows, runs }: PromptFlowPanelProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [pendingAction, setPendingAction] = useState<string | null>(null)
 
   const defaultFlow = flows[0] || null
-
-  const [flowForm, setFlowForm] = useState({
-    id: defaultFlow?.id || "",
-    name: defaultFlow?.name || "",
-    description: defaultFlow?.description || "",
-    status: defaultFlow?.status || "DRAFT",
-    executionMode: defaultFlow?.executionMode || "SERIAL",
-    nodesJson: JSON.stringify(defaultFlow?.nodes || [{ id: "node-1", type: "task", title: "示例节点" }], null, 2),
-    edgesJson: JSON.stringify(defaultFlow?.edges || [], null, 2),
-    contextVariablesJson: JSON.stringify(defaultFlow?.contextVariables || [], null, 2),
-    retryMax: String(defaultFlow?.retryPolicy?.maxRetries || 0),
-    backoffSeconds: String(defaultFlow?.retryPolicy?.backoffSeconds || 0),
-  })
+  const [selectedFlowId, setSelectedFlowId] = useState(defaultFlow?.id || "")
+  const selectedFlow = useMemo(
+    () => flows.find((item) => item.id === selectedFlowId) || null,
+    [flows, selectedFlowId]
+  )
+  const [flowForm, setFlowForm] = useState(() => buildFlowForm(selectedFlow))
 
   const [runForm, setRunForm] = useState({
     flowId: defaultFlow?.id || "",
     replayToken: "",
   })
 
-  const selectedFlow = useMemo(
-    () => flows.find((item) => item.id === flowForm.id) || null,
-    [flows, flowForm.id]
-  )
+  useEffect(() => {
+    setFlowForm(buildFlowForm(selectedFlow))
+    if (selectedFlow) {
+      setRunForm((prev) => ({ ...prev, flowId: selectedFlow.id }))
+    }
+  }, [selectedFlow])
 
   async function runAction(actionKey: string, fn: () => Promise<unknown>, success: string) {
     setPendingAction(actionKey)
@@ -148,30 +173,8 @@ export function PromptFlowPanel({ hasAccess, planId, flows, runs }: PromptFlowPa
           <p className="text-sm font-medium">工作流节点化编排（Prompt Flow）</p>
           <select
             aria-label="选择工作流"
-            value={flowForm.id}
-            onChange={(event) => {
-              const selected = flows.find((item) => item.id === event.target.value)
-              setFlowForm((prev) => ({
-                ...prev,
-                id: event.target.value,
-                name: selected?.name || prev.name,
-                description: selected?.description || prev.description,
-                status: selected?.status || prev.status,
-                executionMode: selected?.executionMode || prev.executionMode,
-                nodesJson: JSON.stringify(selected?.nodes || safeJsonParse(prev.nodesJson, []), null, 2),
-                edgesJson: JSON.stringify(selected?.edges || safeJsonParse(prev.edgesJson, []), null, 2),
-                contextVariablesJson: JSON.stringify(
-                  selected?.contextVariables || safeJsonParse(prev.contextVariablesJson, []),
-                  null,
-                  2
-                ),
-                retryMax: String(selected?.retryPolicy?.maxRetries || prev.retryMax),
-                backoffSeconds: String(selected?.retryPolicy?.backoffSeconds || prev.backoffSeconds),
-              }))
-              if (selected) {
-                setRunForm((prev) => ({ ...prev, flowId: selected.id }))
-              }
-            }}
+            value={selectedFlowId}
+            onChange={(event) => setSelectedFlowId(event.target.value)}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
           >
             <option value="">新建工作流</option>
@@ -365,7 +368,7 @@ export function PromptFlowPanel({ hasAccess, planId, flows, runs }: PromptFlowPa
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   {item.errorMessage || "执行成功"} ·
-                  {item.startedAt ? ` ${new Date(item.startedAt).toLocaleString()}` : " 未开始"}
+                  {item.startedAt ? ` ${formatDateTime(item.startedAt)}` : " 未开始"}
                 </p>
               </div>
             ))}

@@ -71,11 +71,15 @@ test("governance dashboard and API provide resource-level audit retrieval", () =
   assert.match(entitlementsSource, /INTEGRATION_GOVERNANCE_PLANS/)
   assert.match(entitlementsSource, /hasIntegrationGovernanceAccess/)
   assert.match(governanceApiSource, /export async function GET\(request: Request\)/)
+  assert.match(governanceApiSource, /value === null \|\| value\.trim\(\) === ""/)
+  assert.match(governanceApiSource, /resource: \{ in: \["connectors", "prompt-flow"\] \}/)
   assert.match(governanceApiSource, /resourceScope/)
   assert.match(governancePageSource, /Week22-004/)
   assert.match(governancePanelSource, /连接器与工作流审计治理/)
   assert.match(governancePanelSource, /按资源维度检索/)
   assert.match(governancePanelSource, /\/api\/governance\/audit/)
+  assert.match(governancePanelSource, /timeZone: "Asia\/Shanghai"/)
+  assert.match(governancePanelSource, /formatDateTime\(log\.createdAt\)/)
 })
 
 test("governance surfaces in backoffice routing and protections", () => {

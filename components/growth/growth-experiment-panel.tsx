@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -179,6 +179,21 @@ function toIsoDateTime(value: string) {
   return parsed.toISOString()
 }
 
+function buildExperimentUpdateForm(experiment: ExperimentRow | null, snapshots: SnapshotRow[]) {
+  const latestSnapshot = experiment
+    ? snapshots.find((item) => item.experimentId === experiment.id) || null
+    : null
+
+  return {
+    status: experiment?.status || "RUNNING",
+    metricType: latestSnapshot?.metricType || "CONVERSION",
+    exposures: String(latestSnapshot?.exposures || 0),
+    conversions: String(latestSnapshot?.conversions || 0),
+    retainedUsers: String(latestSnapshot?.retainedUsers || 0),
+    revenueCents: String(latestSnapshot?.revenueCents || 0),
+  }
+}
+
 export function GrowthExperimentPanel({
   hasAccess,
   planId,
@@ -204,6 +219,10 @@ export function GrowthExperimentPanel({
 
   const [selectedExperimentId, setSelectedExperimentId] = useState(defaultExperiment?.id || "")
   const [selectedAudienceExperimentId, setSelectedAudienceExperimentId] = useState(defaultExperiment?.id || "")
+  const selectedExperiment = useMemo(
+    () => experiments.find((item) => item.id === selectedExperimentId) || null,
+    [experiments, selectedExperimentId]
+  )
 
   const [experimentForm, setExperimentForm] = useState({
     name: "",
@@ -259,14 +278,11 @@ export function GrowthExperimentPanel({
     resumeExperiment: true,
   })
 
-  const [updateForm, setUpdateForm] = useState({
-    status: "RUNNING",
-    metricType: "CONVERSION",
-    exposures: "0",
-    conversions: "0",
-    retainedUsers: "0",
-    revenueCents: "0",
-  })
+  const [updateForm, setUpdateForm] = useState(() => buildExperimentUpdateForm(selectedExperiment, snapshots))
+
+  useEffect(() => {
+    setUpdateForm(buildExperimentUpdateForm(selectedExperiment, snapshots))
+  }, [selectedExperiment, snapshots])
 
   const anomalies = useMemo(
     () => attributionSnapshots.filter((item) => item.status === "ANOMALY").slice(0, 8),
@@ -449,6 +465,7 @@ export function GrowthExperimentPanel({
             onChange={(event) => setUpdateForm((prev) => ({ ...prev, status: event.target.value }))}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
           >
+            <option value="DRAFT">DRAFT</option>
             <option value="RUNNING">RUNNING</option>
             <option value="PAUSED">PAUSED</option>
             <option value="COMPLETED">COMPLETED</option>
