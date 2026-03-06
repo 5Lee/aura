@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Image from "next/image"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -216,9 +217,12 @@ export default function RegisterPage() {
         <CardHeader className="space-y-1">
           <div className="flex flex-col items-center gap-2">
             {brandConfig.logoUrl ? (
-              <img
+              <Image
                 src={brandConfig.logoUrl}
                 alt={`${brandConfig.brandName} logo`}
+                width={160}
+                height={40}
+                unoptimized
                 className="h-10 w-auto rounded-md object-contain"
               />
             ) : null}

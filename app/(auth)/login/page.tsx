@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import Image from "next/image"
 import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
@@ -228,9 +229,12 @@ export default function LoginPage() {
         <CardHeader className="space-y-1">
           <div className="flex flex-col items-center gap-2">
             {brandConfig.logoUrl ? (
-              <img
+              <Image
                 src={brandConfig.logoUrl}
                 alt={`${brandConfig.brandName} logo`}
+                width={160}
+                height={40}
+                unoptimized
                 className="h-10 w-auto rounded-md object-contain"
               />
             ) : null}
