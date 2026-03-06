@@ -34,6 +34,7 @@ export async function POST(request: Request) {
     const cancelResult = await provider.cancelSubscription({
       externalSubscriptionId: subscription.externalSubscriptionId,
       atPeriodEnd,
+      currentStatus: subscription.status,
     })
 
     const updated = await prisma.subscription.update({

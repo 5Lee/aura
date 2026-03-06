@@ -18,6 +18,10 @@ const changePlanRouteSource = readFileSync(
   new URL("../app/api/subscription/change-plan/route.ts", import.meta.url),
   "utf8"
 )
+const cancelRouteSource = readFileSync(
+  new URL("../app/api/subscription/cancel/route.ts", import.meta.url),
+  "utf8"
+)
 const resumeRouteSource = readFileSync(
   new URL("../app/api/subscription/resume/route.ts", import.meta.url),
   "utf8"
@@ -57,6 +61,9 @@ test("billing history and lifecycle routes support export and plan transition ha
   assert.match(historyRouteSource, /format === "csv"/)
   assert.match(historyRouteSource, /Content-Disposition/)
   assert.match(changePlanRouteSource, /subscription\.plan\.changed/)
+  assert.match(cancelRouteSource, /currentStatus: subscription\.status/)
+  assert.match(resumeRouteSource, /resumeScheduledCancellation/)
+  assert.match(resumeRouteSource, /subscription\.cancelAtPeriodEnd/)
   assert.match(resumeRouteSource, /subscription\.resume\.requested/)
 })
 

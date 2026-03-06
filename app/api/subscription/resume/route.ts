@@ -25,8 +25,17 @@ export async function POST() {
     let status = subscription.status
     let currentPeriodStart = subscription.currentPeriodStart
     let currentPeriodEnd = subscription.currentPeriodEnd
+    const resumableStatuses: SubscriptionStatus[] = [
+      SubscriptionStatus.TRIALING,
+      SubscriptionStatus.ACTIVE,
+      SubscriptionStatus.PAST_DUE,
+    ]
+    const resumeScheduledCancellation =
+      subscription.cancelAtPeriodEnd && resumableStatuses.includes(subscription.status)
 
-    if (subscription.externalSubscriptionId) {
+    if (resumeScheduledCancellation) {
+      status = subscription.status
+    } else if (subscription.externalSubscriptionId) {
       const provider = getBillingProvider(subscription.provider)
       const renewed = await provider.renewSubscription({
         externalSubscriptionId: subscription.externalSubscriptionId,

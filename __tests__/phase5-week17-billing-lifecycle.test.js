@@ -35,9 +35,22 @@ test("billing provider abstraction exposes create, cancel, renew and webhook ver
   assert.match(billingLibSource, /interface BillingProviderAdapter/)
   assert.match(billingLibSource, /createSubscription\(/)
   assert.match(billingLibSource, /cancelSubscription\(/)
+  assert.match(billingLibSource, /currentStatus\?: SubscriptionStatus/)
+  assert.match(billingLibSource, /input\.currentStatus \?\? SubscriptionStatus\.ACTIVE/)
   assert.match(billingLibSource, /renewSubscription\(/)
   assert.match(billingLibSource, /verifyWebhookSignature\(/)
   assert.match(billingLibSource, /timingSafeEqual/)
+})
+
+test("resume route preserves in-period trialing or active subscriptions when only unscheduling cancellation", () => {
+  const resumeRouteSource = readFileSync(
+    new URL("../app/api/subscription/resume/route.ts", import.meta.url),
+    "utf8"
+  )
+  assert.match(resumeRouteSource, /const resumeScheduledCancellation =/)
+  assert.match(resumeRouteSource, /subscription\.cancelAtPeriodEnd/)
+  assert.match(resumeRouteSource, /SubscriptionStatus\.TRIALING/)
+  assert.match(resumeRouteSource, /status = subscription\.status/)
 })
 
 test("subscription lifecycle maps provider events to local state transitions", () => {

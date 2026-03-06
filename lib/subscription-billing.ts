@@ -31,6 +31,7 @@ export type CreateSubscriptionResult = {
 export type CancelSubscriptionInput = {
   externalSubscriptionId: string
   atPeriodEnd: boolean
+  currentStatus?: SubscriptionStatus
 }
 
 export type CancelSubscriptionResult = {
@@ -143,7 +144,7 @@ class MockBillingProvider implements BillingProviderAdapter {
 
   async cancelSubscription(input: CancelSubscriptionInput): Promise<CancelSubscriptionResult> {
     return {
-      status: input.atPeriodEnd ? SubscriptionStatus.ACTIVE : SubscriptionStatus.CANCELED,
+      status: input.atPeriodEnd ? input.currentStatus ?? SubscriptionStatus.ACTIVE : SubscriptionStatus.CANCELED,
       cancelAtPeriodEnd: input.atPeriodEnd,
       canceledAt: input.atPeriodEnd ? null : new Date(),
     }
