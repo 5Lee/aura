@@ -84,8 +84,9 @@ test("growth page and panel expose experiment setup and metric update workflow",
   assert.match(growthPanelSource, /实验进展总览/)
 })
 
-test("growth lab route is exposed in navigation and protected by middleware", () => {
-  assert.match(navbarSource, /href: "\/growth-lab"/)
+test("growth lab route is managed via admin portal and protected by middleware", () => {
+  assert.match(navbarSource, /href="\/admin"/)
+  assert.match(navbarSource, /"\/growth-lab"/)
   assert.match(mobileHeaderSource, /pathname === "\/growth-lab"/)
   assert.match(middlewareSource, /"\/growth-lab\/:path\*"/)
 })

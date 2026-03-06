@@ -502,7 +502,9 @@ export async function POST(request: Request) {
       }
 
       const promptIds = Array.isArray(body.promptIds)
-        ? body.promptIds.map((item) => sanitizeTextInput(item, 80)).filter(Boolean)
+        ? (body.promptIds as unknown[])
+            .map((item: unknown) => sanitizeTextInput(item, 80))
+            .filter((item): item is string => Boolean(item))
         : []
 
       const prompts = await prisma.prompt.findMany({
@@ -595,7 +597,7 @@ export async function POST(request: Request) {
           platform: profile.platform,
           mode: profile.mode,
           status: "EXPORTED",
-          exportedPayload: exportPayload,
+          exportedPayload: exportPayload as Prisma.InputJsonValue,
           previewSummary: {
             summary: {
               exported: exportPayload.length,

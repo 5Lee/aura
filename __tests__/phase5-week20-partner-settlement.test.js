@@ -109,8 +109,9 @@ test("partners panel normalizes settlement datetime payload and keeps form contr
   assert.match(partnersPanelSource, /aria-label=\"结算付款流水号\"/)
 })
 
-test("partners route is exposed in navigation and protected by middleware", () => {
-  assert.match(navbarSource, /href: "\/partners"/)
+test("partners route is managed via admin portal and protected by middleware", () => {
+  assert.match(navbarSource, /href="\/admin"/)
+  assert.match(navbarSource, /"\/partners"/)
   assert.match(mobileHeaderSource, /pathname === "\/partners"/)
   assert.match(middlewareSource, /"\/partners\/:path\*"/)
 })

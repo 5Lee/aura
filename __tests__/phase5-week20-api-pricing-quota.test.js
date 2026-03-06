@@ -117,8 +117,9 @@ test("developer api page and panel expose pricing, quota linkage and auto overag
   assert.match(apiPanelSource, /手动购买扩容包/)
 })
 
-test("developer api route is exposed in navigation and protected by middleware", () => {
-  assert.match(navbarSource, /href: "\/developer-api"/)
+test("developer api route is managed via admin portal and protected by middleware", () => {
+  assert.match(navbarSource, /href="\/admin"/)
+  assert.match(navbarSource, /"\/developer-api"/)
   assert.match(mobileHeaderSource, /pathname === "\/developer-api"/)
   assert.match(middlewareSource, /"\/developer-api\/:path\*"/)
 })

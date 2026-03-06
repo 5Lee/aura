@@ -90,8 +90,9 @@ test("ads page and panel expose recommendation placement strategy and conversion
   assert.match(adsPanelSource, /投放预算与时段控制/)
 })
 
-test("ads route is exposed in navigation and protected by middleware", () => {
-  assert.match(navbarSource, /href: "\/ads"/)
+test("ads route is managed via admin portal and protected by middleware", () => {
+  assert.match(navbarSource, /href="\/admin"/)
+  assert.match(navbarSource, /"\/ads"/)
   assert.match(mobileHeaderSource, /pathname === "\/ads"/)
   assert.match(middlewareSource, /"\/ads\/:path\*"/)
 })

@@ -86,8 +86,9 @@ test("auth pages load runtime branding by tenant for multi-tenant login and regi
   assert.match(registerPageSource, /const tenant = searchParams\.get\("tenant"\)/)
 })
 
-test("branding route is exposed in navigation and protected by middleware", () => {
-  assert.match(navbarSource, /href: "\/branding"/)
+test("branding route is managed via admin portal and protected by middleware", () => {
+  assert.match(navbarSource, /href="\/admin"/)
+  assert.match(navbarSource, /"\/branding"/)
   assert.match(mobileHeaderSource, /pathname === "\/branding"/)
   assert.match(middlewareSource, /"\/branding\/:path\*"/)
 })

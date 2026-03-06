@@ -129,8 +129,9 @@ test("sso dashboard page and panel expose provider, sync and conflict actions", 
   assert.match(ssoPanelSource, /标记已解决/)
 })
 
-test("sso route is exposed in navigation and protected by middleware", () => {
-  assert.match(navbarSource, /href: "\/sso"/)
+test("sso route is managed via admin portal and protected by middleware", () => {
+  assert.match(navbarSource, /href="\/admin"/)
+  assert.match(navbarSource, /"\/sso"/)
   assert.match(mobileHeaderSource, /pathname === "\/sso"/)
   assert.match(middlewareSource, /"\/sso\/:path\*"/)
 })

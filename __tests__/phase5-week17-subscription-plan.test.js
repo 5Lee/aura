@@ -42,9 +42,10 @@ test("pricing page renders plan cards and a comparison table", () => {
   assert.match(pricingPageSource, /<table/)
 })
 
-test("public and dashboard navigation both include pricing entry", () => {
+test("public navigation includes pricing and dashboard points to admin portal", () => {
   assert.match(homeHeaderSource, /href="\/pricing"/)
-  assert.match(dashboardNavbarSource, /href: "\/pricing"/)
+  assert.match(dashboardNavbarSource, /href="\/admin"/)
+  assert.doesNotMatch(dashboardNavbarSource, /href: "\/pricing"/)
 })
 
 test("phase5 tracker starts with week17-001 completed", () => {

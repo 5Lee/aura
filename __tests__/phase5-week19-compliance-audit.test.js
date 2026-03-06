@@ -92,8 +92,9 @@ test("compliance page and panel expose retention config, export and tamper-proof
   assert.match(compliancePanelSource, /异常访问检测/)
 })
 
-test("compliance route is exposed in navigation and protected by middleware", () => {
-  assert.match(navbarSource, /href: "\/compliance"/)
+test("compliance route is managed via admin portal and protected by middleware", () => {
+  assert.match(navbarSource, /href="\/admin"/)
+  assert.match(navbarSource, /"\/compliance"/)
   assert.match(mobileHeaderSource, /pathname === "\/compliance"/)
   assert.match(middlewareSource, /"\/compliance\/:path\*"/)
 })

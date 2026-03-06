@@ -53,7 +53,7 @@ test("prompt flow APIs support orchestration config, execution, replay and idemp
   assert.match(promptFlowRouteSource, /simulatePromptFlowExecution/)
   assert.match(promptFlowRouteSource, /flowId_replayToken/)
   assert.match(promptFlowRouteSource, /idempotent: true/)
-  assert.match(promptFlowRouteSource, /promptflow\.flow\.upsert/)
+  assert.match(promptFlowRouteSource, /resolveFlowGovernanceAuditAction/)
   assert.match(promptFlowRouteSource, /promptflow\.run\.execute/)
 })
 
@@ -65,7 +65,8 @@ test("prompt flow dashboard exposes visual editing and run log workflow", () => 
   assert.match(promptFlowPanelSource, /可视化流程编辑与运行日志/)
   assert.match(promptFlowPanelSource, /执行并记录运行日志/)
   assert.match(promptFlowPanelSource, /\/api\/prompt-flow/)
-  assert.match(navbarSource, /href: "\/prompt-flow"/)
+  assert.match(navbarSource, /href="\/admin"/)
+  assert.match(navbarSource, /"\/prompt-flow"/)
   assert.match(mobileHeaderSource, /pathname === "\/prompt-flow"/)
   assert.match(middlewareSource, /"\/prompt-flow\/:path\*"/)
 })

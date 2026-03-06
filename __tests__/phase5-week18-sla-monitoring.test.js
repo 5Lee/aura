@@ -75,8 +75,9 @@ test("sla page and panel provide report refresh, fault injection and recovery ac
   assert.match(slaPanelSource, /\/api\/sla\/fault-injection/)
 })
 
-test("sla route is exposed in navigation and protected by middleware", () => {
-  assert.match(navbarSource, /href: "\/sla"/)
+test("sla route is managed via admin portal and protected by middleware", () => {
+  assert.match(navbarSource, /href="\/admin"/)
+  assert.match(navbarSource, /"\/sla"/)
   assert.match(mobileHeaderSource, /pathname === "\/sla"/)
   assert.match(middlewareSource, /"\/sla\/:path\*"/)
 })

@@ -104,8 +104,9 @@ test("marketplace page and panel expose commission rules, earnings stats and set
   assert.match(marketplacePanelSource, /更新结算状态/)
 })
 
-test("marketplace route is exposed in navigation and protected by middleware", () => {
-  assert.match(navbarSource, /href: "\/marketplace"/)
+test("marketplace route is managed via admin portal and protected by middleware", () => {
+  assert.match(navbarSource, /href="\/admin"/)
+  assert.match(navbarSource, /"\/marketplace"/)
   assert.match(mobileHeaderSource, /pathname === "\/marketplace"/)
   assert.match(middlewareSource, /"\/marketplace\/:path\*"/)
 })
