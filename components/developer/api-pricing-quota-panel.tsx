@@ -173,6 +173,7 @@ export function ApiPricingQuotaPanel({
               value={newKeyName}
               onChange={(event) => setNewKeyName(event.target.value)}
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              aria-label="新 API Key 名称"
               placeholder="新 API Key 名称"
             />
             <Button
@@ -198,6 +199,7 @@ export function ApiPricingQuotaPanel({
             value={selectedKeyId}
             onChange={(event) => setSelectedKeyId(event.target.value)}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            aria-label="选择 API Key"
           >
             <option value="">选择 API Key</option>
             {apiKeys.map((item) => (
@@ -219,6 +221,7 @@ export function ApiPricingQuotaPanel({
                     }))
                   }
                   className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                  aria-label="API Key 状态"
                 >
                   <option value="ACTIVE">ACTIVE</option>
                   <option value="DISABLED">DISABLED</option>
@@ -228,6 +231,7 @@ export function ApiPricingQuotaPanel({
                   value={keyForm.monthlyQuota}
                   onChange={(event) => setKeyForm((prev) => ({ ...prev, monthlyQuota: event.target.value }))}
                   className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                  aria-label="月度配额"
                   placeholder="月度配额"
                 />
               </div>
@@ -238,6 +242,7 @@ export function ApiPricingQuotaPanel({
                     setKeyForm((prev) => ({ ...prev, rateLimitPerMinute: event.target.value }))
                   }
                   className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                  aria-label="每分钟限流"
                   placeholder="每分钟限流"
                 />
                 <input
@@ -246,6 +251,7 @@ export function ApiPricingQuotaPanel({
                     setKeyForm((prev) => ({ ...prev, overagePackSize: event.target.value }))
                   }
                   className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                  aria-label="自动扩容包单位"
                   placeholder="自动扩容包单位"
                 />
               </div>
@@ -293,18 +299,21 @@ export function ApiPricingQuotaPanel({
               value={consumeForm.requestCount}
               onChange={(event) => setConsumeForm((prev) => ({ ...prev, requestCount: event.target.value }))}
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              aria-label="请求数"
               placeholder="请求数"
             />
             <input
               value={consumeForm.billableUnits}
               onChange={(event) => setConsumeForm((prev) => ({ ...prev, billableUnits: event.target.value }))}
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              aria-label="计费单位"
               placeholder="计费单位"
             />
             <select
               value={consumeForm.modelTier}
               onChange={(event) => setConsumeForm((prev) => ({ ...prev, modelTier: event.target.value }))}
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              aria-label="模型级别"
             >
               <option value="BASIC">BASIC</option>
               <option value="ADVANCED">ADVANCED</option>

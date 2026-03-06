@@ -60,6 +60,8 @@ test("schema includes enhanced audit fields, retention policy and anomaly models
 test("compliance audit libs provide hash chain, retention and anomaly detection helpers", () => {
   assert.match(complianceLibSource, /buildAuditEntryHash/)
   assert.match(complianceLibSource, /verifyAuditHashChain/)
+  assert.match(complianceLibSource, /expectedPreviousHash: string \| null = null/)
+  assert.match(complianceLibSource, /expectedPreviousHash !== null/)
   assert.match(complianceLibSource, /exportAuditLogsAsCsv/)
   assert.match(complianceLibSource, /runAuditAnomalyRules/)
   assert.match(complianceLibSource, /getOrCreateAuditRetentionPolicy/)

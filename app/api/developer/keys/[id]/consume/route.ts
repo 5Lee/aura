@@ -49,6 +49,26 @@ function hashIp(value: string) {
   return createHash("sha256").update(value).digest("hex")
 }
 
+function resolveBlockedReasonErrorMessage({
+  blockedReason,
+  rateLimitDecision,
+  quotaDecision,
+}: {
+  blockedReason: "api-key-disabled" | "rate-limit-exceeded" | "monthly-quota-exceeded"
+  rateLimitDecision: ReturnType<typeof resolveRateLimitDecision>
+  quotaDecision: ReturnType<typeof resolveMonthlyQuotaDecision>
+}) {
+  if (blockedReason === "api-key-disabled") {
+    return "当前 API Key 已停用，无法模拟调用计费"
+  }
+
+  if (blockedReason === "rate-limit-exceeded") {
+    return `本次请求超出每分钟限流（${rateLimitDecision.projected}/${rateLimitDecision.rateLimitPerMinute}）`
+  }
+
+  return `API 月度配额不足（预计 ${quotaDecision.projected}/${quotaDecision.monthlyQuota}）`
+}
+
 async function createAlert(input: {
   userId: string
   apiKeyId: string
@@ -314,6 +334,11 @@ export async function POST(request: Request, { params }: { params: { id: string 
       return NextResponse.json(
         {
           allowed: false,
+          error: resolveBlockedReasonErrorMessage({
+            blockedReason,
+            rateLimitDecision,
+            quotaDecision: resolvedQuotaDecision,
+          }),
           blockedReason,
           overagePurchase,
           rateLimit: rateLimitDecision,

@@ -162,7 +162,7 @@ export async function verifyAuditHashChain(logs: Array<
   Pick<PromptAuditLog, "id" | "action" | "status" | "resource" | "promptId" | "actorId" | "metadata" | "createdAt" | "previousHash" | "entryHash">
 >) {
   const brokenEntries: Array<{ id: string; reason: string }> = []
-  let expectedPreviousHash = ""
+  let expectedPreviousHash: string | null = null
 
   for (const log of logs) {
     const payload = {
@@ -183,7 +183,7 @@ export async function verifyAuditHashChain(logs: Array<
       brokenEntries.push({ id: log.id, reason: "entry_hash_mismatch" })
     }
 
-    if ((log.previousHash || "") !== expectedPreviousHash) {
+    if (expectedPreviousHash !== null && (log.previousHash || "") !== expectedPreviousHash) {
       brokenEntries.push({ id: log.id, reason: "previous_hash_mismatch" })
     }
 
