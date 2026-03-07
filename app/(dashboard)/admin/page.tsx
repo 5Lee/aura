@@ -20,6 +20,7 @@ const BACKOFFICE_SECTIONS = [
     title: "稳定性与运维",
     description: "持续监控服务质量，处理支持与故障演练。",
     items: [
+      { href: "/admin/security", label: "安全风控", summary: "注册限频、登录爆破与验证码命中概览" },
       { href: "/admin/sla", label: "SLA 监控", summary: "可用性、错误率、延迟与告警演练" },
       { href: "/admin/support", label: "支持流程", summary: "支持工单、升级策略与复盘流程" },
     ],

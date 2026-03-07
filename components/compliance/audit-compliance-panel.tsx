@@ -4,7 +4,8 @@ import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/toaster"
+import { InlineNotice } from "@/components/ui/inline-notice"
+import { usePersistentInlineNotice } from "@/components/ui/use-persistent-inline-notice"
 
 type RetentionPolicy = {
   retentionDays: number
@@ -75,9 +76,9 @@ function formatDateTime(value: string) {
 
 export function AuditCompliancePanel({ policy, anomalies, logs }: AuditCompliancePanelProps) {
   const router = useRouter()
-  const { toast } = useToast()
   const [pendingAction, setPendingAction] = useState<string | null>(null)
   const [verifyResult, setVerifyResult] = useState<VerifyResult>(null)
+  const { notice, setNotice, persistNotice } = usePersistentInlineNotice("audit-compliance-panel")
   const [form, setForm] = useState({
     retentionDays: String(policy.retentionDays),
     exportEnabled: policy.exportEnabled,
@@ -93,15 +94,15 @@ export function AuditCompliancePanel({ policy, anomalies, logs }: AuditComplianc
 
   async function runAction(actionKey: string, fn: () => Promise<unknown>, success: string) {
     setPendingAction(actionKey)
+    setNotice(null)
     try {
       await fn()
-      toast({ type: "success", title: success })
+      persistNotice({ tone: "success", message: success })
       router.refresh()
     } catch (error) {
-      toast({
-        type: "error",
-        title: "操作失败",
-        description: error instanceof Error ? error.message : "请稍后重试",
+      setNotice({
+        tone: "error",
+        message: error instanceof Error ? error.message : "请稍后重试",
       })
     } finally {
       setPendingAction(null)
@@ -110,6 +111,7 @@ export function AuditCompliancePanel({ policy, anomalies, logs }: AuditComplianc
 
   return (
     <div className="space-y-5">
+      {notice ? <InlineNotice tone={notice.tone} message={notice.message} /> : null}
       <div className="grid gap-3 md:grid-cols-4">
         <div className="rounded-lg border border-border bg-muted/20 p-4">
           <p className="text-xs text-muted-foreground">保留天数</p>
@@ -134,7 +136,10 @@ export function AuditCompliancePanel({ policy, anomalies, logs }: AuditComplianc
           <p className="text-sm font-medium">审计保留策略</p>
           <input
             value={form.retentionDays}
-            onChange={(event) => setForm((prev) => ({ ...prev, retentionDays: event.target.value }))}
+            onChange={(event) => {
+              setNotice(null)
+              setForm((prev) => ({ ...prev, retentionDays: event.target.value }))
+            }}
             aria-label="retention days"
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder="retention days"
@@ -142,27 +147,30 @@ export function AuditCompliancePanel({ policy, anomalies, logs }: AuditComplianc
           <div className="grid gap-2 sm:grid-cols-3">
             <input
               value={form.failureBurstThreshold}
-              onChange={(event) =>
+              onChange={(event) => {
+                setNotice(null)
                 setForm((prev) => ({ ...prev, failureBurstThreshold: event.target.value }))
-              }
+              }}
               aria-label="失败阈值"
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="失败阈值"
             />
             <input
               value={form.multiIpBurstThreshold}
-              onChange={(event) =>
+              onChange={(event) => {
+                setNotice(null)
                 setForm((prev) => ({ ...prev, multiIpBurstThreshold: event.target.value }))
-              }
+              }}
               aria-label="多 IP 阈值"
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="多 IP 阈值"
             />
             <input
               value={form.sensitiveBurstThreshold}
-              onChange={(event) =>
+              onChange={(event) => {
+                setNotice(null)
                 setForm((prev) => ({ ...prev, sensitiveBurstThreshold: event.target.value }))
-              }
+              }}
               aria-label="敏感阈值"
               className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="敏感阈值"
@@ -172,7 +180,10 @@ export function AuditCompliancePanel({ policy, anomalies, logs }: AuditComplianc
             <input
               type="checkbox"
               checked={form.exportEnabled}
-              onChange={(event) => setForm((prev) => ({ ...prev, exportEnabled: event.target.checked }))}
+              onChange={(event) => {
+                setNotice(null)
+                setForm((prev) => ({ ...prev, exportEnabled: event.target.checked }))
+              }}
             />
             <span>允许审计导出</span>
           </label>

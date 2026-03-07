@@ -4,7 +4,8 @@ import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/toaster"
+import { InlineNotice } from "@/components/ui/inline-notice"
+import { usePersistentInlineNotice } from "@/components/ui/use-persistent-inline-notice"
 
 type ProviderRow = {
   id: string
@@ -102,8 +103,8 @@ export function SsoManagementPanel({
   conflicts,
 }: SsoManagementPanelProps) {
   const router = useRouter()
-  const { toast } = useToast()
   const [pendingAction, setPendingAction] = useState<string | null>(null)
+  const { notice, setNotice, persistNotice } = usePersistentInlineNotice("sso-management-panel")
   const [selectedProviderId, setSelectedProviderId] = useState(providers[0]?.id || "")
   const activeProvider = useMemo(
     () => providers.find((item) => item.id === selectedProviderId) || null,
@@ -129,6 +130,7 @@ export function SsoManagementPanel({
   const [directoryPayload, setDirectoryPayload] = useState(DEFAULT_DIRECTORY_SAMPLE)
 
   function selectProvider(providerId: string) {
+    setNotice(null)
     setSelectedProviderId(providerId)
     const provider = providers.find((item) => item.id === providerId)
     if (!provider) {
@@ -169,15 +171,15 @@ export function SsoManagementPanel({
 
   async function runAction(actionKey: string, fn: () => Promise<unknown>, success: string) {
     setPendingAction(actionKey)
+    setNotice(null)
     try {
       await fn()
-      toast({ type: "success", title: success })
+      persistNotice({ tone: "success", message: success })
       router.refresh()
     } catch (error) {
-      toast({
-        type: "error",
-        title: "操作失败",
-        description: error instanceof Error ? error.message : "请稍后重试",
+      setNotice({
+        tone: "error",
+        message: error instanceof Error ? error.message : "请稍后重试",
       })
     } finally {
       setPendingAction(null)
@@ -195,6 +197,7 @@ export function SsoManagementPanel({
 
   return (
     <div className="space-y-5">
+      {notice ? <InlineNotice tone={notice.tone} message={notice.message} /> : null}
       <div className="rounded-lg border border-border bg-muted/20 p-4 text-sm">
         <p className="font-medium">身份源策略</p>
         <p className="mt-1 text-muted-foreground">
@@ -239,9 +242,10 @@ export function SsoManagementPanel({
               <span className="text-muted-foreground">类型</span>
               <select
                 value={form.type}
-                onChange={(event) =>
+                onChange={(event) => {
+                  setNotice(null)
                   setForm((prev) => ({ ...prev, type: event.target.value as "OIDC" | "SAML" }))
-                }
+                }}
                 className="h-9 w-full rounded-md border border-input bg-background px-3"
               >
                 <option value="OIDC">OIDC</option>
@@ -252,12 +256,13 @@ export function SsoManagementPanel({
               <span className="text-muted-foreground">状态</span>
               <select
                 value={form.status}
-                onChange={(event) =>
+                onChange={(event) => {
+                  setNotice(null)
                   setForm((prev) => ({
                     ...prev,
                     status: event.target.value as "DISABLED" | "ACTIVE",
                   }))
-                }
+                }}
                 className="h-9 w-full rounded-md border border-input bg-background px-3"
               >
                 <option value="DISABLED">DISABLED</option>
@@ -268,50 +273,74 @@ export function SsoManagementPanel({
 
           <input
             value={form.name}
-            onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+            onChange={(event) => {
+              setNotice(null)
+              setForm((prev) => ({ ...prev, name: event.target.value }))
+            }}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder="身份源名称"
           />
           <input
             value={form.issuerUrl}
-            onChange={(event) => setForm((prev) => ({ ...prev, issuerUrl: event.target.value }))}
+            onChange={(event) => {
+              setNotice(null)
+              setForm((prev) => ({ ...prev, issuerUrl: event.target.value }))
+            }}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder="Issuer URL"
           />
           <input
             value={form.ssoUrl}
-            onChange={(event) => setForm((prev) => ({ ...prev, ssoUrl: event.target.value }))}
+            onChange={(event) => {
+              setNotice(null)
+              setForm((prev) => ({ ...prev, ssoUrl: event.target.value }))
+            }}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder="SSO URL（可选）"
           />
           <input
             value={form.clientId}
-            onChange={(event) => setForm((prev) => ({ ...prev, clientId: event.target.value }))}
+            onChange={(event) => {
+              setNotice(null)
+              setForm((prev) => ({ ...prev, clientId: event.target.value }))
+            }}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder="Client ID"
           />
           <input
             value={form.clientSecret}
-            onChange={(event) => setForm((prev) => ({ ...prev, clientSecret: event.target.value }))}
+            onChange={(event) => {
+              setNotice(null)
+              setForm((prev) => ({ ...prev, clientSecret: event.target.value }))
+            }}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder={activeProvider?.hasClientSecret ? `Client Secret（已配置：${activeProvider.clientSecretMasked}）` : "Client Secret"}
           />
           <input
             value={form.domains}
-            onChange={(event) => setForm((prev) => ({ ...prev, domains: event.target.value }))}
+            onChange={(event) => {
+              setNotice(null)
+              setForm((prev) => ({ ...prev, domains: event.target.value }))
+            }}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder="租户域名，逗号分隔"
           />
           <input
             value={form.defaultRole}
-            onChange={(event) => setForm((prev) => ({ ...prev, defaultRole: event.target.value }))}
+            onChange={(event) => {
+              setNotice(null)
+              setForm((prev) => ({ ...prev, defaultRole: event.target.value }))
+            }}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             placeholder="默认角色（VIEWER）"
           />
 
           <textarea
             value={form.roleMapping}
-            onChange={(event) => setForm((prev) => ({ ...prev, roleMapping: event.target.value }))}
+            onChange={(event) => {
+              setNotice(null)
+              setForm((prev) => ({ ...prev, roleMapping: event.target.value }))
+            }}
             className="min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             placeholder="角色映射 JSON"
           />
@@ -320,7 +349,10 @@ export function SsoManagementPanel({
             <input
               type="checkbox"
               checked={form.enforceSso}
-              onChange={(event) => setForm((prev) => ({ ...prev, enforceSso: event.target.checked }))}
+              onChange={(event) => {
+                setNotice(null)
+                setForm((prev) => ({ ...prev, enforceSso: event.target.checked }))
+              }}
             />
             <span>启用强制 SSO</span>
           </label>
@@ -328,7 +360,10 @@ export function SsoManagementPanel({
             <input
               type="checkbox"
               checked={form.allowLocalFallback}
-              onChange={(event) => setForm((prev) => ({ ...prev, allowLocalFallback: event.target.checked }))}
+              onChange={(event) => {
+                setNotice(null)
+                setForm((prev) => ({ ...prev, allowLocalFallback: event.target.checked }))
+              }}
             />
             <span>允许本地账号回退</span>
           </label>
@@ -372,7 +407,10 @@ export function SsoManagementPanel({
           <p className="text-sm font-medium">目录同步</p>
           <textarea
             value={directoryPayload}
-            onChange={(event) => setDirectoryPayload(event.target.value)}
+            onChange={(event) => {
+              setNotice(null)
+              setDirectoryPayload(event.target.value)
+            }}
             className="min-h-52 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             placeholder="目录用户 JSON"
           />

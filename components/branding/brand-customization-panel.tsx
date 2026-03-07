@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation"
 
 import type { BrandConfig } from "@/lib/branding"
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/toaster"
+import { InlineNotice } from "@/components/ui/inline-notice"
+import { usePersistentInlineNotice } from "@/components/ui/use-persistent-inline-notice"
 
 type BrandCustomizationPanelProps = {
   draftConfig: BrandConfig
@@ -34,12 +35,12 @@ export function BrandCustomizationPanel({
   publishedAt,
 }: BrandCustomizationPanelProps) {
   const router = useRouter()
-  const { toast } = useToast()
   const [draft, setDraft] = useState<BrandConfig>(draftConfig)
   const [emailSubject, setEmailSubject] = useState("Aura 通知：请查看最新评测结果")
   const [emailMessage, setEmailMessage] = useState("你好，\n本次回归评测已完成，请尽快检查失败断言并处理。")
   const [emailHtml, setEmailHtml] = useState("")
   const [pendingAction, setPendingAction] = useState<string | null>(null)
+  const { notice, setNotice, persistNotice } = usePersistentInlineNotice("brand-customization-panel")
 
   const previewLoginUrl = useMemo(() => {
     if (!draft.domain) {
@@ -50,15 +51,15 @@ export function BrandCustomizationPanel({
 
   async function runAction(actionKey: string, fn: () => Promise<unknown>, success: string) {
     setPendingAction(actionKey)
+    setNotice(null)
     try {
       await fn()
-      toast({ title: success, type: "success" })
+      persistNotice({ tone: "success", message: success })
       router.refresh()
     } catch (error) {
-      toast({
-        title: "操作失败",
-        description: error instanceof Error ? error.message : "请稍后重试",
-        type: "error",
+      setNotice({
+        tone: "error",
+        message: error instanceof Error ? error.message : "请稍后重试",
       })
     } finally {
       setPendingAction(null)
@@ -66,6 +67,7 @@ export function BrandCustomizationPanel({
   }
 
   function updateDraft<K extends keyof BrandConfig>(key: K, value: BrandConfig[K]) {
+    setNotice(null)
     setDraft((prev) => ({
       ...prev,
       [key]: value,
@@ -74,6 +76,7 @@ export function BrandCustomizationPanel({
 
   return (
     <div className="space-y-5">
+      {notice ? <InlineNotice tone={notice.tone} message={notice.message} /> : null}
       <div className="grid gap-3 lg:grid-cols-2">
         <label className="space-y-1.5">
           <span className="text-sm text-muted-foreground">品牌名称</span>
@@ -223,14 +226,20 @@ export function BrandCustomizationPanel({
           <div className="mt-3 space-y-2">
             <input
               value={emailSubject}
-              onChange={(event) => setEmailSubject(event.target.value)}
+              onChange={(event) => {
+              setNotice(null)
+              setEmailSubject(event.target.value)
+            }}
               aria-label="邮件标题"
               className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
               placeholder="邮件标题"
             />
             <textarea
               value={emailMessage}
-              onChange={(event) => setEmailMessage(event.target.value)}
+              onChange={(event) => {
+              setNotice(null)
+              setEmailMessage(event.target.value)
+            }}
               aria-label="邮件正文"
               className="min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               placeholder="邮件正文"

@@ -4,7 +4,8 @@ import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/toaster"
+import { InlineNotice } from "@/components/ui/inline-notice"
+import { usePersistentInlineNotice } from "@/components/ui/use-persistent-inline-notice"
 
 type TierRow = {
   id: string
@@ -104,8 +105,8 @@ export function PartnerProgramPanel({
   summary,
 }: PartnerProgramPanelProps) {
   const router = useRouter()
-  const { toast } = useToast()
   const [pendingAction, setPendingAction] = useState<string | null>(null)
+  const { notice, setNotice, persistNotice } = usePersistentInlineNotice("partner-program-panel")
 
   const activeTier = useMemo(() => tiers.find((item) => item.active) || tiers[0] || null, [tiers])
   const [selectedSettlementId, setSelectedSettlementId] = useState(settlements[0]?.id || "")
@@ -148,15 +149,15 @@ export function PartnerProgramPanel({
 
   async function runAction(actionKey: string, fn: () => Promise<unknown>, success: string) {
     setPendingAction(actionKey)
+    setNotice(null)
     try {
       await fn()
-      toast({ type: "success", title: success })
+      persistNotice({ tone: "success", message: success })
       router.refresh()
     } catch (error) {
-      toast({
-        type: "error",
-        title: "操作失败",
-        description: error instanceof Error ? error.message : "请稍后重试",
+      setNotice({
+        tone: "error",
+        message: error instanceof Error ? error.message : "请稍后重试",
       })
     } finally {
       setPendingAction(null)
@@ -174,6 +175,7 @@ export function PartnerProgramPanel({
 
   return (
     <div className="space-y-5">
+      {notice ? <InlineNotice tone={notice.tone} message={notice.message} /> : null}
       <div className="grid gap-3 md:grid-cols-4">
         <div className="rounded-lg border border-border bg-muted/20 p-4">
           <p className="text-xs text-muted-foreground">线索总量</p>

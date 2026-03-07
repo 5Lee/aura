@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/toaster"
+import { InlineNotice } from "@/components/ui/inline-notice"
+import { usePersistentInlineNotice } from "@/components/ui/use-persistent-inline-notice"
 
 type RunbookConfig = {
   triageChecklist: string[]
@@ -163,8 +164,8 @@ export function EnterpriseSupportProcessPanel({
   collaboration,
 }: EnterpriseSupportProcessPanelProps) {
   const router = useRouter()
-  const { toast } = useToast()
   const [pendingAction, setPendingAction] = useState<string | null>(null)
+  const { notice, setNotice, persistNotice } = usePersistentInlineNotice("enterprise-support-process-panel")
 
   const openTickets = useMemo(() => resolveOpenTickets(tickets), [tickets])
   const [selectedTicketId, setSelectedTicketId] = useState(openTickets[0]?.id || "")
@@ -230,15 +231,15 @@ export function EnterpriseSupportProcessPanel({
 
   async function runAction(actionKey: string, fn: () => Promise<unknown>, success: string) {
     setPendingAction(actionKey)
+    setNotice(null)
     try {
       await fn()
-      toast({ type: "success", title: success })
+      persistNotice({ tone: "success", message: success })
       router.refresh()
     } catch (error) {
-      toast({
-        type: "error",
-        title: "操作失败",
-        description: error instanceof Error ? error.message : "请稍后重试",
+      setNotice({
+        tone: "error",
+        message: error instanceof Error ? error.message : "请稍后重试",
       })
     } finally {
       setPendingAction(null)
@@ -258,6 +259,7 @@ export function EnterpriseSupportProcessPanel({
 
   return (
     <div className="space-y-5">
+      {notice ? <InlineNotice tone={notice.tone} message={notice.message} /> : null}
       <div className="grid gap-3 md:grid-cols-4">
         <div className="rounded-lg border border-border bg-muted/20 p-4">
           <p className="text-xs text-muted-foreground">跨团队协作效率</p>
@@ -281,6 +283,7 @@ export function EnterpriseSupportProcessPanel({
         <div className="space-y-3 rounded-lg border border-border bg-background p-4">
           <p className="text-sm font-medium">故障响应 Runbook</p>
           <textarea
+            aria-label="分诊检查清单"
             value={runbookForm.triageChecklist}
             onChange={(event) =>
               setRunbookForm((prev) => ({ ...prev, triageChecklist: event.target.value }))
@@ -289,6 +292,7 @@ export function EnterpriseSupportProcessPanel({
             placeholder="分诊检查清单（每行一条）"
           />
           <textarea
+            aria-label="升级流程"
             value={runbookForm.escalationWorkflow}
             onChange={(event) =>
               setRunbookForm((prev) => ({ ...prev, escalationWorkflow: event.target.value }))
@@ -297,6 +301,7 @@ export function EnterpriseSupportProcessPanel({
             placeholder="升级流程（每行一条）"
           />
           <textarea
+            aria-label="响应流程"
             value={runbookForm.responseWorkflow}
             onChange={(event) =>
               setRunbookForm((prev) => ({ ...prev, responseWorkflow: event.target.value }))
@@ -305,6 +310,7 @@ export function EnterpriseSupportProcessPanel({
             placeholder="响应流程（每行一条）"
           />
           <textarea
+            aria-label="联系矩阵 JSON"
             value={runbookForm.contactMatrix}
             onChange={(event) =>
               setRunbookForm((prev) => ({ ...prev, contactMatrix: event.target.value }))
@@ -313,6 +319,7 @@ export function EnterpriseSupportProcessPanel({
             placeholder="联系矩阵 JSON"
           />
           <textarea
+            aria-label="复盘模板 JSON"
             value={runbookForm.postmortemTemplate}
             onChange={(event) =>
               setRunbookForm((prev) => ({ ...prev, postmortemTemplate: event.target.value }))
@@ -351,6 +358,7 @@ export function EnterpriseSupportProcessPanel({
         <div className="space-y-3 rounded-lg border border-border bg-background p-4">
           <p className="text-sm font-medium">升级路径与协作编排</p>
           <select
+            aria-label="升级工单"
             value={selectedTicketId}
             onChange={(event) => setSelectedTicketId(event.target.value)}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -363,6 +371,7 @@ export function EnterpriseSupportProcessPanel({
             ))}
           </select>
           <select
+            aria-label="升级等级"
             value={escalationLevel}
             onChange={(event) => setEscalationLevel(event.target.value)}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -373,6 +382,7 @@ export function EnterpriseSupportProcessPanel({
             <option value="EXECUTIVE">EXECUTIVE</option>
           </select>
           <textarea
+            aria-label="升级原因与交接说明"
             value={escalationReason}
             onChange={(event) => setEscalationReason(event.target.value)}
             className="min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
@@ -443,6 +453,7 @@ export function EnterpriseSupportProcessPanel({
         <p className="text-sm font-medium">问题复盘模板与发布</p>
         <div className="grid gap-3 md:grid-cols-[1fr_auto]">
           <select
+            aria-label="复盘工单"
             value={postmortemTicketId}
             onChange={(event) => setPostmortemTicketId(event.target.value)}
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
@@ -476,6 +487,7 @@ export function EnterpriseSupportProcessPanel({
           </Button>
         </div>
         <input
+          aria-label="复盘摘要（可选）"
           value={postmortemSummary}
           onChange={(event) => setPostmortemSummary(event.target.value)}
           className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -483,6 +495,7 @@ export function EnterpriseSupportProcessPanel({
         />
 
         <select
+          aria-label="复盘草稿"
           value={postmortemDraftId}
           onChange={(event) => setPostmortemDraftId(event.target.value)}
           className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -498,24 +511,28 @@ export function EnterpriseSupportProcessPanel({
         {selectedPostmortem ? (
           <div className="space-y-2 rounded-md border border-border p-3 text-sm">
             <input
+              aria-label="复盘摘要"
               value={draftForm.summary}
               onChange={(event) => setDraftForm((prev) => ({ ...prev, summary: event.target.value }))}
               className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
               placeholder="复盘摘要"
             />
             <textarea
+              aria-label="影响评估"
               value={draftForm.impact}
               onChange={(event) => setDraftForm((prev) => ({ ...prev, impact: event.target.value }))}
               className="min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               placeholder="影响评估"
             />
             <textarea
+              aria-label="根因分析"
               value={draftForm.rootCause}
               onChange={(event) => setDraftForm((prev) => ({ ...prev, rootCause: event.target.value }))}
               className="min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               placeholder="根因分析"
             />
             <select
+              aria-label="复盘严重级别"
               value={draftForm.severity}
               onChange={(event) => setDraftForm((prev) => ({ ...prev, severity: event.target.value }))}
               className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -526,12 +543,14 @@ export function EnterpriseSupportProcessPanel({
               <option value="URGENT">URGENT</option>
             </select>
             <textarea
+              aria-label="时间线 JSON"
               value={draftForm.timeline}
               onChange={(event) => setDraftForm((prev) => ({ ...prev, timeline: event.target.value }))}
               className="min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               placeholder="时间线 JSON"
             />
             <textarea
+              aria-label="行动项 JSON"
               value={draftForm.actionItems}
               onChange={(event) => setDraftForm((prev) => ({ ...prev, actionItems: event.target.value }))}
               className="min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"

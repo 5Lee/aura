@@ -39,6 +39,7 @@ function resolveMobileRouteMeta(pathname: string): MobileRouteMeta {
       branding: "品牌中心",
       sso: "SSO 身份",
       compliance: "合规审计",
+      security: "安全风控",
       sla: "SLA 监控",
       support: "支持流程",
       ads: "广告策略",

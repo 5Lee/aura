@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation"
 import { SlaAlertStatus, SlaMetricType } from "@prisma/client"
 
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/toaster"
+import { InlineNotice } from "@/components/ui/inline-notice"
+import { usePersistentInlineNotice } from "@/components/ui/use-persistent-inline-notice"
 import type { SlaPolicy } from "@/lib/sla-monitoring"
 
 type SnapshotRow = {
@@ -97,10 +98,10 @@ function formatDateTime(value: string) {
 
 export function SlaMonitoringPanel({ planId, policy, snapshots, alerts }: SlaMonitoringPanelProps) {
   const router = useRouter()
-  const { toast } = useToast()
   const [scenario, setScenario] = useState<FaultScenario>(DEFAULT_SCENARIO)
   const [windowHours, setWindowHours] = useState(policy.reportWindowHours)
   const [pendingAction, setPendingAction] = useState<string | null>(null)
+  const { notice, setNotice, persistNotice } = usePersistentInlineNotice("sla-monitoring-panel")
 
   useEffect(() => {
     const persistedScenario = window.localStorage.getItem(SCENARIO_STORAGE_KEY)
@@ -110,6 +111,7 @@ export function SlaMonitoringPanel({ planId, policy, snapshots, alerts }: SlaMon
   }, [])
 
   function updateScenario(nextScenario: FaultScenario) {
+    setNotice(null)
     window.localStorage.setItem(SCENARIO_STORAGE_KEY, nextScenario)
     setScenario(nextScenario)
   }
@@ -122,15 +124,15 @@ export function SlaMonitoringPanel({ planId, policy, snapshots, alerts }: SlaMon
 
   async function runAction(actionKey: string, fn: () => Promise<unknown>, success: string) {
     setPendingAction(actionKey)
+    setNotice(null)
     try {
       await fn()
-      toast({ type: "success", title: success })
+      persistNotice({ tone: "success", message: success })
       router.refresh()
     } catch (error) {
-      toast({
-        type: "error",
-        title: "执行失败",
-        description: error instanceof Error ? error.message : "请稍后重试",
+      setNotice({
+        tone: "error",
+        message: error instanceof Error ? error.message : "请稍后重试",
       })
     } finally {
       setPendingAction(null)
@@ -139,6 +141,7 @@ export function SlaMonitoringPanel({ planId, policy, snapshots, alerts }: SlaMon
 
   return (
     <div className="space-y-5">
+      {notice ? <InlineNotice tone={notice.tone} message={notice.message} /> : null}
       <div className="grid gap-4 md:grid-cols-4">
         <div className="rounded-lg border border-border bg-muted/20 p-4">
           <p className="text-xs text-muted-foreground">当前套餐</p>
@@ -177,7 +180,10 @@ export function SlaMonitoringPanel({ planId, policy, snapshots, alerts }: SlaMon
           <select
             aria-label="报表时间窗口"
             value={windowHours}
-            onChange={(event) => setWindowHours(Number(event.target.value) || policy.reportWindowHours)}
+            onChange={(event) => {
+              setNotice(null)
+              setWindowHours(Number(event.target.value) || policy.reportWindowHours)
+            }}
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
             disabled={pendingAction !== null}
           >

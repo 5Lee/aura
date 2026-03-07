@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation"
 import { SupportTicketPriority, SupportTicketStatus, SupportTicketTier } from "@prisma/client"
 
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/toaster"
+import { InlineNotice } from "@/components/ui/inline-notice"
+import { usePersistentInlineNotice } from "@/components/ui/use-persistent-inline-notice"
 
 type TicketRow = {
   id: string
@@ -42,12 +43,12 @@ async function requestJson(path: string, init: RequestInit) {
 
 export function SupportTicketPanel({ policy, tickets }: SupportTicketPanelProps) {
   const router = useRouter()
-  const { toast } = useToast()
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [category, setCategory] = useState("general")
   const [priority, setPriority] = useState<SupportTicketPriority>(SupportTicketPriority.NORMAL)
   const [pendingAction, setPendingAction] = useState<string | null>(null)
+  const { notice, setNotice, persistNotice } = usePersistentInlineNotice("support-ticket-panel")
 
   const availablePriorities = useMemo(() => {
     if (policy.maxPriority === SupportTicketPriority.NORMAL) {
@@ -66,23 +67,25 @@ export function SupportTicketPanel({ policy, tickets }: SupportTicketPanelProps)
 
   async function runAction(actionKey: string, fn: () => Promise<unknown>, success: string) {
     setPendingAction(actionKey)
+    setNotice(null)
     try {
       await fn()
-      toast({ title: success, type: "success" })
+      persistNotice({ tone: "success", message: success })
       router.refresh()
+      return true
     } catch (error) {
-      toast({
-        title: "操作失败",
-        description: error instanceof Error ? error.message : "请稍后重试",
-        type: "error",
+      setNotice({
+        tone: "error",
+        message: error instanceof Error ? error.message : "请稍后重试",
       })
+      return false
     } finally {
       setPendingAction(null)
     }
   }
 
   async function createTicket() {
-    await runAction(
+    const created = await runAction(
       "create-ticket",
       () =>
         requestJson("/api/support/tickets", {
@@ -97,6 +100,9 @@ export function SupportTicketPanel({ policy, tickets }: SupportTicketPanelProps)
         }),
       "工单已创建"
     )
+    if (!created) {
+      return
+    }
     setTitle("")
     setDescription("")
     setCategory("general")
@@ -118,6 +124,7 @@ export function SupportTicketPanel({ policy, tickets }: SupportTicketPanelProps)
 
   return (
     <div className="space-y-4">
+      {notice ? <InlineNotice tone={notice.tone} message={notice.message} /> : null}
       <div className="rounded-lg border border-border bg-muted/20 p-4">
         <p className="text-sm font-medium">当前支持等级：{policy.label}</p>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -129,14 +136,20 @@ export function SupportTicketPanel({ policy, tickets }: SupportTicketPanelProps)
         <input
           aria-label="工单标题"
           value={title}
-          onChange={(event) => setTitle(event.target.value)}
+          onChange={(event) => {
+            setNotice(null)
+            setTitle(event.target.value)
+          }}
           className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
           placeholder="工单标题（例如：发布流阻塞）"
         />
         <textarea
           aria-label="工单描述"
           value={description}
-          onChange={(event) => setDescription(event.target.value)}
+          onChange={(event) => {
+            setNotice(null)
+            setDescription(event.target.value)
+          }}
           className="min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           placeholder="请描述问题现象、复现步骤、期望结果"
         />
@@ -144,7 +157,10 @@ export function SupportTicketPanel({ policy, tickets }: SupportTicketPanelProps)
           <select
             aria-label="工单分类"
             value={category}
-            onChange={(event) => setCategory(event.target.value)}
+            onChange={(event) => {
+              setNotice(null)
+              setCategory(event.target.value)
+            }}
             className="h-10 rounded-md border border-input bg-background px-3 text-sm"
           >
             <option value="general">通用问题</option>
@@ -156,7 +172,10 @@ export function SupportTicketPanel({ policy, tickets }: SupportTicketPanelProps)
           <select
             aria-label="工单优先级"
             value={priority}
-            onChange={(event) => setPriority(event.target.value as SupportTicketPriority)}
+            onChange={(event) => {
+              setNotice(null)
+              setPriority(event.target.value as SupportTicketPriority)
+            }}
             className="h-10 rounded-md border border-input bg-background px-3 text-sm"
           >
             {availablePriorities.map((item) => (

@@ -10,6 +10,7 @@ const ADMIN_NAV_ITEMS = [
   { href: "/admin/branding", label: "品牌" },
   { href: "/admin/sso", label: "SSO" },
   { href: "/admin/compliance", label: "合规" },
+  { href: "/admin/security", label: "安全" },
   { href: "/admin/sla", label: "SLA" },
   { href: "/admin/support", label: "支持" },
   { href: "/admin/ads", label: "广告" },

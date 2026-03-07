@@ -8,6 +8,8 @@
     "start": "next start",
     "test": "jest",
     "test:e2e": "playwright test",
+    "test:e2e:live": "AURA_E2E_LIVE=1 playwright test",
+    "test:e2e:live:regression": "AURA_E2E_LIVE=1 playwright test e2e/live-auth-regression.spec.js e2e/live-prompt-publishing-regression.spec.js e2e/live-admin-backoffice-regression.spec.js",
     "test:perf": "lhci autorun --config=./lighthouserc.json",
     "preflight": "bash ./tools/preflight-check.sh --mode fast",
     "preflight:fast": "bash ./tools/preflight-check.sh --mode fast",

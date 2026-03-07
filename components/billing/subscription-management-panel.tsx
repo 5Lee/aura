@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation"
 import type { BillingCycle, SubscriptionStatus } from "@prisma/client"
 
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/toaster"
+import { InlineNotice } from "@/components/ui/inline-notice"
+import { usePersistentInlineNotice } from "@/components/ui/use-persistent-inline-notice"
 import { isSubscriptionPlanId, type SubscriptionPlanId } from "@/lib/subscription-plans"
 
 type SubscriptionManagementPanelProps = {
@@ -33,13 +34,13 @@ export function SubscriptionManagementPanel({
   cancelAtPeriodEnd,
 }: SubscriptionManagementPanelProps) {
   const router = useRouter()
-  const { toast } = useToast()
   const initialPlan = isSubscriptionPlanId(currentPlanId)
     ? currentPlanId
     : "free"
   const [planId, setPlanId] = useState<SubscriptionPlanId>(initialPlan)
   const [cycle, setCycle] = useState<BillingCycle>(currentCycle)
   const [pendingAction, setPendingAction] = useState<string | null>(null)
+  const { notice, setNotice, persistNotice } = usePersistentInlineNotice("subscription-management-panel")
 
   const canCancel = useMemo(() => {
     return Boolean(hasSubscription && (currentStatus === "ACTIVE" || currentStatus === "TRIALING" || currentStatus === "PAST_DUE"))
@@ -50,15 +51,15 @@ export function SubscriptionManagementPanel({
 
   async function runAction(actionKey: string, fn: () => Promise<unknown>, success: string) {
     setPendingAction(actionKey)
+    setNotice(null)
     try {
       await fn()
-      toast({ title: success, type: "success" })
+      persistNotice({ tone: "success", message: success })
       router.refresh()
     } catch (error) {
-      toast({
-        title: "操作失败",
-        description: error instanceof Error ? error.message : "请稍后重试",
-        type: "error",
+      setNotice({
+        tone: "error",
+        message: error instanceof Error ? error.message : "请稍后重试",
       })
     } finally {
       setPendingAction(null)
@@ -67,12 +68,16 @@ export function SubscriptionManagementPanel({
 
   return (
     <div className="space-y-4">
+      {notice ? <InlineNotice tone={notice.tone} message={notice.message} /> : null}
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="space-y-1.5">
           <span className="text-sm text-muted-foreground">目标套餐</span>
           <select
             value={planId}
-            onChange={(event) => setPlanId(event.target.value as SubscriptionPlanId)}
+            onChange={(event) => {
+              setNotice(null)
+              setPlanId(event.target.value as SubscriptionPlanId)
+            }}
             className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
           >
             <option value="free">Free</option>
@@ -86,7 +91,10 @@ export function SubscriptionManagementPanel({
           <span className="text-sm text-muted-foreground">计费周期</span>
           <select
             value={cycle}
-            onChange={(event) => setCycle(event.target.value as BillingCycle)}
+            onChange={(event) => {
+              setNotice(null)
+              setCycle(event.target.value as BillingCycle)
+            }}
             className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
           >
             <option value="MONTHLY">月付</option>

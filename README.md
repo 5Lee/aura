@@ -46,6 +46,10 @@ cp .env.example .env
 DATABASE_URL="mysql://username:password@localhost:3306/aura_db"
 NEXTAUTH_SECRET="your-secret-key"
 NEXTAUTH_URL="http://localhost:3000"
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=""  # 可选：Cloudflare Turnstile
+TURNSTILE_SECRET_KEY=""            # 可选：Cloudflare Turnstile
+UPSTASH_REDIS_REST_URL=""          # 可选：Upstash Redis 限流
+UPSTASH_REDIS_REST_TOKEN=""        # 可选：Upstash Redis 限流
 ```
 
 4. 初始化数据库
@@ -60,6 +64,12 @@ npm run dev
 ```
 
 访问 [http://localhost:3000](http://localhost:3000)
+
+## 安全加固
+
+- 注册默认启用人机验证；配置 Turnstile 后会自动切换到第三方验证
+- 登录在连续失败后会强制验证，并对异常 IP 做临时限流
+- 配置 Upstash Redis 后，注册/登录限流会升级为分布式计数
 
 ## Docker 部署
 
