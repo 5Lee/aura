@@ -1,9 +1,11 @@
 "use client"
 
 import { useEffect, useMemo, useState, useTransition } from "react"
-import { BookmarkPlus, ChevronDown, Filter, RotateCcw, Search, Trash2 } from "lucide-react"
+import { BookmarkPlus, ChevronDown, Filter, RotateCcw, Search, Sparkles, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 
+import { usePromptQueryTransition } from "@/components/prompts/prompt-query-transition"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/toaster"
@@ -39,6 +41,16 @@ interface PromptAdvancedFiltersProps {
 }
 
 const SAVED_VIEWS_STORAGE_KEY = "aura:prompts:saved-views:v1"
+const DEFAULT_FILTERS: PromptAdvancedFilterState = {
+  q: "",
+  category: "",
+  tag: "",
+  authorId: "",
+  status: "all",
+  publishStatus: "all",
+  updatedWithin: "",
+  scope: "mine",
+}
 
 function buildSearchParams(filters: PromptAdvancedFilterState) {
   const params = new URLSearchParams()
@@ -122,27 +134,37 @@ export function PromptAdvancedFilters({
         initialFilters.scope !== "mine"
     )
   )
-  const [isPending, startTransition] = useTransition()
+  const queryTransition = usePromptQueryTransition()
+  const [isLocalPending, startTransition] = useTransition()
+
+  const currentFilters = useMemo(
+    () => ({
+      q,
+      category,
+      tag,
+      authorId,
+      status,
+      publishStatus,
+      updatedWithin,
+      scope,
+    }),
+    [authorId, category, publishStatus, q, scope, status, tag, updatedWithin]
+  )
+
+  const syncLocalFilters = (filters: PromptAdvancedFilterState) => {
+    setQ(filters.q)
+    setCategory(filters.category)
+    setTag(filters.tag)
+    setAuthorId(filters.authorId)
+    setStatus(filters.status)
+    setPublishStatus(filters.publishStatus)
+    setUpdatedWithin(filters.updatedWithin)
+    setScope(filters.scope)
+  }
 
   useEffect(() => {
-    setQ(initialFilters.q)
-    setCategory(initialFilters.category)
-    setTag(initialFilters.tag)
-    setAuthorId(initialFilters.authorId)
-    setStatus(initialFilters.status)
-    setPublishStatus(initialFilters.publishStatus)
-    setUpdatedWithin(initialFilters.updatedWithin)
-    setScope(initialFilters.scope)
-  }, [
-    initialFilters.authorId,
-    initialFilters.category,
-    initialFilters.publishStatus,
-    initialFilters.q,
-    initialFilters.scope,
-    initialFilters.status,
-    initialFilters.tag,
-    initialFilters.updatedWithin,
-  ])
+    syncLocalFilters(initialFilters)
+  }, [initialFilters])
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -197,20 +219,6 @@ export function PromptAdvancedFilters({
     }
   }, [])
 
-  const currentFilters = useMemo(
-    () => ({
-      q,
-      category,
-      tag,
-      authorId,
-      status,
-      publishStatus,
-      updatedWithin,
-      scope,
-    }),
-    [authorId, category, publishStatus, q, scope, status, tag, updatedWithin]
-  )
-
   const persistSavedViews = (views: SavedPromptView[]) => {
     setSavedViews(views)
     if (typeof window !== "undefined") {
@@ -218,18 +226,20 @@ export function PromptAdvancedFilters({
     }
   }
 
-  const hasActiveFilters = useMemo(() => {
-    return Boolean(
-      currentFilters.q ||
-        currentFilters.category ||
-        currentFilters.tag ||
-        currentFilters.authorId ||
-        currentFilters.updatedWithin ||
-        currentFilters.status !== "all" ||
-        currentFilters.publishStatus !== "all" ||
-        currentFilters.scope !== "mine"
-    )
+  const activeFilterCount = useMemo(() => {
+    return [
+      Boolean(currentFilters.q),
+      Boolean(currentFilters.category),
+      Boolean(currentFilters.tag),
+      Boolean(currentFilters.authorId),
+      Boolean(currentFilters.updatedWithin),
+      currentFilters.status !== "all",
+      currentFilters.publishStatus !== "all",
+      currentFilters.scope !== "mine",
+    ].filter(Boolean).length
   }, [currentFilters])
+
+  const hasActiveFilters = activeFilterCount > 0
 
   useEffect(() => {
     if (hasActiveFilters) {
@@ -237,13 +247,26 @@ export function PromptAdvancedFilters({
     }
   }, [hasActiveFilters])
 
+  const isPending = queryTransition?.isPending || isLocalPending
+
   const applyFilters = (filters: PromptAdvancedFilterState) => {
     const params = buildSearchParams(filters)
     const query = params.toString()
+    const href = `/prompts${query ? `?${query}` : ""}`
+
+    if (queryTransition) {
+      queryTransition.navigate(href, "正在应用筛选并刷新提示词结果。")
+      return
+    }
 
     startTransition(() => {
-      router.push(`/prompts${query ? `?${query}` : ""}`)
+      router.push(href)
     })
+  }
+
+  const resetFilters = () => {
+    syncLocalFilters(DEFAULT_FILTERS)
+    applyFilters(DEFAULT_FILTERS)
   }
 
   const saveCurrentView = () => {
@@ -278,15 +301,7 @@ export function PromptAdvancedFilters({
       return
     }
 
-    setQ(selected.filters.q)
-    setCategory(selected.filters.category)
-    setTag(selected.filters.tag)
-    setAuthorId(selected.filters.authorId)
-    setStatus(selected.filters.status)
-    setPublishStatus(selected.filters.publishStatus)
-    setUpdatedWithin(selected.filters.updatedWithin)
-    setScope(selected.filters.scope)
-
+    syncLocalFilters(selected.filters)
     applyFilters(selected.filters)
   }
 
@@ -306,8 +321,56 @@ export function PromptAdvancedFilters({
     })
   }
 
+  const quickPresets = useMemo(
+    () => [
+      {
+        id: "recent-7d",
+        label: "最近 7 天",
+        description: "查看近期更新",
+        isActive: currentFilters.updatedWithin === "7d",
+        filters: {
+          ...currentFilters,
+          updatedWithin: currentFilters.updatedWithin === "7d" ? "" : "7d",
+        },
+      },
+      {
+        id: "drafts",
+        label: "草稿优先",
+        description: "继续整理草稿",
+        isActive: currentFilters.publishStatus === "DRAFT",
+        filters: {
+          ...currentFilters,
+          publishStatus: currentFilters.publishStatus === "DRAFT" ? "all" : "DRAFT",
+        },
+      },
+      {
+        id: "private-only",
+        label: "仅私有",
+        description: "聚焦个人资产",
+        isActive: currentFilters.status === "private",
+        filters: {
+          ...currentFilters,
+          status: currentFilters.status === "private" ? "all" : "private",
+        },
+      },
+      {
+        id: "public-library",
+        label: "公开库",
+        description: "浏览共享内容",
+        isActive: currentFilters.scope === "shared",
+        filters: {
+          ...currentFilters,
+          scope: currentFilters.scope === "shared" ? "mine" : "shared",
+          status: currentFilters.scope === "shared" ? currentFilters.status : "public",
+          publishStatus: currentFilters.scope === "shared" ? currentFilters.publishStatus : "PUBLISHED",
+        },
+      },
+    ],
+    [currentFilters]
+  )
+
   return (
-    <div className="surface-panel space-y-4 p-4 sm:p-5">
+    <div className="surface-panel content-auto space-y-5 p-4 sm:p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <p className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
@@ -318,12 +381,47 @@ export function PromptAdvancedFilters({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {hasActiveFilters ? (
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
-              已启用筛选
-            </span>
-          ) : null}
+          <Badge
+            variant="outline"
+            className="rounded-full border-border/70 bg-background/78 px-3 py-1 text-[11px] font-medium text-muted-foreground"
+          >
+            {hasActiveFilters ? `已启用 ${activeFilterCount} 项筛选` : "默认视图"}
+          </Badge>
+          <Badge
+            variant="outline"
+            className="rounded-full border-border/70 bg-background/78 px-3 py-1 text-[11px] font-medium text-muted-foreground"
+          >
+            已保存 {savedViews.length} 个视图
+          </Badge>
           {isPending ? <span className="text-xs text-muted-foreground">正在应用筛选...</span> : null}
+        </div>
+      </div>
+
+      <div className="rounded-[1.35rem] border border-border/70 bg-background/72 p-4 shadow-card">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="eyebrow-label">Quick combos</p>
+            <p className="mt-1 text-sm text-muted-foreground">一键切换到常见检索组合，减少重复设置筛选条件。</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {quickPresets.map((preset) => (
+              <Button
+                key={preset.id}
+                type="button"
+                variant={preset.isActive ? "secondary" : "outline"}
+                size="sm"
+                onClick={() => {
+                  syncLocalFilters(preset.filters)
+                  applyFilters(preset.filters)
+                }}
+                disabled={isPending}
+                className={preset.isActive ? "rounded-full" : "rounded-full border-border/70 bg-background/78"}
+              >
+                <Sparkles aria-hidden="true" className="mr-1 h-3.5 w-3.5" />
+                {preset.label}
+              </Button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -334,7 +432,7 @@ export function PromptAdvancedFilters({
           applyFilters(currentFilters)
         }}
       >
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.7fr)_minmax(12rem,0.7fr)_auto]">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.6fr)_minmax(13rem,0.8fr)_auto]">
           <div className="relative">
             <Search
               aria-hidden="true"
@@ -361,10 +459,22 @@ export function PromptAdvancedFilters({
             <option value="shared">仅公开提示词</option>
           </select>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button type="submit" variant="secondary" disabled={isPending} className="h-12 rounded-full px-5">
               {isPending ? "筛选中..." : "应用筛选"}
             </Button>
+            {hasActiveFilters ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={resetFilters}
+                disabled={isPending}
+                className="h-12 rounded-full border-border/70 px-4"
+              >
+                <RotateCcw className="mr-1 h-4 w-4" aria-hidden="true" />
+                重置
+              </Button>
+            ) : null}
             <Button
               type="button"
               variant="outline"
@@ -373,7 +483,7 @@ export function PromptAdvancedFilters({
               aria-expanded={showAdvanced}
               aria-controls="prompt-advanced-filter-grid"
             >
-              更多
+              更多筛选
               <ChevronDown
                 aria-hidden="true"
                 className={`ml-1 h-4 w-4 transition-transform ${showAdvanced ? "rotate-180" : ""}`}
@@ -383,7 +493,7 @@ export function PromptAdvancedFilters({
         </div>
 
         {showAdvanced ? (
-          <div id="prompt-advanced-filter-grid" className="grid gap-3">
+          <div id="prompt-advanced-filter-grid" className="rounded-[1.35rem] border border-border/70 bg-background/72 p-4 shadow-card">
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               <select
                 aria-label="按可见性筛选"
@@ -465,70 +575,46 @@ export function PromptAdvancedFilters({
               </select>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  const resetFilters: PromptAdvancedFilterState = {
-                    q: "",
-                    category: "",
-                    tag: "",
-                    authorId: "",
-                    status: "all",
-                    publishStatus: "all",
-                    updatedWithin: "",
-                    scope: "mine",
-                  }
-
-                  setQ("")
-                  setCategory("")
-                  setTag("")
-                  setAuthorId("")
-                  setStatus("all")
-                  setPublishStatus("all")
-                  setUpdatedWithin("")
-                  setScope("mine")
-                  applyFilters(resetFilters)
-                }}
-                disabled={!hasActiveFilters || isPending}
-                className="rounded-full border-border/70 bg-background/72"
-              >
-                <RotateCcw className="mr-1 h-4 w-4" aria-hidden="true" />
-                重置筛选
-              </Button>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={saveCurrentView}
                 disabled={isPending}
-                className="rounded-full border-border/70 bg-background/72"
+                className="rounded-full border-border/70 bg-background/78"
               >
                 <BookmarkPlus className="mr-1 h-4 w-4" aria-hidden="true" />
-                保存视图
+                保存当前视图
               </Button>
+              <span className="text-xs text-muted-foreground">保存后可以在下方快速切换这组检索条件。</span>
             </div>
           </div>
         ) : null}
       </form>
 
       <div className="rounded-[1.4rem] border border-border/60 bg-background/68 p-3 sm:p-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <select
-            aria-label="已保存视图"
-            value={activeSavedViewId}
-            onChange={(event) => setActiveSavedViewId(event.target.value)}
-            className="h-11 min-w-0 flex-1 rounded-2xl border border-input bg-background/78 px-3 text-sm"
-          >
-            <option value="">选择已保存筛选视图</option>
-            {savedViews.map((view) => (
-              <option key={view.id} value={view.id}>
-                {view.name}
-              </option>
-            ))}
-          </select>
-
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="eyebrow-label">Saved views</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {savedViews.length > 0 ? "把常用筛选组合保存下来，后续一键切换。" : "当前还没有保存视图，可以先存一组常用筛选。"}
+            </p>
+          </div>
           <div className="flex flex-wrap items-center gap-2">
+            <select
+              aria-label="已保存视图"
+              value={activeSavedViewId}
+              onChange={(event) => setActiveSavedViewId(event.target.value)}
+              className="h-11 min-w-[13rem] rounded-2xl border border-input bg-background/78 px-3 text-sm"
+            >
+              <option value="">选择已保存筛选视图</option>
+              {savedViews.map((view) => (
+                <option key={view.id} value={view.id}>
+                  {view.name}
+                </option>
+              ))}
+            </select>
+
             <Button
               type="button"
               variant="secondary"

@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { PromptPublishStatus } from "@prisma/client"
-import { FileSearch, SearchX, SlidersHorizontal, Sparkles, Workflow } from "lucide-react"
+import { FileSearch, SearchX } from "lucide-react"
 import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
 
@@ -8,8 +8,8 @@ import {
   type PromptAdvancedFilterState,
   PromptAdvancedFilters,
 } from "@/components/prompts/prompt-advanced-filters"
-import { PromptBatchToolbar } from "@/components/prompts/prompt-batch-toolbar"
-import { VirtualizedPromptGrid } from "@/components/prompts/virtualized-prompt-grid"
+import { PromptListWorkspace } from "@/components/prompts/prompt-list-workspace"
+import { PromptQueryButton, PromptQueryStatus, PromptQueryTransitionProvider } from "@/components/prompts/prompt-query-transition"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
@@ -30,6 +30,9 @@ interface PromptsPageProps {
     pageSize?: string | string[]
   }
 }
+
+const DEFAULT_PAGE_SIZE = 40
+const PAGE_SIZE_OPTIONS = [20, 40, 60] as const
 
 const UPDATED_WITHIN_DAYS: Record<string, number> = {
   "24h": 1,
@@ -58,6 +61,7 @@ const PUBLISH_STATUS_LABELS: Record<string, string> = {
 }
 
 const SCOPE_LABELS: Record<string, string> = {
+  mine: "仅我的提示词",
   all: "我的 + 公开提示词",
   shared: "仅公开提示词",
 }
@@ -92,6 +96,10 @@ function resolvePublishStatus(value: string) {
 }
 
 function resolvePositiveInt(value: string, fallback: number, min: number, max: number) {
+  if (!value.trim()) {
+    return fallback
+  }
+
   const parsed = Number(value)
   if (!Number.isFinite(parsed)) {
     return fallback
@@ -119,7 +127,7 @@ function buildPromptsPageHref(filters: PromptAdvancedFilterState, page: number, 
   if (filters.updatedWithin) params.set("updatedWithin", filters.updatedWithin)
   if (filters.scope && filters.scope !== "mine") params.set("scope", filters.scope)
   if (page > 1) params.set("page", String(page))
-  if (pageSize !== 60) params.set("pageSize", String(pageSize))
+  if (pageSize !== DEFAULT_PAGE_SIZE) params.set("pageSize", String(pageSize))
 
   const query = params.toString()
   return `/prompts${query ? `?${query}` : ""}`
@@ -146,7 +154,7 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
   const updatedWithinDate = resolveUpdatedWithinDate(initialFilters.updatedWithin)
   const publishStatusFilter = resolvePublishStatus(initialFilters.publishStatus)
   const page = resolvePositiveInt(getSingleValue(searchParams.page).trim(), 1, 1, 10000)
-  const pageSize = resolvePositiveInt(getSingleValue(searchParams.pageSize).trim(), 60, 20, 120)
+  const pageSize = resolvePositiveInt(getSingleValue(searchParams.pageSize).trim(), DEFAULT_PAGE_SIZE, 20, 120)
   const skip = (page - 1) * pageSize
 
   const filters: Array<Record<string, unknown>> = []
@@ -230,9 +238,11 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
         id: true,
         title: true,
         description: true,
-        content: true,
+        authorId: true,
         isPublic: true,
         publishStatus: true,
+        viewCount: true,
+        favoriteCount: true,
         updatedAt: true,
         category: {
           select: {
@@ -255,6 +265,11 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
             name: true,
             email: true,
           },
+        },
+        members: {
+          where: { userId: session.user.id },
+          select: { role: true },
+          take: 1,
         },
       },
       orderBy: { updatedAt: "desc" },
@@ -292,17 +307,29 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
   const hasPrevPage = page > 1
   const hasNextPage = page < totalPages
 
-  const promptCards = prompts.map((prompt) => ({
-    id: prompt.id,
-    href: `/prompts/${prompt.id}`,
-    title: prompt.title,
-    description: `${prompt.description || prompt.content}\n状态：${prompt.publishStatus}`,
-    category: prompt.category.name,
-    visibility: prompt.isPublic ? ("public" as const) : ("private" as const),
-    author: prompt.author?.name || prompt.author?.email || "匿名用户",
-    tags: [...prompt.tags.map((promptTag) => promptTag.tag.name), `status:${prompt.publishStatus}`],
-    updatedAt: prompt.updatedAt.toLocaleDateString("zh-CN"),
-  }))
+  const promptCards = prompts.map((prompt) => {
+    const canEdit =
+      prompt.authorId === session.user.id ||
+      prompt.members.some((member) => member.role === "OWNER" || member.role === "EDITOR")
+
+    return {
+      id: prompt.id,
+      href: `/prompts/${prompt.id}`,
+      title: prompt.title,
+      description: prompt.description?.trim() || "暂无描述，点击查看详情继续完善这条提示词。",
+      category: prompt.category.name,
+      visibility: prompt.isPublic ? ("public" as const) : ("private" as const),
+      publishStatus: prompt.publishStatus,
+      author: prompt.author?.name || prompt.author?.email || "匿名用户",
+      tags: prompt.tags.map((promptTag) => promptTag.tag.name),
+      updatedAt: prompt.updatedAt.toLocaleDateString("zh-CN"),
+      metrics: [
+        { kind: "favorites" as const, value: prompt.favoriteCount },
+        { kind: "views" as const, value: prompt.viewCount },
+      ],
+      editHref: canEdit ? `/prompts/${prompt.id}/edit` : undefined,
+    }
+  })
 
   const hasActiveFilters = Boolean(
     initialFilters.q ||
@@ -331,9 +358,17 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
     initialFilters.updatedWithin ? UPDATED_WITHIN_LABELS[initialFilters.updatedWithin] || initialFilters.updatedWithin : null,
     initialFilters.scope !== "mine" ? SCOPE_LABELS[initialFilters.scope] || initialFilters.scope : null,
   ].filter(Boolean) as string[]
+  const activeFilterCount = activeFilterBadges.length
+
+  const scopeQuickLinks = [
+    { value: "mine", label: "仅我的", description: "聚焦本人和协作者可操作资产" },
+    { value: "all", label: "全部可访问", description: "同时查看我的与公开资产" },
+    { value: "shared", label: "公开库", description: "只看公开或共享给我的内容" },
+  ] as const
 
   return (
-    <div className="space-y-6">
+    <PromptQueryTransitionProvider viewSignature={buildPromptsPageHref(initialFilters, page, pageSize)}>
+      <div className="space-y-6">
       <section className="surface-panel-strong relative overflow-hidden p-6 sm:p-8">
         <div
           aria-hidden="true"
@@ -361,7 +396,7 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-[1.5rem] border border-border/70 bg-background/82 p-4 shadow-card backdrop-blur-sm">
               <p className="eyebrow-label">Library size</p>
               <p className="mt-3 text-3xl font-semibold text-foreground">{totalPromptCount}</p>
@@ -373,24 +408,64 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
               <p className="mt-1 text-sm text-muted-foreground">当前检索组合命中的结果</p>
             </div>
             <div className="rounded-[1.5rem] border border-border/70 bg-background/82 p-4 shadow-card backdrop-blur-sm">
-              <p className="eyebrow-label">Page state</p>
-              <p className="mt-3 text-3xl font-semibold text-foreground">{page}/{totalPages}</p>
-              <p className="mt-1 text-sm text-muted-foreground">每页 {pageSize} 条，支持批量处理</p>
+              <p className="eyebrow-label">Active filters</p>
+              <p className="mt-3 text-3xl font-semibold text-foreground">{activeFilterCount}</p>
+              <p className="mt-1 text-sm text-muted-foreground">当前生效的筛选条件数量</p>
+            </div>
+            <div className="rounded-[1.5rem] border border-border/70 bg-background/82 p-4 shadow-card backdrop-blur-sm">
+              <p className="eyebrow-label">Page density</p>
+              <p className="mt-3 text-3xl font-semibold text-foreground">{pageSize}</p>
+              <p className="mt-1 text-sm text-muted-foreground">当前每页加载条数，可平衡速度与密度</p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {activeFilterBadges.length > 0 ? (
-              activeFilterBadges.map((item) => (
-                <Badge key={item} variant="outline" className="border-border/70 bg-background/72 text-foreground">
-                  {item}
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              {activeFilterBadges.length > 0 ? (
+                activeFilterBadges.map((item) => (
+                  <Badge key={item} variant="outline" className="border-border/70 bg-background/72 text-foreground">
+                    {item}
+                  </Badge>
+                ))
+              ) : (
+                <Badge variant="outline" className="border-primary/20 bg-primary/10 text-primary">
+                  当前为默认视图，展示你的可操作提示词
                 </Badge>
-              ))
-            ) : (
-              <Badge variant="outline" className="border-primary/20 bg-primary/10 text-primary">
-                当前为默认视图，展示你的可操作提示词
-              </Badge>
-            )}
+              )}
+            </div>
+
+            <div className="rounded-[1.5rem] border border-border/70 bg-background/82 p-4 shadow-card backdrop-blur-sm">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <p className="eyebrow-label">Workspace range</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    <PromptQueryStatus
+                      idleText="快速切换列表范围，不丢失其他筛选条件。"
+                      pendingText="正在切换工作区范围并保留当前筛选条件。"
+                    />
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {scopeQuickLinks.map((item) => {
+                    const isActive = initialFilters.scope === item.value
+                    const href = buildPromptsPageHref({ ...initialFilters, scope: item.value }, 1, pageSize)
+
+                    return (
+                      <PromptQueryButton
+                        key={item.value}
+                        href={href}
+                        pendingLabel={`正在切换到${item.label}范围并刷新提示词列表。`}
+                        size="sm"
+                        variant={isActive ? "secondary" : "outline"}
+                        className={isActive ? "rounded-full" : "rounded-full border-border/70 bg-background/72"}
+                      >
+                        {item.label}
+                      </PromptQueryButton>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -405,37 +480,34 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
         initialFilters={initialFilters}
       />
 
-      <PromptBatchToolbar
-        prompts={prompts.map((prompt) => ({
-          id: prompt.id,
-          title: prompt.title,
-          isPublic: prompt.isPublic,
-          publishStatus: prompt.publishStatus,
-          tags: prompt.tags.map((promptTag) => promptTag.tag.name),
-        }))}
-      />
-
-      <section className="surface-panel flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-        <div>
-          <p className="eyebrow-label">Result overview</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            当前第 {page} / {totalPages} 页，本页 {prompts.length} 条，筛选结果共 {filteredPromptCount} 条。
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2 text-sm">
-          <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/72 px-3 py-2 text-muted-foreground">
-            <Workflow aria-hidden="true" className="h-4 w-4" />
-            批量操作与筛选联动
-          </span>
-          <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/72 px-3 py-2 text-muted-foreground">
-            <Sparkles aria-hidden="true" className="h-4 w-4" />
-            卡片列表支持渐进加载动效
-          </span>
-          {hasActiveFilters ? (
-            <Button asChild variant="outline" size="sm" className="rounded-full border-border/70 bg-background/72">
-              <Link href="/prompts">清空筛选</Link>
-            </Button>
-          ) : null}
+      <section className="surface-panel content-auto p-4 sm:p-5">
+        <div className="rounded-[1.35rem] border border-border/70 bg-background/78 p-4 shadow-card">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="eyebrow-label">Load profile</p>
+              <p className="mt-3 text-base font-semibold text-foreground">按每页条数平衡速度与密度</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                <PromptQueryStatus
+                  idleText="更少条目首屏更快，更多条目更适合密集浏览。"
+                  pendingText="正在切换每页条数并刷新当前提示词列表。"
+                />
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <PromptQueryButton
+                  key={size}
+                  href={buildPromptsPageHref(initialFilters, 1, size)}
+                  pendingLabel={`正在切换到每页 ${size} 条并刷新提示词列表。`}
+                  size="sm"
+                  variant={pageSize === size ? "secondary" : "outline"}
+                  className={pageSize === size ? "rounded-full" : "rounded-full border-border/70 bg-background/72"}
+                >
+                  {size} / 页
+                </PromptQueryButton>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -454,13 +526,19 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
                 <Button asChild>
                   <Link href="/prompts/new">创建提示词</Link>
                 </Button>
-                <Button asChild variant="outline">
-                  {page > 1 ? (
-                    <Link href={buildPromptsPageHref(initialFilters, Math.max(1, page - 1), pageSize)}>上一页</Link>
-                  ) : (
-                    <Link href="/prompts">重置筛选</Link>
-                  )}
-                </Button>
+                {page > 1 ? (
+                  <PromptQueryButton
+                    href={buildPromptsPageHref(initialFilters, Math.max(1, page - 1), pageSize)}
+                    pendingLabel="正在返回上一页并刷新提示词结果。"
+                    variant="outline"
+                  >
+                    上一页
+                  </PromptQueryButton>
+                ) : (
+                  <PromptQueryButton href="/prompts" pendingLabel="正在重置筛选并恢复默认提示词视图。" variant="outline">
+                    重置筛选
+                  </PromptQueryButton>
+                )}
               </>
             }
             className="surface-panel"
@@ -488,35 +566,61 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
           />
         )
       ) : (
-        <section className="space-y-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <SlidersHorizontal aria-hidden="true" className="h-4 w-4" />
-            <span>当前列表按更新时间倒序排列，方便优先处理最新提示词。</span>
-          </div>
-          <VirtualizedPromptGrid prompts={promptCards} viewportLabel="我的提示词列表" />
-        </section>
+        <PromptListWorkspace
+          promptCards={promptCards}
+          batchPrompts={prompts.map((prompt) => ({
+            id: prompt.id,
+            title: prompt.title,
+            isPublic: prompt.isPublic,
+            publishStatus: prompt.publishStatus,
+            tags: prompt.tags.map((promptTag) => promptTag.tag.name),
+          }))}
+          page={page}
+          totalPages={totalPages}
+          filteredPromptCount={filteredPromptCount}
+          pageSize={pageSize}
+          hasActiveFilters={hasActiveFilters}
+          clearHref="/prompts"
+        />
       )}
 
       {filteredPromptCount > 0 ? (
         <div className="surface-panel flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5">
           <div>
             <p className="eyebrow-label">Pagination</p>
-            <p className="mt-1 text-sm text-muted-foreground">每页 {pageSize} 条，已定位到第 {page} 页</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              <PromptQueryStatus
+                idleText={`每页 ${pageSize} 条，已定位到第 ${page} 页，共 ${totalPages} 页`}
+                pendingText="正在刷新当前分页与提示词列表。"
+              />
+            </p>
           </div>
           <div className="flex items-center gap-2">
             {hasPrevPage ? (
-              <Button variant="outline" size="sm" asChild className="rounded-full border-border/70 bg-background/72">
-                <Link href={buildPromptsPageHref(initialFilters, page - 1, pageSize)}>上一页</Link>
-              </Button>
+              <PromptQueryButton
+                href={buildPromptsPageHref(initialFilters, page - 1, pageSize)}
+                pendingLabel="正在切换到上一页并刷新提示词列表。"
+                variant="outline"
+                size="sm"
+                className="rounded-full border-border/70 bg-background/72"
+              >
+                上一页
+              </PromptQueryButton>
             ) : (
               <Button variant="outline" size="sm" disabled className="rounded-full border-border/70 bg-background/72">
                 上一页
               </Button>
             )}
             {hasNextPage ? (
-              <Button variant="outline" size="sm" asChild className="rounded-full border-border/70 bg-background/72">
-                <Link href={buildPromptsPageHref(initialFilters, page + 1, pageSize)}>下一页</Link>
-              </Button>
+              <PromptQueryButton
+                href={buildPromptsPageHref(initialFilters, page + 1, pageSize)}
+                pendingLabel="正在切换到下一页并刷新提示词列表。"
+                variant="outline"
+                size="sm"
+                className="rounded-full border-border/70 bg-background/72"
+              >
+                下一页
+              </PromptQueryButton>
             ) : (
               <Button variant="outline" size="sm" disabled className="rounded-full border-border/70 bg-background/72">
                 下一页
@@ -525,6 +629,7 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
           </div>
         </div>
       ) : null}
-    </div>
+      </div>
+    </PromptQueryTransitionProvider>
   )
 }

@@ -1,15 +1,18 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { Heart } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 interface FavoriteButtonProps {
   promptId: string
   isAuthenticated: boolean
   isFavorited?: boolean
   favoriteCount?: number
+  className?: string
 }
 
 export function FavoriteButton({
@@ -17,6 +20,7 @@ export function FavoriteButton({
   isAuthenticated,
   isFavorited: initialFavorited = false,
   favoriteCount = 0,
+  className,
 }: FavoriteButtonProps) {
   const router = useRouter()
   const [isFavorited, setIsFavorited] = useState(initialFavorited)
@@ -66,22 +70,17 @@ export function FavoriteButton({
       size="sm"
       onClick={handleFavorite}
       disabled={isLoading}
-      className={isFavorited ? "bg-red-500 text-white hover:bg-red-600" : ""}
+      className={cn(
+        "gap-2 rounded-full px-4",
+        isFavorited
+          ? "bg-rose-500 text-white shadow-[0_12px_28px_-16px_rgba(244,63,94,0.75)] hover:bg-rose-600"
+          : "border-border/70 bg-background/75",
+        className
+      )}
     >
-      <svg
-        className={`h-4 w-4 ${isFavorited ? "fill-current" : ""}`}
-        fill={isFavorited ? "currentColor" : "none"}
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-        />
-      </svg>
-      <span className="ml-1">{count}</span>
+      <Heart aria-hidden="true" className={cn("h-4 w-4", isFavorited ? "fill-current" : "")} />
+      <span>{isFavorited ? "已收藏" : "收藏"}</span>
+      <span className="text-xs opacity-80">{count}</span>
     </Button>
   )
 }

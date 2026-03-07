@@ -4,14 +4,16 @@ import { useEffect, useRef, useState } from "react"
 import { Check, Copy } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 interface PromptCopyButtonProps {
   content: string
+  className?: string
 }
 
 export const COPY_TOAST_DURATION_MS = 3000
 
-export function PromptCopyButton({ content }: PromptCopyButtonProps) {
+export function PromptCopyButton({ content, className }: PromptCopyButtonProps) {
   const [isCopied, setIsCopied] = useState(false)
   const [isToastVisible, setIsToastVisible] = useState(false)
   const hideToastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -54,7 +56,7 @@ export function PromptCopyButton({ content }: PromptCopyButtonProps) {
         size="sm"
         onClick={handleCopy}
         aria-label="复制提示词内容"
-        className="gap-2"
+        className={cn("gap-2 rounded-full border-border/70 bg-background/75 px-4", className)}
       >
         {isCopied ? <Check aria-hidden="true" className="h-4 w-4" /> : <Copy aria-hidden="true" className="h-4 w-4" />}
         <span>{isCopied ? "已复制" : "复制内容"}</span>

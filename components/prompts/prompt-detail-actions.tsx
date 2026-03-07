@@ -1,12 +1,14 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 import { FavoriteButton } from "@/components/prompts/favorite-button"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/toaster"
+import { cn } from "@/lib/utils"
 
 interface PromptDetailActionsProps {
   promptId: string
@@ -14,6 +16,7 @@ interface PromptDetailActionsProps {
   isAuthenticated: boolean
   isFavorited: boolean
   favoriteCount: number
+  className?: string
 }
 
 export function PromptDetailActions({
@@ -22,6 +25,7 @@ export function PromptDetailActions({
   isAuthenticated,
   isFavorited,
   favoriteCount,
+  className,
 }: PromptDetailActionsProps) {
   const router = useRouter()
   const { toast } = useToast()
@@ -76,19 +80,32 @@ export function PromptDetailActions({
   }
 
   return (
-    <div className="flex gap-2">
+    <div className={cn("grid w-full gap-2 sm:flex sm:flex-wrap sm:justify-start lg:justify-end", className)}>
       <FavoriteButton
         promptId={promptId}
         isAuthenticated={isAuthenticated}
         isFavorited={isFavorited}
         favoriteCount={favoriteCount}
+        className="w-full justify-center sm:w-auto"
       />
       {canEdit ? (
         <>
-          <Link href={`/prompts/${promptId}/edit`}>
-            <Button variant="outline" disabled={isDeleting}>编辑</Button>
+          <Link href={`/prompts/${promptId}/edit`} className="w-full sm:w-auto">
+            <Button
+              variant="outline"
+              disabled={isDeleting}
+              className="w-full rounded-full border-border/70 bg-background/75 px-4 sm:w-auto"
+            >
+              编辑
+            </Button>
           </Link>
-          <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="w-full justify-center rounded-full px-4 sm:w-auto"
+          >
+            <Trash2 aria-hidden="true" className="mr-2 h-4 w-4" />
             {isDeleting ? "删除中..." : "删除"}
           </Button>
         </>

@@ -1,13 +1,14 @@
 export function PromptDetailActionsLoading() {
   return (
     <div
-      className="flex gap-2"
+      className="grid w-full gap-2 sm:flex sm:flex-wrap"
       role="status"
       aria-live="polite"
       aria-label="操作区加载中"
     >
-      <div className="h-10 w-24 animate-pulse rounded-md bg-muted" />
-      <div className="h-10 w-20 animate-pulse rounded-md bg-muted" />
+      <div className="h-10 w-full animate-pulse rounded-full bg-muted sm:w-28" />
+      <div className="h-10 w-full animate-pulse rounded-full bg-muted sm:w-24" />
+      <div className="h-10 w-full animate-pulse rounded-full bg-muted sm:w-24" />
     </div>
   )
 }
@@ -15,7 +16,7 @@ export function PromptDetailActionsLoading() {
 export function PromptCopyButtonLoading() {
   return (
     <div
-      className="h-9 w-20 animate-pulse rounded-md bg-muted"
+      className="h-10 w-full animate-pulse rounded-full bg-muted"
       role="status"
       aria-live="polite"
       aria-label="复制按钮加载中"
