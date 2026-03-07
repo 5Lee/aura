@@ -1,18 +1,23 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
-import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+
+import { Button } from "@/components/ui/button"
 
 interface FavoriteButtonProps {
   promptId: string
+  isAuthenticated: boolean
   isFavorited?: boolean
   favoriteCount?: number
 }
 
-export function FavoriteButton({ promptId, isFavorited: initialFavorited = false, favoriteCount = 0 }: FavoriteButtonProps) {
-  const { data: session } = useSession()
+export function FavoriteButton({
+  promptId,
+  isAuthenticated,
+  isFavorited: initialFavorited = false,
+  favoriteCount = 0,
+}: FavoriteButtonProps) {
   const router = useRouter()
   const [isFavorited, setIsFavorited] = useState(initialFavorited)
   const [count, setCount] = useState(favoriteCount)
@@ -24,7 +29,7 @@ export function FavoriteButton({ promptId, isFavorited: initialFavorited = false
   }, [initialFavorited, favoriteCount])
 
   const handleFavorite = async () => {
-    if (!session) {
+    if (!isAuthenticated) {
       router.push("/login")
       return
     }
@@ -33,21 +38,19 @@ export function FavoriteButton({ promptId, isFavorited: initialFavorited = false
 
     try {
       if (isFavorited) {
-        // Remove from favorites
         await fetch(`/api/favorites?promptId=${promptId}`, {
           method: "DELETE",
         })
         setIsFavorited(false)
-        setCount(Math.max(0, count - 1))
+        setCount((current) => Math.max(0, current - 1))
       } else {
-        // Add to favorites
         await fetch("/api/favorites", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ promptId }),
         })
         setIsFavorited(true)
-        setCount(count + 1)
+        setCount((current) => current + 1)
       }
       router.refresh()
     } catch (error) {
@@ -63,10 +66,10 @@ export function FavoriteButton({ promptId, isFavorited: initialFavorited = false
       size="sm"
       onClick={handleFavorite}
       disabled={isLoading}
-      className={isFavorited ? "bg-red-500 hover:bg-red-600 text-white" : ""}
+      className={isFavorited ? "bg-red-500 text-white hover:bg-red-600" : ""}
     >
       <svg
-        className={`w-4 h-4 ${isFavorited ? "fill-current" : ""}`}
+        className={`h-4 w-4 ${isFavorited ? "fill-current" : ""}`}
         fill={isFavorited ? "currentColor" : "none"}
         stroke="currentColor"
         viewBox="0 0 24 24"

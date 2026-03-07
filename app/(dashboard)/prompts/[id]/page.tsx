@@ -180,13 +180,14 @@ export default async function PromptDetailPage({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div className="flex items-center justify-between">
-        <Link href="/prompts">
+      <div className="flex items-center justify-between gap-3">
+        <Link href="/prompts" className="hidden sm:inline-flex">
           <Button variant="ghost">← 返回列表</Button>
         </Link>
         <PromptDetailActions
           promptId={prompt.id}
           canEdit={canEdit}
+          isAuthenticated={Boolean(session?.user)}
           isFavorited={isFavorited}
           favoriteCount={prompt.favoriteCount}
         />

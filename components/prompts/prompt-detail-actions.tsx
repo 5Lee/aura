@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/toaster"
 interface PromptDetailActionsProps {
   promptId: string
   canEdit: boolean
+  isAuthenticated: boolean
   isFavorited: boolean
   favoriteCount: number
 }
@@ -18,6 +19,7 @@ interface PromptDetailActionsProps {
 export function PromptDetailActions({
   promptId,
   canEdit,
+  isAuthenticated,
   isFavorited,
   favoriteCount,
 }: PromptDetailActionsProps) {
@@ -77,6 +79,7 @@ export function PromptDetailActions({
     <div className="flex gap-2">
       <FavoriteButton
         promptId={promptId}
+        isAuthenticated={isAuthenticated}
         isFavorited={isFavorited}
         favoriteCount={favoriteCount}
       />

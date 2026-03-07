@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState, useTransition } from "react"
-import { BookmarkPlus, Filter, RotateCcw, Trash2 } from "lucide-react"
+import { BookmarkPlus, ChevronDown, Filter, RotateCcw, Search, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -111,6 +111,17 @@ export function PromptAdvancedFilters({
   const [scope, setScope] = useState(initialFilters.scope)
   const [savedViews, setSavedViews] = useState<SavedPromptView[]>([])
   const [activeSavedViewId, setActiveSavedViewId] = useState("")
+  const [showAdvanced, setShowAdvanced] = useState(
+    Boolean(
+      initialFilters.category ||
+        initialFilters.tag ||
+        initialFilters.authorId ||
+        initialFilters.updatedWithin ||
+        initialFilters.status !== "all" ||
+        initialFilters.publishStatus !== "all" ||
+        initialFilters.scope !== "mine"
+    )
+  )
   const [isPending, startTransition] = useTransition()
 
   useEffect(() => {
@@ -220,6 +231,12 @@ export function PromptAdvancedFilters({
     )
   }, [currentFilters])
 
+  useEffect(() => {
+    if (hasActiveFilters) {
+      setShowAdvanced(true)
+    }
+  }, [hasActiveFilters])
+
   const applyFilters = (filters: PromptAdvancedFilterState) => {
     const params = buildSearchParams(filters)
     const query = params.toString()
@@ -290,195 +307,248 @@ export function PromptAdvancedFilters({
   }
 
   return (
-    <div className="space-y-4 rounded-xl border border-border/70 bg-card p-4 shadow-card">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="inline-flex items-center gap-2 text-sm font-medium">
-          <Filter className="h-4 w-4" aria-hidden="true" />
-          高级检索
-        </p>
-        {isPending ? <span className="text-xs text-muted-foreground">正在应用筛选...</span> : null}
+    <div className="surface-panel space-y-4 p-4 sm:p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <p className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
+            <Filter className="h-4 w-4" aria-hidden="true" />
+            高级检索
+          </p>
+          <p className="text-sm text-muted-foreground">从关键词开始，按范围、标签、作者与发布时间逐步收敛。</p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {hasActiveFilters ? (
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
+              已启用筛选
+            </span>
+          ) : null}
+          {isPending ? <span className="text-xs text-muted-foreground">正在应用筛选...</span> : null}
+        </div>
       </div>
 
       <form
-        className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        className="space-y-4"
         onSubmit={(event) => {
           event.preventDefault()
           applyFilters(currentFilters)
         }}
       >
-        <Input
-          type="search"
-          value={q}
-          onChange={(event) => setQ(event.target.value)}
-          placeholder="关键词搜索"
-          aria-label="关键词搜索"
-          className="lg:col-span-2"
-        />
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.7fr)_minmax(12rem,0.7fr)_auto]">
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              type="search"
+              value={q}
+              onChange={(event) => setQ(event.target.value)}
+              placeholder="关键词搜索、用途、场景、灵感方向"
+              aria-label="关键词搜索"
+              className="h-12 rounded-full border-border/70 bg-background/78 pl-11 pr-4"
+            />
+          </div>
 
-        <select
-          aria-label="按范围筛选"
-          value={scope}
-          onChange={(event) => setScope(event.target.value)}
-          className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-        >
-          <option value="mine">仅我的提示词</option>
-          <option value="all">我的 + 公开提示词</option>
-          <option value="shared">仅公开提示词</option>
-        </select>
-
-        <select
-          aria-label="按可见性筛选"
-          value={status}
-          onChange={(event) => setStatus(event.target.value)}
-          className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-        >
-          <option value="all">全部可见性</option>
-          <option value="public">公开</option>
-          <option value="private">私有</option>
-        </select>
-
-        <select
-          aria-label="按发布状态筛选"
-          value={publishStatus}
-          onChange={(event) => setPublishStatus(event.target.value)}
-          className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-        >
-          <option value="all">全部发布状态</option>
-          <option value="DRAFT">草稿</option>
-          <option value="IN_REVIEW">待审核</option>
-          <option value="PUBLISHED">已发布</option>
-          <option value="ARCHIVED">已归档</option>
-        </select>
-
-        <select
-          aria-label="按分类筛选"
-          value={category}
-          onChange={(event) => setCategory(event.target.value)}
-          className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-        >
-          <option value="">全部分类</option>
-          {categories.map((item) => (
-            <option key={item.value} value={item.value}>
-              {item.label}
-            </option>
-          ))}
-        </select>
-
-        <select
-          aria-label="按标签筛选"
-          value={tag}
-          onChange={(event) => setTag(event.target.value)}
-          className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-        >
-          <option value="">全部标签</option>
-          {tags.map((item) => (
-            <option key={item.value} value={item.value}>
-              {item.label}
-            </option>
-          ))}
-        </select>
-
-        <select
-          aria-label="按作者筛选"
-          value={authorId}
-          onChange={(event) => setAuthorId(event.target.value)}
-          className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-        >
-          <option value="">全部作者</option>
-          {authors.map((item) => (
-            <option key={item.value} value={item.value}>
-              {item.label}
-            </option>
-          ))}
-        </select>
-
-        <select
-          aria-label="按更新时间筛选"
-          value={updatedWithin}
-          onChange={(event) => setUpdatedWithin(event.target.value)}
-          className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-        >
-          <option value="">全部时间</option>
-          <option value="24h">最近 24 小时</option>
-          <option value="7d">最近 7 天</option>
-          <option value="30d">最近 30 天</option>
-          <option value="90d">最近 90 天</option>
-        </select>
-
-        <div className="flex items-center gap-2 lg:col-span-4">
-          <Button type="submit" variant="secondary" disabled={isPending}>
-            {isPending ? "筛选中..." : "应用筛选"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              const resetFilters: PromptAdvancedFilterState = {
-                q: "",
-                category: "",
-                tag: "",
-                authorId: "",
-                status: "all",
-                publishStatus: "all",
-                updatedWithin: "",
-                scope: "mine",
-              }
-
-              setQ("")
-              setCategory("")
-              setTag("")
-              setAuthorId("")
-              setStatus("all")
-              setPublishStatus("all")
-              setUpdatedWithin("")
-              setScope("mine")
-              applyFilters(resetFilters)
-            }}
-            disabled={!hasActiveFilters || isPending}
+          <select
+            aria-label="按范围筛选"
+            value={scope}
+            onChange={(event) => setScope(event.target.value)}
+            className="h-12 rounded-full border border-input bg-background/78 px-4 text-sm"
           >
-            <RotateCcw className="mr-1 h-4 w-4" aria-hidden="true" />
-            重置筛选
-          </Button>
-          <Button type="button" variant="outline" onClick={saveCurrentView} disabled={isPending}>
-            <BookmarkPlus className="mr-1 h-4 w-4" aria-hidden="true" />
-            保存视图
-          </Button>
+            <option value="mine">仅我的提示词</option>
+            <option value="all">我的 + 公开提示词</option>
+            <option value="shared">仅公开提示词</option>
+          </select>
+
+          <div className="flex gap-2">
+            <Button type="submit" variant="secondary" disabled={isPending} className="h-12 rounded-full px-5">
+              {isPending ? "筛选中..." : "应用筛选"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 rounded-full border-border/70 px-4"
+              onClick={() => setShowAdvanced((current) => !current)}
+              aria-expanded={showAdvanced}
+              aria-controls="prompt-advanced-filter-grid"
+            >
+              更多
+              <ChevronDown
+                aria-hidden="true"
+                className={`ml-1 h-4 w-4 transition-transform ${showAdvanced ? "rotate-180" : ""}`}
+              />
+            </Button>
+          </div>
         </div>
+
+        {showAdvanced ? (
+          <div id="prompt-advanced-filter-grid" className="grid gap-3">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              <select
+                aria-label="按可见性筛选"
+                value={status}
+                onChange={(event) => setStatus(event.target.value)}
+                className="h-11 rounded-2xl border border-input bg-background/78 px-3 text-sm"
+              >
+                <option value="all">全部可见性</option>
+                <option value="public">公开</option>
+                <option value="private">私有</option>
+              </select>
+
+              <select
+                aria-label="按发布状态筛选"
+                value={publishStatus}
+                onChange={(event) => setPublishStatus(event.target.value)}
+                className="h-11 rounded-2xl border border-input bg-background/78 px-3 text-sm"
+              >
+                <option value="all">全部发布状态</option>
+                <option value="DRAFT">草稿</option>
+                <option value="IN_REVIEW">待审核</option>
+                <option value="PUBLISHED">已发布</option>
+                <option value="ARCHIVED">已归档</option>
+              </select>
+
+              <select
+                aria-label="按分类筛选"
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+                className="h-11 rounded-2xl border border-input bg-background/78 px-3 text-sm"
+              >
+                <option value="">全部分类</option>
+                {categories.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                aria-label="按标签筛选"
+                value={tag}
+                onChange={(event) => setTag(event.target.value)}
+                className="h-11 rounded-2xl border border-input bg-background/78 px-3 text-sm"
+              >
+                <option value="">全部标签</option>
+                {tags.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                aria-label="按作者筛选"
+                value={authorId}
+                onChange={(event) => setAuthorId(event.target.value)}
+                className="h-11 rounded-2xl border border-input bg-background/78 px-3 text-sm"
+              >
+                <option value="">全部作者</option>
+                {authors.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                aria-label="按更新时间筛选"
+                value={updatedWithin}
+                onChange={(event) => setUpdatedWithin(event.target.value)}
+                className="h-11 rounded-2xl border border-input bg-background/78 px-3 text-sm"
+              >
+                <option value="">全部时间</option>
+                <option value="24h">最近 24 小时</option>
+                <option value="7d">最近 7 天</option>
+                <option value="30d">最近 30 天</option>
+                <option value="90d">最近 90 天</option>
+              </select>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const resetFilters: PromptAdvancedFilterState = {
+                    q: "",
+                    category: "",
+                    tag: "",
+                    authorId: "",
+                    status: "all",
+                    publishStatus: "all",
+                    updatedWithin: "",
+                    scope: "mine",
+                  }
+
+                  setQ("")
+                  setCategory("")
+                  setTag("")
+                  setAuthorId("")
+                  setStatus("all")
+                  setPublishStatus("all")
+                  setUpdatedWithin("")
+                  setScope("mine")
+                  applyFilters(resetFilters)
+                }}
+                disabled={!hasActiveFilters || isPending}
+                className="rounded-full border-border/70 bg-background/72"
+              >
+                <RotateCcw className="mr-1 h-4 w-4" aria-hidden="true" />
+                重置筛选
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={saveCurrentView}
+                disabled={isPending}
+                className="rounded-full border-border/70 bg-background/72"
+              >
+                <BookmarkPlus className="mr-1 h-4 w-4" aria-hidden="true" />
+                保存视图
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </form>
 
-      <div className="flex flex-col gap-2 border-t border-border/60 pt-3 sm:flex-row sm:items-center">
-        <select
-          aria-label="已保存视图"
-          value={activeSavedViewId}
-          onChange={(event) => setActiveSavedViewId(event.target.value)}
-          className="h-10 min-w-0 flex-1 rounded-md border border-input bg-background px-3 text-sm"
-        >
-          <option value="">选择已保存筛选视图</option>
-          {savedViews.map((view) => (
-            <option key={view.id} value={view.id}>
-              {view.name}
-            </option>
-          ))}
-        </select>
+      <div className="rounded-[1.4rem] border border-border/60 bg-background/68 p-3 sm:p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <select
+            aria-label="已保存视图"
+            value={activeSavedViewId}
+            onChange={(event) => setActiveSavedViewId(event.target.value)}
+            className="h-11 min-w-0 flex-1 rounded-2xl border border-input bg-background/78 px-3 text-sm"
+          >
+            <option value="">选择已保存筛选视图</option>
+            {savedViews.map((view) => (
+              <option key={view.id} value={view.id}>
+                {view.name}
+              </option>
+            ))}
+          </select>
 
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={applySavedView}
-            disabled={!activeSavedViewId || isPending}
-          >
-            应用视图
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={removeSavedView}
-            disabled={!activeSavedViewId || isPending}
-          >
-            <Trash2 className="mr-1 h-4 w-4" aria-hidden="true" />
-            删除
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={applySavedView}
+              disabled={!activeSavedViewId || isPending}
+              className="rounded-full"
+            >
+              应用视图
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={removeSavedView}
+              disabled={!activeSavedViewId || isPending}
+              className="rounded-full"
+            >
+              <Trash2 className="mr-1 h-4 w-4" aria-hidden="true" />
+              删除
+            </Button>
+          </div>
         </div>
       </div>
     </div>

@@ -1,13 +1,17 @@
-import { PromptPublishStatus } from "@prisma/client"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
-import { prisma } from "@/lib/db"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
+import { PromptPublishStatus } from "@prisma/client"
+import { Compass, Layers3, Sparkles } from "lucide-react"
+import { getServerSession } from "next-auth"
+
 import { BrowseNavbar } from "@/components/layout/browse-navbar"
 import { SearchBox } from "@/components/search/search-box"
 import { VirtualizedPromptGrid } from "@/components/prompts/virtualized-prompt-grid"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { EmptyState } from "@/components/ui/empty-state"
+import { authOptions } from "@/lib/auth"
+import { prisma } from "@/lib/db"
+import { cn } from "@/lib/utils"
 
 export default async function BrowsePage({
   searchParams,
@@ -16,14 +20,15 @@ export default async function BrowsePage({
 }) {
   const session = await getServerSession(authOptions)
 
-  const categories = await prisma.category.findMany({
-    orderBy: { order: "asc" },
-  })
+  const where: Record<string, unknown> = {
+    isPublic: true,
+    publishStatus: PromptPublishStatus.PUBLISHED,
+  }
 
-  const where: any = { isPublic: true, publishStatus: PromptPublishStatus.PUBLISHED }
   if (searchParams.category) {
     where.categoryId = searchParams.category
   }
+
   if (searchParams.q) {
     where.OR = [
       { title: { contains: searchParams.q } },
@@ -32,18 +37,39 @@ export default async function BrowsePage({
     ]
   }
 
-  const prompts = await prisma.prompt.findMany({
-    where,
-    include: {
-      category: true,
-      tags: { include: { tag: true } },
-      author: {
-        select: { name: true, email: true },
+  const [categories, prompts] = await Promise.all([
+    prisma.category.findMany({
+      orderBy: { order: "asc" },
+      select: { id: true, name: true },
+    }),
+    prisma.prompt.findMany({
+      where,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        content: true,
+        favoriteCount: true,
+        viewCount: true,
+        category: {
+          select: { name: true },
+        },
+        tags: {
+          select: {
+            tag: {
+              select: { name: true },
+            },
+          },
+        },
+        author: {
+          select: { name: true, email: true },
+        },
       },
-    },
-    orderBy: { updatedAt: "desc" },
-  })
+      orderBy: { updatedAt: "desc" },
+    }),
+  ])
 
+  const activeCategoryName = categories.find((category) => category.id === searchParams.category)?.name
   const promptCards = prompts.map((prompt) => ({
     id: prompt.id,
     href: `/prompts/${prompt.id}`,
@@ -58,74 +84,162 @@ export default async function BrowsePage({
     ],
   }))
 
+  const categoryLinks = categories.map((category) => ({
+    id: category.id,
+    name: category.name,
+    href: searchParams.q
+      ? `/browse?category=${category.id}&q=${encodeURIComponent(searchParams.q)}`
+      : `/browse?category=${category.id}`,
+  }))
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-transparent">
       <BrowseNavbar session={session} />
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">浏览公开提示词</h1>
-          <p className="text-muted-foreground">
-            发现社区分享的优质 AI 提示词
-          </p>
-        </div>
+      <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <section className="surface-panel-strong relative overflow-hidden p-6 sm:p-8">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.18),transparent_38%),radial-gradient(circle_at_bottom_right,hsl(var(--accent)/0.14),transparent_32%)]"
+          />
+          <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)] lg:items-end">
+            <div className="space-y-5">
+              <div className="space-y-3">
+                <p className="eyebrow-label">Community prompt library</p>
+                <div className="space-y-3">
+                  <h1 className="max-w-3xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                    更快发现值得复用的 AI 提示词，而不是在列表里盲找。
+                  </h1>
+                  <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+                    从分类、热门主题和实时搜索切入，快速锁定可以直接启发工作流的提示词模板。
+                  </p>
+                </div>
+              </div>
 
-        {/* Search */}
-        <div className="mb-6">
-          <SearchBox />
-        </div>
+              <SearchBox defaultQuery={searchParams.q} category={searchParams.category} />
 
-        {/* Category Filter */}
-        <div className="mb-8 flex flex-wrap gap-2">
-          <Link href={searchParams.q ? `/browse?q=${searchParams.q}` : "/browse"}>
-            <Button
-              variant={!searchParams.category ? "default" : "outline"}
-              size="sm"
+              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                <Badge variant="outline" className="border-primary/20 bg-primary/10 text-primary">
+                  {categories.length} 个内容分类
+                </Badge>
+                <Badge variant="outline" className="border-border/70 bg-background/72 text-muted-foreground">
+                  {prompts.length} 条结果
+                </Badge>
+                {activeCategoryName ? (
+                  <Badge variant="outline" className="border-border/70 bg-background/72 text-foreground">
+                    分类：{activeCategoryName}
+                  </Badge>
+                ) : null}
+                {searchParams.q ? (
+                  <Badge variant="outline" className="border-border/70 bg-background/72 text-foreground">
+                    关键词：{searchParams.q}
+                  </Badge>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+              <div className="rounded-[1.5rem] border border-border/70 bg-background/82 p-4 shadow-card backdrop-blur-sm">
+                <p className="eyebrow-label">Browse focus</p>
+                <p className="mt-3 text-3xl font-semibold text-foreground">{prompts.length}</p>
+                <p className="mt-1 text-sm text-muted-foreground">当前可浏览结果</p>
+              </div>
+              <div className="rounded-[1.5rem] border border-border/70 bg-background/82 p-4 shadow-card backdrop-blur-sm">
+                <p className="eyebrow-label">Category</p>
+                <p className="mt-3 text-lg font-semibold text-foreground">{activeCategoryName || "全部主题"}</p>
+                <p className="mt-1 text-sm text-muted-foreground">从场景切入更快收敛结果</p>
+              </div>
+              <div className="rounded-[1.5rem] border border-border/70 bg-background/82 p-4 shadow-card backdrop-blur-sm">
+                <p className="eyebrow-label">Next action</p>
+                {session ? (
+                  <Button asChild variant="outline" className="mt-3 w-full rounded-full border-border/70 bg-background/70">
+                    <Link href="/prompts">查看我的提示词</Link>
+                  </Button>
+                ) : (
+                  <Button asChild className="mt-3 w-full rounded-full shadow-primary">
+                    <Link href="/register">注册后收藏灵感</Link>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="surface-panel p-4 sm:p-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href={searchParams.q ? `/browse?q=${encodeURIComponent(searchParams.q)}` : "/browse"}
+              className={cn(
+                "inline-flex min-h-10 items-center rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+                !searchParams.category
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border/70 bg-background/72 text-muted-foreground hover:text-foreground"
+              )}
             >
               全部
-            </Button>
-          </Link>
-          {categories.map((cat) => {
-            const href = searchParams.q
-              ? `/browse?category=${cat.id}&q=${encodeURIComponent(searchParams.q)}`
-              : `/browse?category=${cat.id}`
-            return (
-              <Link key={cat.id} href={href}>
-                <Button
-                  variant={searchParams.category === cat.id ? "default" : "outline"}
-                  size="sm"
-                >
-                  {cat.name}
-                </Button>
-              </Link>
-            )
-          })}
-        </div>
+            </Link>
+            {categoryLinks.map((category) => {
+              const active = searchParams.category === category.id
 
-        {searchParams.q && (
-          <div className="mb-6">
-            <p className="text-sm text-muted-foreground">
-              搜索结果: <strong>&quot;{searchParams.q}&quot;</strong> ({prompts.length} 个结果)
-            </p>
+              return (
+                <Link
+                  key={category.id}
+                  href={category.href}
+                  className={cn(
+                    "inline-flex min-h-10 items-center rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+                    active
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-border/70 bg-background/72 text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {category.name}
+                </Link>
+              )
+            })}
           </div>
-        )}
+        </section>
 
         {prompts.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <svg className="w-16 h-16 mx-auto mb-4 text-muted-foreground/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <h3 className="text-lg font-medium mb-2">没有找到提示词</h3>
-              <p className="text-muted-foreground">
-                {searchParams.q
-                  ? `没有找到包含 "${searchParams.q}" 的提示词`
-                  : "该分类下还没有公开的提示词"}
-              </p>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={<Compass aria-hidden="true" className="h-6 w-6" />}
+            title="当前还没有可浏览的公开提示词"
+            description={
+              searchParams.q || searchParams.category
+                ? "当前筛选条件下没有匹配结果，建议切换分类或清空关键词后重试。"
+                : "社区内容正在准备中。你可以先创建自己的提示词，或稍后再来查看最新公开模板。"
+            }
+            actions={
+              <>
+                <Button asChild>
+                  <Link href={session ? "/prompts/new" : "/register"}>{session ? "创建我的提示词" : "注册并开始"}</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href="/browse">清空筛选</Link>
+                </Button>
+              </>
+            }
+            className="surface-panel"
+          />
         ) : (
-          <VirtualizedPromptGrid prompts={promptCards} viewportLabel="公开提示词列表" />
+          <section className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="eyebrow-label">Prompt feed</p>
+                <h2 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">社区推荐</h2>
+              </div>
+              <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+                <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/72 px-3 py-2">
+                  <Layers3 aria-hidden="true" className="h-4 w-4" />
+                  分类筛选已就绪
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/72 px-3 py-2">
+                  <Sparkles aria-hidden="true" className="h-4 w-4" />
+                  列表支持渐进加载动效
+                </span>
+              </div>
+            </div>
+            <VirtualizedPromptGrid prompts={promptCards} viewportLabel="公开提示词列表" />
+          </section>
         )}
       </main>
     </div>

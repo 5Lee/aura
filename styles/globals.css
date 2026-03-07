@@ -49,14 +49,33 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
+
+  html {
+    color-scheme: light;
+    scroll-behavior: smooth;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
   body {
     @apply bg-background text-foreground;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at top left, hsl(var(--primary) / 0.14), transparent 36%),
+      radial-gradient(circle at top right, hsl(var(--accent) / 0.1), transparent 24%),
+      linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--background)) 58%, hsl(var(--muted) / 0.4) 100%);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.16);
+    color: hsl(var(--foreground));
   }
 
   :where(
@@ -73,5 +92,45 @@
 
   :where(a[href], button, summary, [role="button"]):focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer utilities {
+  .surface-panel {
+    border: 1px solid hsl(var(--border) / 0.7);
+    border-radius: 1.75rem;
+    background: hsl(var(--background) / 0.78);
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .surface-panel-strong {
+    border: 1px solid hsl(0 0% 100% / 0.6);
+    border-radius: 2rem;
+    background: hsl(var(--background) / 0.84);
+    box-shadow: 0 24px 80px -36px rgb(15 23 42 / 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .dark .surface-panel-strong {
+    border-color: hsl(0 0% 100% / 0.1);
+  }
+
+  .eyebrow-label {
+    @apply text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground;
+  }
+
+  .content-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 720px;
+  }
+
+  .subtle-grid {
+    background-image:
+      linear-gradient(to right, hsl(var(--border) / 0.45) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border) / 0.45) 1px, transparent 1px);
+    background-size: 22px 22px;
   }
 }
